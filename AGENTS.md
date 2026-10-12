@@ -6,6 +6,7 @@
 | --- | --- |
 | バックエンドの起動 | `MOONTV_MIRAKC_URL=http://<mirakc のホスト>:40772 cargo run` |
 | フロントエンドの開発サーバー | `pnpm -C frontend dev`（`/api` を `127.0.0.1:40780` へプロキシ） |
+| アイコンの生成 | `pnpm -C frontend icons`（`frontend/scripts/icons.ts` の図形から `frontend/public` のアイコン一式を書き出す） |
 | 全検査 | `mise run check` |
 | リリースビルド | `mise run build` |
 
