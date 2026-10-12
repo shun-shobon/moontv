@@ -182,21 +182,21 @@ function PlayerView({
 	}, [serviceId, codec, quality, viewerId]);
 
 	return (
-		<div className="bg-video relative aspect-video w-full overflow-hidden">
+		<div className="relative aspect-video w-full overflow-hidden bg-video">
 			<div ref={attachPlayer} className="absolute inset-0" />
 			{settingsHost != null && createPortal(<PlayerSettings {...settings} />, settingsHost)}
 			{current.kind === "starting" && (
-				<div className="bg-video text-fg-secondary text-label pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3">
-					<div className="border-line-strong border-t-accent size-8 animate-spin rounded-full border-2" />
+				<div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-video text-label text-fg-secondary">
+					<div className="size-8 animate-spin rounded-full border-2 border-line-strong border-t-accent" />
 					チューナーを起動しています…
 				</div>
 			)}
 			{current.kind === "error" && (
-				<div className="bg-video/80 text-fg text-label absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
+				<div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-video/80 p-6 text-center text-label text-fg">
 					<p>{current.message}</p>
 					<button
 						type="button"
-						className="bg-accent text-on-accent hover:bg-accent-hover text-action rounded-md px-4 py-2"
+						className="rounded-md bg-accent px-4 py-2 text-action text-on-accent hover:bg-accent-hover"
 						onClick={onRetry}
 					>
 						再読み込み

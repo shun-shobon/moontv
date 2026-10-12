@@ -8,13 +8,13 @@ export function App() {
 	const route = useRoute();
 
 	return (
-		<div className="bg-canvas text-fg flex min-h-dvh flex-col">
-			<header className="border-line bg-canvas/90 sticky top-0 z-40 flex h-14 shrink-0 items-center gap-6 border-b px-4 pt-[env(safe-area-inset-top)] backdrop-blur">
-				<a href="/" className="text-brand flex items-center gap-2">
+		<div className="flex min-h-dvh flex-col bg-canvas text-fg">
+			<header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-6 border-b border-line bg-canvas/90 px-4 pt-[env(safe-area-inset-top)] backdrop-blur">
+				<a href="/" className="flex items-center gap-2 text-brand">
 					<img src="/favicon.svg" alt="" className="size-7" />
 					moontv
 				</a>
-				<nav className="text-label flex gap-1">
+				<nav className="flex gap-1 text-label">
 					<NavLink href="/" active={route.name !== "guide"}>
 						ライブ
 					</NavLink>

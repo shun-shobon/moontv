@@ -50,7 +50,7 @@ export function GuidePage() {
 
 	return (
 		<div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-			<div className="border-line text-label flex shrink-0 gap-1 overflow-x-auto border-b px-4 py-2">
+			<div className="flex shrink-0 gap-1 overflow-x-auto border-b border-line px-4 py-2 text-label">
 				{days.map((day) => (
 					<button
 						key={day}
@@ -69,11 +69,11 @@ export function GuidePage() {
 				))}
 			</div>
 			{programs.isError || channels.isError ? (
-				<p className="text-fg-muted text-label p-8 text-center">番組情報を取得できませんでした。</p>
+				<p className="p-8 text-center text-label text-fg-muted">番組情報を取得できませんでした。</p>
 			) : programs.data == null || channels.data == null ? (
-				<p className="text-fg-muted text-label p-8 text-center">読み込み中…</p>
+				<p className="p-8 text-center text-label text-fg-muted">読み込み中…</p>
 			) : programs.data.length === 0 ? (
-				<p className="text-fg-muted text-label p-8 text-center">
+				<p className="p-8 text-center text-label text-fg-muted">
 					番組情報がありません。mirakc が EPG を取得するまでお待ちください。
 				</p>
 			) : (
@@ -121,15 +121,15 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 			className="relative"
 			style={{ width: TIME_COLUMN_WIDTH_PX + channels.length * COLUMN_WIDTH_PX }}
 		>
-			<div className="border-line bg-canvas sticky top-0 z-20 flex border-b">
+			<div className="sticky top-0 z-20 flex border-b border-line bg-canvas">
 				<div
-					className="bg-canvas sticky left-0 z-30 shrink-0"
+					className="sticky left-0 z-30 shrink-0 bg-canvas"
 					style={{ width: TIME_COLUMN_WIDTH_PX }}
 				/>
 				{channels.map((channel) => (
 					<div
 						key={channel.id}
-						className="border-line text-caption-strong shrink-0 truncate border-l px-2 py-2 text-center"
+						className="shrink-0 truncate border-l border-line px-2 py-2 text-center text-caption-strong"
 						style={{ width: COLUMN_WIDTH_PX }}
 					>
 						{channel.name}
@@ -138,13 +138,13 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 			</div>
 			<div className="relative flex" style={{ height }}>
 				<div
-					className="bg-canvas sticky left-0 z-10 shrink-0"
+					className="sticky left-0 z-10 shrink-0 bg-canvas"
 					style={{ width: TIME_COLUMN_WIDTH_PX }}
 				>
 					{hours.map((hour) => (
 						<div
 							key={hour}
-							className="border-line text-fg-muted text-caption-strong border-t pt-1 text-center tabular-nums"
+							className="border-t border-line pt-1 text-center text-caption-strong text-fg-muted tabular-nums"
 							style={{ height: toPx(HOUR_MS) }}
 						>
 							{new Date(hour).getHours()}
@@ -154,7 +154,7 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 				{channels.map((channel) => (
 					<div
 						key={channel.id}
-						className="border-line relative shrink-0 border-l"
+						className="relative shrink-0 border-l border-line"
 						style={{ width: COLUMN_WIDTH_PX }}
 					>
 						{programs
@@ -173,7 +173,7 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 				))}
 				{showNow && (
 					<div
-						className="border-accent-strong pointer-events-none absolute right-0 left-0 z-10 border-t-2"
+						className="pointer-events-none absolute right-0 left-0 z-10 border-t-2 border-accent-strong"
 						style={{ top: toPx(now - dayStart) }}
 					/>
 				)}
@@ -202,7 +202,7 @@ function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: CellProps) {
 		<button
 			type="button"
 			className={clsx(
-				"text-caption absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left hover:brightness-150",
+				"absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left text-caption hover:brightness-150",
 				className,
 				ended && "opacity-50",
 			)}
@@ -211,11 +211,11 @@ function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: CellProps) {
 				onSelect(program);
 			}}
 		>
-			<span className="text-fg-muted text-caption-strong mr-1 tabular-nums">
+			<span className="mr-1 text-caption-strong text-fg-muted tabular-nums">
 				{formatTime(program.startAt)}
 			</span>
 			<span className="text-fg">{program.name}</span>
-			{height > 48 && <span className="text-fg-muted mt-0.5 block">{program.description}</span>}
+			{height > 48 && <span className="mt-0.5 block text-fg-muted">{program.description}</span>}
 		</button>
 	);
 }

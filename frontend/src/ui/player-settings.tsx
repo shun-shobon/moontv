@@ -62,7 +62,7 @@ export function PlayerSettings({
 				aria-label="画質設定"
 				aria-expanded={open}
 				title="画質設定"
-				className="text-caption-strong flex! h-full w-16 items-center justify-center gap-1"
+				className="flex! h-full w-16 items-center justify-center gap-1 text-caption-strong"
 				onClick={() => {
 					setOpen((v) => !v);
 				}}
@@ -71,7 +71,7 @@ export function PlayerSettings({
 				<span className="tabular-nums">{preferences.quality}</span>
 			</button>
 			{open && (
-				<div className="bg-overlay/95 ring-line-strong text-label absolute right-0 bottom-full mb-2 flex w-48 flex-col gap-3 rounded-lg p-3 text-left shadow-xl ring-1">
+				<div className="absolute right-0 bottom-full mb-2 flex w-48 flex-col gap-3 rounded-lg bg-overlay/95 p-3 text-left text-label shadow-xl ring-1 ring-line-strong">
 					<OptionGroup
 						label="画質"
 						options={qualities}
@@ -113,7 +113,7 @@ function OptionGroup<T extends string>({
 }: OptionGroupProps<T>) {
 	return (
 		<fieldset className="flex flex-col gap-1">
-			<legend className="text-fg-muted text-caption mb-1">{label}</legend>
+			<legend className="mb-1 text-caption text-fg-muted">{label}</legend>
 			{options.map((option) => {
 				const active = option === value;
 				return (

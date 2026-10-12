@@ -85,14 +85,14 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 				</div>
 				<div className="flex flex-col gap-4 px-4 lg:px-0">
 					<div className="flex flex-col gap-1">
-						<p className="text-fg-muted text-label">{channel?.name ?? "不明なチャンネル"}</p>
+						<p className="text-label text-fg-muted">{channel?.name ?? "不明なチャンネル"}</p>
 						{present != null && (
 							<>
 								<h1 className="text-title">{present.name}</h1>
-								<p className="text-fg-subtle text-label tabular-nums">
+								<p className="text-label text-fg-subtle tabular-nums">
 									{formatRange(present.startAt, present.duration)}
 								</p>
-								<p className="text-fg-secondary text-body mt-1 whitespace-pre-wrap">
+								<p className="mt-1 text-body whitespace-pre-wrap text-fg-secondary">
 									{present.description}
 								</p>
 							</>
@@ -108,12 +108,12 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 }
 
 function Message({ children }: { children: string }) {
-	return <p className="text-fg-muted text-label p-8 text-center">{children}</p>;
+	return <p className="p-8 text-center text-label text-fg-muted">{children}</p>;
 }
 
 function PlayerPlaceholder() {
 	return (
-		<div className="bg-video text-fg-muted text-label flex aspect-video w-full items-center justify-center">
+		<div className="flex aspect-video w-full items-center justify-center bg-video text-label text-fg-muted">
 			プレイヤーを読み込んでいます…
 		</div>
 	);

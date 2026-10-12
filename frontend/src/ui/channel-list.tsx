@@ -30,7 +30,7 @@ export function ChannelList({ channels: allChannels, activeId, now, layout }: Pr
 	return (
 		<div className="flex min-h-0 flex-col gap-3">
 			{types.length > 1 && (
-				<div className="text-label flex gap-1" role="tablist">
+				<div className="flex gap-1 text-label" role="tablist">
 					{types.map((type) => (
 						<button
 							key={type}
@@ -82,25 +82,25 @@ function ChannelCard({ channel, active, now }: { channel: Channel; active: boole
 		>
 			<div className="flex items-center gap-3">
 				<ChannelBadge channel={channel} />
-				<span className="text-subtitle truncate">{channel.name}</span>
+				<span className="truncate text-subtitle">{channel.name}</span>
 			</div>
 			{present == null ? (
-				<p className="text-fg-subtle text-label">番組情報なし</p>
+				<p className="text-label text-fg-subtle">番組情報なし</p>
 			) : (
 				<div className="flex flex-col gap-1">
-					<p className="text-fg text-label line-clamp-2">{present.name}</p>
-					<p className="text-fg-subtle text-caption tabular-nums">
+					<p className="line-clamp-2 text-label text-fg">{present.name}</p>
+					<p className="text-caption text-fg-subtle tabular-nums">
 						{formatRange(present.startAt, present.duration)}
 					</p>
 					{progress != null && (
-						<div className="bg-track h-1 overflow-hidden rounded-full">
-							<div className="bg-accent-strong h-full" style={{ width: `${progress * 100}%` }} />
+						<div className="h-1 overflow-hidden rounded-full bg-track">
+							<div className="h-full bg-accent-strong" style={{ width: `${progress * 100}%` }} />
 						</div>
 					)}
 				</div>
 			)}
 			{following != null && (
-				<p className="text-fg-subtle text-caption truncate">次: {following.name}</p>
+				<p className="truncate text-caption text-fg-subtle">次: {following.name}</p>
 			)}
 		</a>
 	);
@@ -111,7 +111,7 @@ function ChannelBadge({ channel }: { channel: Channel }) {
 		return <img src={logoUrl(channel.id)} alt="" className="h-6 w-auto shrink-0 rounded-sm" />;
 	}
 	return (
-		<span className="bg-selected text-fg-secondary text-caption-strong flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md px-1.5 tabular-nums">
+		<span className="flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md bg-selected px-1.5 text-caption-strong text-fg-secondary tabular-nums">
 			{channel.remoteControlKeyId ?? channel.channel}
 		</span>
 	);
