@@ -36,7 +36,7 @@ pub struct EncoderSetup {
 }
 
 impl Encoder {
-    pub fn name(&self) -> &'static str {
+    pub const fn name(&self) -> &'static str {
         match self {
             Self::Vaapi { .. } => "vaapi",
             Self::Qsv { .. } => "qsv",

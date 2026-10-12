@@ -14,6 +14,7 @@ pub struct MirakcClient {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[expect(clippy::struct_field_names, reason = "mirakc の serviceId と揃える")]
 pub struct Service {
     pub id: u64,
     pub service_id: u16,

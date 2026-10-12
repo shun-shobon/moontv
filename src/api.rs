@@ -102,24 +102,24 @@ async fn programs(State(state): State<AppState>, Query(q): Query<ProgramsQuery>)
 }
 
 async fn program(State(state): State<AppState>, Path(id): Path<u64>) -> ApiResult<impl IntoResponse> {
-    match state.catalog.program(id).await? {
-        Some(p) => Ok(Json(p)),
-        None => Err(ApiError(StatusCode::NOT_FOUND, "program not found".into())),
-    }
+    let program = state.catalog.program(id).await?;
+    program
+        .map(Json)
+        .ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "program not found".into()))
 }
 
 async fn logo(State(state): State<AppState>, Path(id): Path<u64>) -> ApiResult<Response> {
-    match state.catalog.logo(id).await? {
-        Some(bytes) => Ok((
-            [
-                (header::CONTENT_TYPE, "image/png"),
-                (header::CACHE_CONTROL, "public, max-age=86400"),
-            ],
-            bytes,
-        )
-            .into_response()),
-        None => Err(ApiError(StatusCode::NOT_FOUND, "logo not found".into())),
-    }
+    let Some(bytes) = state.catalog.logo(id).await? else {
+        return Err(ApiError(StatusCode::NOT_FOUND, "logo not found".into()));
+    };
+    Ok((
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        bytes,
+    )
+        .into_response())
 }
 
 type LivePath = (u64, Codec, Quality, String);

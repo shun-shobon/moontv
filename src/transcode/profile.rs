@@ -31,7 +31,7 @@ pub struct Spec {
 }
 
 impl Quality {
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::P1080 => "1080p",
             Self::P720 => "720p",
@@ -40,7 +40,7 @@ impl Quality {
         }
     }
 
-    pub fn spec(self, codec: Codec) -> Spec {
+    pub const fn spec(self, codec: Codec) -> Spec {
         // HEVC は同等画質の H.264 より 4 割程度少ないビットレートで済む。
         let (width, height, hevc_kbps, h264_kbps, audio_kbps, hevc_codecs, h264_codecs) = match self {
             Self::P1080 => (1920, 1080, 5000, 8000, 192, "hvc1.1.6.L120.90", "avc1.640028"),
@@ -63,7 +63,7 @@ impl Quality {
 }
 
 impl Codec {
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::Hevc => "hevc",
             Self::H264 => "h264",

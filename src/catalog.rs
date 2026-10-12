@@ -103,6 +103,7 @@ impl Catalog {
             .collect();
         let snapshot = Arc::new(Snapshot { services, programs });
         *cache = Some((Instant::now(), snapshot.clone()));
+        drop(cache);
         Ok(snapshot)
     }
 
@@ -230,7 +231,7 @@ pub fn normalize(text: &str) -> String {
     out.nfkc().collect()
 }
 
-fn enclosed_symbol(c: char) -> Option<&'static str> {
+const fn enclosed_symbol(c: char) -> Option<&'static str> {
     Some(match c {
         '🅊' => "HV",
         '🅌' => "SD",

@@ -42,7 +42,7 @@ impl SessionManager {
         }
     }
 
-    pub fn setup(&self) -> &EncoderSetup {
+    pub const fn setup(&self) -> &EncoderSetup {
         &self.setup
     }
 
@@ -97,10 +97,9 @@ impl SessionManager {
     }
 
     pub fn get(&self, key: LiveKey, viewer: &str) -> Option<Arc<LiveSession>> {
-        let sessions = self.sessions.lock().unwrap();
-        let session = sessions.get(&key).filter(|s| s.is_live())?;
+        let session = self.sessions.lock().unwrap().get(&key).filter(|s| s.is_live())?.clone();
         session.touch(viewer);
-        Some(session.clone())
+        Some(session)
     }
 
     pub fn leave(&self, key: LiveKey, viewer: &str) {
@@ -144,6 +143,7 @@ impl SessionManager {
             session.stop();
             evicted = true;
         }
+        drop(sessions);
         evicted
     }
 
