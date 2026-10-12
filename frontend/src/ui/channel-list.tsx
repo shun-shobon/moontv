@@ -1,3 +1,4 @@
+import { clsx } from "clsx";
 import { useState } from "react";
 
 import { logoUrl } from "../api/client";
@@ -36,7 +37,10 @@ export function ChannelList({ channels: allChannels, activeId, now, layout }: Pr
 							type="button"
 							role="tab"
 							aria-selected={type === currentType}
-							className={`rounded-md px-3 py-1.5 ${type === currentType ? "bg-selected text-fg" : "text-fg-muted hover:text-fg"}`}
+							className={clsx(
+								"rounded-md px-3 py-1.5",
+								type === currentType ? "bg-selected text-fg" : "text-fg-muted hover:text-fg",
+							)}
 							onClick={() => {
 								setSelectedType(type);
 							}}
@@ -66,15 +70,15 @@ export function ChannelList({ channels: allChannels, activeId, now, layout }: Pr
 function ChannelCard({ channel, active, now }: { channel: Channel; active: boolean; now: number }) {
 	const { present, following } = channel;
 	const progress = present == null ? null : progressOf(present.startAt, present.duration, now);
-	const frame = active
-		? "bg-selected ring-accent/40"
-		: "bg-surface ring-line hover:bg-surface-hover";
 
 	return (
 		<a
 			href={watchPath(channel.id)}
 			aria-current={active ? "page" : undefined}
-			className={`flex flex-col gap-2 rounded-xl p-3 ring-1 transition-colors ring-inset ${frame}`}
+			className={clsx(
+				"flex flex-col gap-2 rounded-xl p-3 ring-1 transition-colors ring-inset",
+				active ? "bg-selected ring-accent/40" : "bg-surface ring-line hover:bg-surface-hover",
+			)}
 		>
 			<div className="flex items-center gap-3">
 				<ChannelBadge channel={channel} />

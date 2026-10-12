@@ -1,3 +1,4 @@
+import { clsx } from "clsx";
 import { useCallback, useState } from "react";
 
 import { useChannels, usePrograms } from "../api/queries";
@@ -55,7 +56,10 @@ export function GuidePage() {
 						key={day}
 						type="button"
 						aria-pressed={day === dayStart}
-						className={`shrink-0 rounded-md px-3 py-1.5 ${day === dayStart ? "bg-selected text-fg" : "text-fg-muted hover:text-fg"}`}
+						className={clsx(
+							"shrink-0 rounded-md px-3 py-1.5",
+							day === dayStart ? "bg-selected text-fg" : "text-fg-muted hover:text-fg",
+						)}
 						onClick={() => {
 							setDayStart(day);
 						}}
@@ -197,7 +201,11 @@ function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: CellProps) {
 	return (
 		<button
 			type="button"
-			className={`text-caption absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left hover:brightness-150 ${className} ${ended ? "opacity-50" : ""}`}
+			className={clsx(
+				"text-caption absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left hover:brightness-150",
+				className,
+				ended && "opacity-50",
+			)}
 			style={{ top, height }}
 			onClick={() => {
 				onSelect(program);

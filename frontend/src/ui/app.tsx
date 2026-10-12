@@ -1,3 +1,5 @@
+import { clsx } from "clsx";
+
 import { GuidePage } from "./guide-page";
 import { LivePage } from "./live-page";
 import { useRoute } from "./router";
@@ -33,9 +35,14 @@ export function App() {
 }
 
 function NavLink({ href, active, children }: { href: string; active: boolean; children: string }) {
-	const state = active ? "bg-selected text-fg" : "text-fg-muted hover:text-fg";
 	return (
-		<a href={href} className={`rounded-md px-3 py-1.5 transition-colors ${state}`}>
+		<a
+			href={href}
+			className={clsx(
+				"rounded-md px-3 py-1.5 transition-colors",
+				active ? "bg-selected text-fg" : "text-fg-muted hover:text-fg",
+			)}
+		>
 			{children}
 		</a>
 	);

@@ -1,3 +1,4 @@
+import { clsx } from "clsx";
 import { useEffect, useRef, useState } from "react";
 
 import type { Codec, Quality } from "../api/schemas";
@@ -120,7 +121,10 @@ function OptionGroup<T extends string>({
 						key={option}
 						type="button"
 						aria-pressed={active}
-						className={`flex! items-center justify-between rounded-md px-2 py-1.5 text-left ${active ? "bg-selected! text-fg" : "text-fg-secondary hover:bg-surface-hover!"}`}
+						className={clsx(
+							"flex! items-center justify-between rounded-md px-2 py-1.5 text-left",
+							active ? "bg-selected! text-fg" : "text-fg-secondary hover:bg-surface-hover!",
+						)}
 						onClick={() => {
 							onSelect(option);
 						}}

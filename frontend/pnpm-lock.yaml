@@ -169,6 +169,9 @@ importers:
       '@tanstack/react-query':
         specifier: 5.104.1
         version: 5.104.1(react@19.3.0)
+      clsx:
+        specifier: 2.1.1
+        version: 2.1.1
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -1178,6 +1181,10 @@ packages:
 
   aes-decrypter@4.0.2:
     resolution: {integrity: sha512-lc+/9s6iJvuaRe5qDlMTpCFjnwpkeOXp8qP3oiZ5jsj1MRg+SBVUmmICrhxHvc8OELSmc+fEyyxAuppY6hrWzw==}
+
+  clsx@2.1.1:
+    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
+    engines: {node: '>=6'}
 
   confbox@0.1.8:
     resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
@@ -2194,6 +2201,8 @@ snapshots:
       '@videojs/vhs-utils': 4.1.2
       global: 4.4.0
       pkcs7: 1.0.4
+
+  clsx@2.1.1: {}
 
   confbox@0.1.8: {}
 
