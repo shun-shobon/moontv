@@ -15,6 +15,7 @@ use crate::mirakc::{MirakcClient, OpenStreamError};
 const VIEWER_TIMEOUT: Duration = Duration::from_secs(20);
 /// 他チャンネルのセッションを止めた後、mirakc がチューナーを解放するまで待つ上限。
 const TUNER_RELEASE_WAIT: Duration = Duration::from_secs(8);
+const TUNER_RETRY_INTERVAL: Duration = Duration::from_millis(50);
 
 pub struct SessionManager {
     sessions: Mutex<HashMap<LiveKey, Arc<LiveSession>>>,
@@ -124,27 +125,38 @@ impl SessionManager {
                     }
                     // チューナーが足りないときは、最後に要求された視聴を優先して他チャンネルを止める。
                     if !evicted {
-                        evicted = self.evict_other_channels(session);
+                        let victims = self.evict_other_channels(session);
+                        if victims.is_empty() {
+                            return Err(anyhow!("no tuner is available"));
+                        }
+                        evicted = true;
+                        let all_finished = futures_util::future::join_all(victims.iter().map(|s| s.wait_finished()));
+                        let _ = tokio::time::timeout_at(deadline, all_finished).await;
+                        continue;
                     }
-                    if !evicted || tokio::time::Instant::now() >= deadline {
+                    if tokio::time::Instant::now() >= deadline {
                         return Err(anyhow!("no tuner is available"));
                     }
-                    tokio::time::sleep(Duration::from_millis(500)).await;
+                    // セッションが終わっても、mirakc が切断に気づいてチューナーを手放すまで数ミリ秒かかる。
+                    tokio::time::sleep(TUNER_RETRY_INTERVAL).await;
                 }
             }
         }
     }
 
-    fn evict_other_channels(&self, current: &LiveSession) -> bool {
+    fn evict_other_channels(&self, current: &LiveSession) -> Vec<Arc<LiveSession>> {
         let sessions = self.sessions.lock().unwrap();
-        let mut evicted = false;
-        for session in sessions.values().filter(|s| s.channel != current.channel) {
+        let victims: Vec<_> = sessions
+            .values()
+            .filter(|s| s.channel != current.channel)
+            .cloned()
+            .collect();
+        drop(sessions);
+        for session in &victims {
             tracing::info!(key = ?session.key, "stopping session to free a tuner");
             session.stop();
-            evicted = true;
         }
-        drop(sessions);
-        evicted
+        victims
     }
 
     fn remove(&self, session: &Arc<LiveSession>) {
