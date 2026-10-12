@@ -8,11 +8,10 @@ import { ChannelTypeTabs } from "./ChannelTypeTabs";
 type Props = {
 	channels: readonly Channel[];
 	activeId: number | null;
-	now: number;
 	layout: "grid" | "list";
 };
 
-export function ChannelList({ channels: allChannels, activeId, now, layout }: Props) {
+export function ChannelList({ channels: allChannels, activeId, layout }: Props) {
 	const channels = listedChannels(allChannels, activeId);
 	const types = channelTypes(channels);
 	const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -33,7 +32,7 @@ export function ChannelList({ channels: allChannels, activeId, now, layout }: Pr
 			>
 				{visible.map((channel) => (
 					<li key={channel.id}>
-						<ChannelCard channel={channel} active={channel.id === activeId} now={now} />
+						<ChannelCard channel={channel} active={channel.id === activeId} />
 					</li>
 				))}
 			</ul>

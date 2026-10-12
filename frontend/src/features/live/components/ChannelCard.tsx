@@ -1,16 +1,14 @@
 import { clsx } from "clsx";
 
 import type { Channel } from "../../../shared/api/schemas";
-import { formatRange, progressOf } from "../../../shared/domain/time";
+import { formatRange } from "../../../shared/domain/time";
 import { watchPath } from "../../../shared/services/routes";
 import { ChannelBadge } from "./ChannelBadge";
-import { ProgressBar } from "./ProgressBar";
 
-type Props = { channel: Channel; active: boolean; now: number };
+type Props = { channel: Channel; active: boolean };
 
-export function ChannelCard({ channel, active, now }: Props) {
+export function ChannelCard({ channel, active }: Props) {
 	const { present, following } = channel;
-	const progress = present == null ? null : progressOf(present.startAt, present.duration, now);
 
 	return (
 		<a
@@ -33,7 +31,6 @@ export function ChannelCard({ channel, active, now }: Props) {
 					<p className="text-caption text-fg-subtle tabular-nums">
 						{formatRange(present.startAt, present.duration)}
 					</p>
-					{progress != null && <ProgressBar progress={progress} />}
 				</div>
 			)}
 			{following != null && (

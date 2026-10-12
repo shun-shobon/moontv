@@ -2,7 +2,6 @@ import { Suspense, lazy, useEffect } from "react";
 
 import { useChannels, useStatus } from "../../../shared/api/queries";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
-import { useNow } from "../../../shared/hooks/useNow";
 import { PlayerPlaceholder } from "../../player/components/PlayerPlaceholder";
 import { ChannelList } from "../components/ChannelList";
 import { NowPlaying } from "../components/NowPlaying";
@@ -14,7 +13,6 @@ const LivePlayer = lazy(async () => ({ default: (await loadLivePlayer()).LivePla
 export function LivePage({ serviceId }: { serviceId: number | null }) {
 	const status = useStatus();
 	const channels = useChannels();
-	const now = useNow();
 
 	// チャンネル一覧を見ている間に先読みし、選んだときの待ち時間を減らす。
 	useEffect(() => {
@@ -35,7 +33,7 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 	if (serviceId == null) {
 		return (
 			<div className="mx-auto w-full max-w-7xl p-4">
-				<ChannelList channels={channels.data} activeId={null} now={now} layout="grid" />
+				<ChannelList channels={channels.data} activeId={null} layout="grid" />
 			</div>
 		);
 	}
@@ -53,7 +51,7 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 				</div>
 			</section>
 			<aside className="px-4 pb-4 lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto lg:px-0 lg:pb-0">
-				<ChannelList channels={channels.data} activeId={serviceId} now={now} layout="list" />
+				<ChannelList channels={channels.data} activeId={serviceId} layout="list" />
 			</aside>
 		</div>
 	);

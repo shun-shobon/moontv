@@ -18,18 +18,6 @@ export const formatRange = (startMs: number, durationMs: number | null) =>
 		? `${formatTime(startMs)} 〜`
 		: `${formatTime(startMs)} 〜 ${formatTime(startMs + durationMs)}`;
 
-/** 番組の進捗率（0〜1）。終了時刻が未定なら null。 */
-export const progressOf = (
-	startMs: number,
-	durationMs: number | null,
-	nowMs: number,
-): number | null => {
-	if (durationMs == null || durationMs <= 0) {
-		return null;
-	}
-	return Math.min(1, Math.max(0, (nowMs - startMs) / durationMs));
-};
-
 export const isOnAir = (startMs: number, durationMs: number | null, nowMs: number) =>
 	startMs <= nowMs && (durationMs == null || nowMs < startMs + durationMs);
 
