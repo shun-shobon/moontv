@@ -6,6 +6,7 @@ const CONNECTIONS = [
 	"**/api/client",
 	"**/api/queries",
 	"**/media/codec-support",
+	"**/media/media-session",
 	"**/media/preferences",
 	"**/media/viewer-id",
 ];
