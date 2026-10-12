@@ -1,0 +1,27 @@
+[tools]
+node = "24.21.0"
+pnpm = "12.11.0"
+rust = { version = "1.99.0", components = "clippy,rustfmt" }
+
+[settings]
+lockfile = true
+
+[tasks.build]
+description = "Build the frontend and embed it into the release binary"
+run = [
+  "pnpm -C frontend install --frozen-lockfile",
+  "pnpm -C frontend build",
+  "cargo build --release",
+]
+
+[tasks.check]
+description = "Run all formatters, linters, type checks and tests"
+run = [
+  "cargo fmt --check",
+  "cargo clippy --all-targets -- -D warnings",
+  "cargo test",
+  "pnpm -C frontend format:check",
+  "pnpm -C frontend lint",
+  "pnpm -C frontend typecheck",
+  "pnpm -C frontend knip",
+]
