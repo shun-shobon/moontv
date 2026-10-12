@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, anyhow};
 
@@ -39,7 +39,12 @@ impl SessionManager {
             setup,
             mirakc,
             catalog,
-            next_id: AtomicU64::new(0),
+            // 再起動前のプレイヤーが新しいセッションの ID と偶然一致しないよう、起動時刻から振る。
+            next_id: AtomicU64::new(
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .map_or(0, |d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX)),
+            ),
         }
     }
 
@@ -73,7 +78,7 @@ impl SessionManager {
                 key.codec.label(),
                 key.quality.label()
             ));
-            let session = Arc::new(LiveSession::new(key, channel, dir));
+            let session = Arc::new(LiveSession::new(id, key, channel, dir));
             session.touch(viewer);
             sessions.insert(key, session.clone());
             session
@@ -97,8 +102,21 @@ impl SessionManager {
         Ok(session)
     }
 
-    pub fn get(&self, key: LiveKey, viewer: &str) -> Option<Arc<LiveSession>> {
+    fn get(&self, key: LiveKey, viewer: &str) -> Option<Arc<LiveSession>> {
         let session = self.sessions.lock().unwrap().get(&key).filter(|s| s.is_live())?.clone();
+        session.touch(viewer);
+        Some(session)
+    }
+
+    /// 同じキーで作り直されたセッションの断片を古いプレイヤーに渡すと、`init.mp4` が食い違ってデコードに失敗する。
+    pub fn get_by_id(&self, key: LiveKey, id: u64, viewer: &str) -> Option<Arc<LiveSession>> {
+        let session = self
+            .sessions
+            .lock()
+            .unwrap()
+            .get(&key)
+            .filter(|s| s.id == id && s.is_live())?
+            .clone();
         session.touch(viewer);
         Some(session)
     }

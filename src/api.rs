@@ -38,7 +38,10 @@ pub fn router(state: AppState) -> Router {
             "/api/live/{service}/{codec}/{quality}/{viewer}/master.m3u8",
             get(master_playlist),
         )
-        .route("/api/live/{service}/{codec}/{quality}/{viewer}/{file}", get(live_file))
+        .route(
+            "/api/live/{service}/{codec}/{quality}/{viewer}/{session}/{file}",
+            get(live_file),
+        )
         .with_state(state)
 }
 
@@ -174,15 +177,15 @@ async fn master_playlist(State(state): State<AppState>, Path(path): Path<LivePat
     let bandwidth = (spec.video_kbps * 3 / 2 + spec.audio_kbps) * 1000;
     let body = format!(
         "#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-INDEPENDENT-SEGMENTS\n\
-         #EXT-X-STREAM-INF:BANDWIDTH={bandwidth},RESOLUTION={}x{},CODECS=\"{},mp4a.40.2\"\n{MEDIA_PLAYLIST}\n",
-        spec.width, spec.height, spec.codecs,
+         #EXT-X-STREAM-INF:BANDWIDTH={bandwidth},RESOLUTION={}x{},CODECS=\"{},mp4a.40.2\"\n{}/{MEDIA_PLAYLIST}\n",
+        spec.width, spec.height, spec.codecs, session.id,
     );
     Ok(playlist_response(body.into_bytes()))
 }
 
 async fn live_file(
     State(state): State<AppState>,
-    Path((service, codec, quality, viewer, file)): Path<(u64, Codec, Quality, String, String)>,
+    Path((service, codec, quality, viewer, session_id, file)): Path<(u64, Codec, Quality, String, u64, String)>,
 ) -> ApiResult<Response> {
     let key = live_key(&state, &(service, codec, quality, viewer.clone()))?;
     let content_type = match file.rsplit_once('.').map(|(_, ext)| ext) {
@@ -200,7 +203,7 @@ async fn live_file(
     }
     let session = state
         .sessions
-        .get(key, &viewer)
+        .get_by_id(key, session_id, &viewer)
         .ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "session not found".into()))?;
     let bytes = tokio::fs::read(session.dir.join(&file))
         .await
@@ -213,7 +216,6 @@ fn playlist_response(body: Vec<u8>) -> Response {
     live_response("application/vnd.apple.mpegurl", body)
 }
 
-/// セグメント名はセッションごとに `seg_000000` から振り直され、同じ URL で別の中身になるためキャッシュさせない。
 fn live_response(content_type: &'static str, body: Vec<u8>) -> Response {
     let mut res = body.into_response();
     let headers = res.headers_mut();

@@ -38,6 +38,7 @@ pub enum State {
 }
 
 pub struct LiveSession {
+    pub id: u64,
     pub key: LiveKey,
     pub channel: ChannelInfo,
     pub dir: PathBuf,
@@ -47,8 +48,9 @@ pub struct LiveSession {
 }
 
 impl LiveSession {
-    pub fn new(key: LiveKey, channel: ChannelInfo, dir: PathBuf) -> Self {
+    pub fn new(id: u64, key: LiveKey, channel: ChannelInfo, dir: PathBuf) -> Self {
         Self {
+            id,
             key,
             channel,
             dir,
