@@ -8,11 +8,11 @@ export function App() {
 	return (
 		<div className="bg-canvas text-fg flex min-h-dvh flex-col">
 			<header className="border-line bg-canvas/90 sticky top-0 z-40 flex h-14 shrink-0 items-center gap-6 border-b px-4 pt-[env(safe-area-inset-top)] backdrop-blur">
-				<a href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+				<a href="/" className="text-brand flex items-center gap-2">
 					<img src="/favicon.svg" alt="" className="size-7" />
 					moontv
 				</a>
-				<nav className="flex gap-1 text-sm">
+				<nav className="text-label flex gap-1">
 					<NavLink href="/" active={route.name !== "guide"}>
 						ライブ
 					</NavLink>

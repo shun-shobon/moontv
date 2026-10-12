@@ -85,14 +85,14 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 				</div>
 				<div className="flex flex-col gap-4 px-4 lg:px-0">
 					<div className="flex flex-col gap-1">
-						<p className="text-fg-muted text-sm">{channel?.name ?? "不明なチャンネル"}</p>
+						<p className="text-fg-muted text-label">{channel?.name ?? "不明なチャンネル"}</p>
 						{present != null && (
 							<>
-								<h1 className="text-lg leading-snug font-semibold">{present.name}</h1>
-								<p className="text-fg-subtle text-sm tabular-nums">
+								<h1 className="text-title">{present.name}</h1>
+								<p className="text-fg-subtle text-label tabular-nums">
 									{formatRange(present.startAt, present.duration)}
 								</p>
-								<p className="text-fg-secondary mt-1 text-sm leading-relaxed whitespace-pre-wrap">
+								<p className="text-fg-secondary text-body mt-1 whitespace-pre-wrap">
 									{present.description}
 								</p>
 							</>
@@ -108,12 +108,12 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 }
 
 function Message({ children }: { children: string }) {
-	return <p className="text-fg-muted p-8 text-center text-sm">{children}</p>;
+	return <p className="text-fg-muted text-label p-8 text-center">{children}</p>;
 }
 
 function PlayerPlaceholder() {
 	return (
-		<div className="bg-video text-fg-muted flex aspect-video w-full items-center justify-center text-sm">
+		<div className="bg-video text-fg-muted text-label flex aspect-video w-full items-center justify-center">
 			プレイヤーを読み込んでいます…
 		</div>
 	);

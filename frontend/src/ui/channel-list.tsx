@@ -29,7 +29,7 @@ export function ChannelList({ channels: allChannels, activeId, now, layout }: Pr
 	return (
 		<div className="flex min-h-0 flex-col gap-3">
 			{types.length > 1 && (
-				<div className="flex gap-1 text-sm" role="tablist">
+				<div className="text-label flex gap-1" role="tablist">
 					{types.map((type) => (
 						<button
 							key={type}
@@ -78,14 +78,14 @@ function ChannelCard({ channel, active, now }: { channel: Channel; active: boole
 		>
 			<div className="flex items-center gap-3">
 				<ChannelBadge channel={channel} />
-				<span className="truncate font-medium">{channel.name}</span>
+				<span className="text-subtitle truncate">{channel.name}</span>
 			</div>
 			{present == null ? (
-				<p className="text-fg-subtle text-sm">番組情報なし</p>
+				<p className="text-fg-subtle text-label">番組情報なし</p>
 			) : (
 				<div className="flex flex-col gap-1">
-					<p className="text-fg line-clamp-2 text-sm leading-snug">{present.name}</p>
-					<p className="text-fg-subtle text-xs tabular-nums">
+					<p className="text-fg text-label line-clamp-2">{present.name}</p>
+					<p className="text-fg-subtle text-caption tabular-nums">
 						{formatRange(present.startAt, present.duration)}
 					</p>
 					{progress != null && (
@@ -95,7 +95,9 @@ function ChannelCard({ channel, active, now }: { channel: Channel; active: boole
 					)}
 				</div>
 			)}
-			{following != null && <p className="text-fg-subtle truncate text-xs">次: {following.name}</p>}
+			{following != null && (
+				<p className="text-fg-subtle text-caption truncate">次: {following.name}</p>
+			)}
 		</a>
 	);
 }
@@ -105,7 +107,7 @@ function ChannelBadge({ channel }: { channel: Channel }) {
 		return <img src={logoUrl(channel.id)} alt="" className="h-6 w-auto shrink-0 rounded-sm" />;
 	}
 	return (
-		<span className="bg-selected text-fg-secondary flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums">
+		<span className="bg-selected text-fg-secondary text-caption-strong flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md px-1.5 tabular-nums">
 			{channel.remoteControlKeyId ?? channel.channel}
 		</span>
 	);

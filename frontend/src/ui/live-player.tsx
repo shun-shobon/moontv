@@ -186,17 +186,17 @@ function PlayerView({
 			<div ref={attachPlayer} className="absolute inset-0" />
 			{settingsHost != null && createPortal(<PlayerSettings {...settings} />, settingsHost)}
 			{current.kind === "starting" && (
-				<div className="bg-video text-fg-secondary pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 text-sm">
+				<div className="bg-video text-fg-secondary text-label pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3">
 					<div className="border-line-strong border-t-accent size-8 animate-spin rounded-full border-2" />
 					チューナーを起動しています…
 				</div>
 			)}
 			{current.kind === "error" && (
-				<div className="bg-video/80 text-fg absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center text-sm">
+				<div className="bg-video/80 text-fg text-label absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
 					<p>{current.message}</p>
 					<button
 						type="button"
-						className="bg-accent text-on-accent hover:bg-accent-hover rounded-md px-4 py-2 font-medium"
+						className="bg-accent text-on-accent hover:bg-accent-hover text-action rounded-md px-4 py-2"
 						onClick={onRetry}
 					>
 						再読み込み

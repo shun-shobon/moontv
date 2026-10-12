@@ -49,7 +49,7 @@ export function GuidePage() {
 
 	return (
 		<div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-			<div className="border-line flex shrink-0 gap-1 overflow-x-auto border-b px-4 py-2 text-sm">
+			<div className="border-line text-label flex shrink-0 gap-1 overflow-x-auto border-b px-4 py-2">
 				{days.map((day) => (
 					<button
 						key={day}
@@ -65,11 +65,11 @@ export function GuidePage() {
 				))}
 			</div>
 			{programs.isError || channels.isError ? (
-				<p className="text-fg-muted p-8 text-center text-sm">番組情報を取得できませんでした。</p>
+				<p className="text-fg-muted text-label p-8 text-center">番組情報を取得できませんでした。</p>
 			) : programs.data == null || channels.data == null ? (
-				<p className="text-fg-muted p-8 text-center text-sm">読み込み中…</p>
+				<p className="text-fg-muted text-label p-8 text-center">読み込み中…</p>
 			) : programs.data.length === 0 ? (
-				<p className="text-fg-muted p-8 text-center text-sm">
+				<p className="text-fg-muted text-label p-8 text-center">
 					番組情報がありません。mirakc が EPG を取得するまでお待ちください。
 				</p>
 			) : (
@@ -125,7 +125,7 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 				{channels.map((channel) => (
 					<div
 						key={channel.id}
-						className="border-line shrink-0 truncate border-l px-2 py-2 text-center text-xs font-medium"
+						className="border-line text-caption-strong shrink-0 truncate border-l px-2 py-2 text-center"
 						style={{ width: COLUMN_WIDTH_PX }}
 					>
 						{channel.name}
@@ -140,7 +140,7 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 					{hours.map((hour) => (
 						<div
 							key={hour}
-							className="border-line text-fg-muted border-t pt-1 text-center text-xs font-semibold tabular-nums"
+							className="border-line text-fg-muted text-caption-strong border-t pt-1 text-center tabular-nums"
 							style={{ height: toPx(HOUR_MS) }}
 						>
 							{new Date(hour).getHours()}
@@ -197,16 +197,16 @@ function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: CellProps) {
 	return (
 		<button
 			type="button"
-			className={`absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left text-xs leading-snug hover:brightness-150 ${className} ${ended ? "opacity-50" : ""}`}
+			className={`text-caption absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left hover:brightness-150 ${className} ${ended ? "opacity-50" : ""}`}
 			style={{ top, height }}
 			onClick={() => {
 				onSelect(program);
 			}}
 		>
-			<span className="text-fg-muted mr-1 font-semibold tabular-nums">
+			<span className="text-fg-muted text-caption-strong mr-1 tabular-nums">
 				{formatTime(program.startAt)}
 			</span>
-			<span className="text-fg font-medium">{program.name}</span>
+			<span className="text-fg">{program.name}</span>
 			{height > 48 && <span className="text-fg-muted mt-0.5 block">{program.description}</span>}
 		</button>
 	);

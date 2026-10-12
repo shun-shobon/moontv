@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /*
- * 色は2層で定義する。
- * - primitive（--palette-*）: 色そのもの。ユーティリティを生成しないので、コンポーネントからは使えない。
- * - semantic（--color-*）: 役割ごとの色。コンポーネントはこちらだけを使う。
- * Tailwind 既定のカラーパレットは primitive にあたるため、`--color-*: initial` で無効にしている。
+ * 色と文字は2層で定義する。
+ * - primitive（--palette-* は色、--scale-* は文字）: 値そのもの。ユーティリティを生成しないので、コンポーネントからは使えない。
+ * - semantic（--color-*、--text-*）: 役割ごとの値。コンポーネントはこちらだけを使う。
+ * Tailwind 既定の色・文字サイズ・太さ・行間・字間は primitive にあたるため、`initial` で無効にしている。
  */
 :root {
 	--palette-black: oklch(0 0 0);
@@ -39,6 +39,22 @@
 	--palette-hue-violet: oklch(0.66 0.08 295);
 	--palette-hue-lime: oklch(0.66 0.08 125);
 	--palette-hue-teal: oklch(0.66 0.08 185);
+
+	--scale-size-xs: 0.75rem;
+	--scale-size-sm: 0.875rem;
+	--scale-size-md: 1rem;
+	--scale-size-lg: 1.125rem;
+
+	--scale-weight-regular: 400;
+	--scale-weight-medium: 500;
+	--scale-weight-semibold: 600;
+
+	--scale-leading-tight: 1.25;
+	--scale-leading-snug: 1.375;
+	--scale-leading-normal: 1.5;
+	--scale-leading-relaxed: 1.625;
+
+	--scale-tracking-tight: -0.025em;
 }
 
 @theme {
@@ -84,6 +100,57 @@
 	--color-genre-hobby: var(--palette-hue-lime);
 	--color-genre-welfare: var(--palette-hue-teal);
 	--color-genre-other: var(--palette-night-500);
+
+	--text-*: initial;
+	--font-weight-*: initial;
+	--leading-*: initial;
+	--tracking-*: initial;
+
+	/* ロゴ */
+	--text-brand: var(--scale-size-md);
+	--text-brand--line-height: var(--scale-leading-normal);
+	--text-brand--font-weight: var(--scale-weight-semibold);
+	--text-brand--letter-spacing: var(--scale-tracking-tight);
+
+	/* 番組名などページの主題 */
+	--text-title: var(--scale-size-lg);
+	--text-title--line-height: var(--scale-leading-snug);
+	--text-title--font-weight: var(--scale-weight-semibold);
+
+	/* 一覧の項目名 */
+	--text-subtitle: var(--scale-size-md);
+	--text-subtitle--line-height: var(--scale-leading-normal);
+	--text-subtitle--font-weight: var(--scale-weight-medium);
+
+	/* 本文中の小見出し */
+	--text-heading: var(--scale-size-sm);
+	--text-heading--line-height: var(--scale-leading-normal);
+	--text-heading--font-weight: var(--scale-weight-semibold);
+
+	/* 番組説明などの長文 */
+	--text-body: var(--scale-size-sm);
+	--text-body--line-height: var(--scale-leading-relaxed);
+	--text-body--font-weight: var(--scale-weight-regular);
+
+	/* ナビゲーション・タブ・メッセージなどの UI 文言 */
+	--text-label: var(--scale-size-sm);
+	--text-label--line-height: var(--scale-leading-snug);
+	--text-label--font-weight: var(--scale-weight-regular);
+
+	/* ボタン */
+	--text-action: var(--scale-size-sm);
+	--text-action--line-height: var(--scale-leading-snug);
+	--text-action--font-weight: var(--scale-weight-medium);
+
+	/* 時刻や次番組などの補足 */
+	--text-caption: var(--scale-size-xs);
+	--text-caption--line-height: var(--scale-leading-snug);
+	--text-caption--font-weight: var(--scale-weight-regular);
+
+	/* 時刻の目盛りやチャンネル番号など、小さくても拾わせたい補足 */
+	--text-caption-strong: var(--scale-size-xs);
+	--text-caption-strong--line-height: var(--scale-leading-tight);
+	--text-caption-strong--font-weight: var(--scale-weight-semibold);
 }
 
 /* 一時停止ボタンを外しているので、OS などに止められたときの再開手段として中央の再生ボタンを出す。 */

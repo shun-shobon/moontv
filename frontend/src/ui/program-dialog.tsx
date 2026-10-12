@@ -30,28 +30,24 @@ export function ProgramDialog({ program, channel, now, onClose }: Props) {
 		>
 			<div className="flex flex-col gap-4 p-6">
 				<div className="flex flex-col gap-1">
-					<p className="text-fg-muted text-sm">
+					<p className="text-fg-muted text-label">
 						{channel?.name} ・ {formatDate(program.startAt)}{" "}
 						{formatRange(program.startAt, program.duration)}
 					</p>
-					<h2 className="text-lg leading-snug font-semibold">{program.name}</h2>
-					<p className="text-fg-subtle text-xs">{genreStyle(program.genres).label}</p>
+					<h2 className="text-title">{program.name}</h2>
+					<p className="text-fg-subtle text-caption">{genreStyle(program.genres).label}</p>
 				</div>
-				<p className="text-fg-secondary text-sm leading-relaxed whitespace-pre-wrap">
-					{program.description}
-				</p>
+				<p className="text-fg-secondary text-body whitespace-pre-wrap">{program.description}</p>
 				{detail.data?.extended.map((item) => (
 					<div key={item.key} className="flex flex-col gap-1">
-						<h3 className="text-fg text-sm font-semibold">{item.key}</h3>
-						<p className="text-fg-muted text-sm leading-relaxed whitespace-pre-wrap">
-							{item.value}
-						</p>
+						<h3 className="text-fg text-heading">{item.key}</h3>
+						<p className="text-fg-muted text-body whitespace-pre-wrap">{item.value}</p>
 					</div>
 				))}
 				<div className="flex justify-end gap-2">
 					<button
 						type="button"
-						className="text-fg-secondary hover:bg-surface-hover rounded-md px-4 py-2 text-sm"
+						className="text-fg-secondary hover:bg-surface-hover text-action rounded-md px-4 py-2"
 						onClick={() => {
 							dialogRef.current?.close();
 						}}
@@ -61,7 +57,7 @@ export function ProgramDialog({ program, channel, now, onClose }: Props) {
 					{onAir && (
 						<a
 							href={watchPath(program.serviceId)}
-							className="bg-accent text-on-accent hover:bg-accent-hover rounded-md px-4 py-2 text-sm font-medium"
+							className="bg-accent text-on-accent hover:bg-accent-hover text-action rounded-md px-4 py-2"
 						>
 							視聴する
 						</a>
