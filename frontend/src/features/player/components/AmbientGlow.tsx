@@ -40,7 +40,7 @@ export function AmbientGlow({ video }: { video: HTMLVideoElement | null }) {
 			width={16}
 			height={9}
 			aria-hidden
-			className="pointer-events-none absolute inset-x-0 top-0 h-[140%] w-full opacity-60 blur-3xl lg:h-full"
+			className="pointer-events-none absolute inset-0 size-full opacity-60 blur-3xl"
 		/>
 	);
 }
