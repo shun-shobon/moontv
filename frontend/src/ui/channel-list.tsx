@@ -74,7 +74,7 @@ function ChannelCard({ channel, active, now }: { channel: Channel; active: boole
 		<a
 			href={watchPath(channel.id)}
 			aria-current={active ? "page" : undefined}
-			className={`flex flex-col gap-2 rounded-xl p-3 ring-1 transition-colors ${frame}`}
+			className={`flex flex-col gap-2 rounded-xl p-3 ring-1 transition-colors ring-inset ${frame}`}
 		>
 			<div className="flex items-center gap-3">
 				<ChannelBadge channel={channel} />
