@@ -189,13 +189,15 @@ fn spawn_ffmpeg(session: &LiveSession, setup: &EncoderSetup) -> Result<Child> {
     cmd.current_dir(&session.dir)
         .args(["-hide_banner", "-loglevel", "warning", "-nostats"])
         .args(setup.encoder.global_args())
+        // 放送 TS のデータカルーセルはほとんどパケットが来ず、解析は probesize を使い切るまで終わらない。
+        // 1MB を下回ると映像のパラメーターを取りこぼすことがある。
         .args([
             "-fflags",
             "+discardcorrupt+genpts",
             "-analyzeduration",
-            "1000000",
+            "500000",
             "-probesize",
-            "4000000",
+            "1000000",
         ])
         .args(["-f", "mpegts", "-i", "pipe:0"])
         .args(["-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn"])
