@@ -1,7 +1,9 @@
 import { BufferingIndicator, Container } from "@videojs/react";
 import { SpinnerIcon } from "@videojs/react/icons";
+import { useState } from "react";
 
 import type { LivePhase } from "../services/live-session";
+import { AmbientGlow } from "./AmbientGlow";
 import { CenterPlayButton } from "./CenterPlayButton";
 import { LiveMedia } from "./LiveMedia";
 import { MediaErrorWatcher } from "./MediaErrorWatcher";
@@ -21,23 +23,30 @@ type Props = {
 };
 
 export function LivePlayerView({ phase, sourceKey, src, settings, onMediaError, onRetry }: Props) {
+	const [video, setVideo] = useState<HTMLVideoElement | null>(null);
+
 	return (
-		<Container className="relative aspect-video w-full overflow-hidden bg-video">
-			{/* 切り替え中は旧ソースを外し、旧チャンネルの再生を止める。 */}
-			{phase.kind === "playing" && <LiveMedia key={sourceKey} src={src} />}
-			<MediaErrorWatcher onError={onMediaError} />
-			<BufferingIndicator
-				className="pointer-events-none absolute inset-0 flex items-center justify-center text-fg not-data-visible:hidden"
-				render={(props) => (
-					<div {...props}>
-						<SpinnerIcon className="size-12" />
-					</div>
+		<div className="relative">
+			{settings.preferences.ambient && <AmbientGlow video={video} />}
+			<Container className="relative aspect-video w-full overflow-hidden bg-video lg:rounded-xl">
+				{/* 切り替え中は旧ソースを外し、旧チャンネルの再生を止める。 */}
+				{phase.kind === "playing" && (
+					<LiveMedia key={sourceKey} src={src} onVideoChange={setVideo} />
 				)}
-			/>
-			<CenterPlayButton />
-			<PlayerControls settings={settings} />
-			{phase.kind === "starting" && <PlayerStartingOverlay />}
-			{phase.kind === "error" && <PlayerErrorOverlay message={phase.message} onRetry={onRetry} />}
-		</Container>
+				<MediaErrorWatcher onError={onMediaError} />
+				<BufferingIndicator
+					className="pointer-events-none absolute inset-0 flex items-center justify-center text-fg not-data-visible:hidden"
+					render={(props) => (
+						<div {...props}>
+							<SpinnerIcon className="size-12" />
+						</div>
+					)}
+				/>
+				<CenterPlayButton />
+				<PlayerControls settings={settings} />
+				{phase.kind === "starting" && <PlayerStartingOverlay />}
+				{phase.kind === "error" && <PlayerErrorOverlay message={phase.message} onRetry={onRetry} />}
+			</Container>
+		</div>
 	);
 }

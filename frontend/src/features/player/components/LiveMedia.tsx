@@ -20,11 +20,23 @@ const autoplay = (video: HTMLVideoElement) => {
 	});
 };
 
-export function LiveMedia({ src }: { src: string }) {
+type Props = {
+	src: string;
+	onVideoChange: (video: HTMLVideoElement | null) => void;
+};
+
+export function LiveMedia({ src, onVideoChange }: Props) {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const isFullscreen = usePlayer((state) => state.isFullscreen);
 	const wasFullscreenRef = useRef(false);
 	const fullscreenExitedAtRef = useRef(Number.NEGATIVE_INFINITY);
+
+	useEffect(() => {
+		onVideoChange(videoRef.current);
+		return () => {
+			onVideoChange(null);
+		};
+	}, [onVideoChange]);
 
 	useEffect(() => {
 		const wasFullscreen = wasFullscreenRef.current;

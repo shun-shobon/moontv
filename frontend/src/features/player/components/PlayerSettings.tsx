@@ -6,6 +6,7 @@ import { useOutsidePointerDown } from "../hooks/useOutsidePointerDown";
 import type { Preferences } from "../media/preferences";
 import { codecOptionLabel, codecOptions } from "../services/player-settings";
 import { OptionGroup } from "./OptionGroup";
+import { ToggleOption } from "./ToggleOption";
 
 export type PlayerSettingsProps = {
 	qualities: readonly Quality[];
@@ -38,9 +39,9 @@ export function PlayerSettings({
 		<div ref={rootRef} className="relative flex h-full items-center">
 			<button
 				type="button"
-				aria-label="画質設定"
+				aria-label="再生設定"
 				aria-expanded={open}
-				title="画質設定"
+				title="再生設定"
 				className="flex h-full w-16 items-center justify-center gap-1 text-caption-strong"
 				onClick={() => {
 					setOpen((v) => !v);
@@ -67,6 +68,13 @@ export function PlayerSettings({
 						format={(c) => codecOptionLabel(c, activeCodec)}
 						onSelect={(codec) => {
 							select({ ...preferences, codec });
+						}}
+					/>
+					<ToggleOption
+						label="アンビエントモード"
+						checked={preferences.ambient}
+						onToggle={(ambient) => {
+							select({ ...preferences, ambient });
 						}}
 					/>
 				</div>

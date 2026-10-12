@@ -7,10 +7,11 @@ const STORAGE_KEY = "moontv.preferences";
 const PreferencesSchema = v.object({
 	quality: QualitySchema,
 	codec: v.union([v.literal("auto"), CodecSchema]),
+	ambient: v.boolean(),
 });
 export type Preferences = v.InferOutput<typeof PreferencesSchema>;
 
-const DEFAULT_PREFERENCES: Preferences = { quality: "1080p", codec: "auto" };
+const DEFAULT_PREFERENCES: Preferences = { quality: "1080p", codec: "auto", ambient: true };
 
 export const loadPreferences = (): Preferences => {
 	try {

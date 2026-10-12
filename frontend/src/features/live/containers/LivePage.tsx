@@ -41,11 +41,9 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 	return (
 		<div className="mx-auto grid w-full max-w-[1800px] grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-4">
 			<section className="flex min-w-0 flex-col gap-4">
-				<div className="lg:overflow-hidden lg:rounded-xl">
-					<Suspense fallback={<PlayerPlaceholder />}>
-						<LivePlayer serviceId={serviceId} status={status.data} />
-					</Suspense>
-				</div>
+				<Suspense fallback={<PlayerPlaceholder />}>
+					<LivePlayer serviceId={serviceId} status={status.data} />
+				</Suspense>
 				<div className="flex flex-col gap-4 px-4 lg:px-0">
 					<NowPlaying channel={channels.data.find((c) => c.id === serviceId)} />
 				</div>
