@@ -206,26 +206,18 @@ async fn live_file(
         .await
         .map_err(|_| ApiError(StatusCode::NOT_FOUND, "not found".into()))?;
 
-    if content_type == "application/vnd.apple.mpegurl" {
-        return Ok(playlist_response(bytes));
-    }
-    Ok((
-        [
-            (header::CONTENT_TYPE, content_type),
-            (header::CACHE_CONTROL, "max-age=60"),
-        ],
-        bytes,
-    )
-        .into_response())
+    Ok(live_response(content_type, bytes))
 }
 
 fn playlist_response(body: Vec<u8>) -> Response {
+    live_response("application/vnd.apple.mpegurl", body)
+}
+
+/// セグメント名はセッションごとに `seg_000000` から振り直され、同じ URL で別の中身になるためキャッシュさせない。
+fn live_response(content_type: &'static str, body: Vec<u8>) -> Response {
     let mut res = body.into_response();
     let headers = res.headers_mut();
-    headers.insert(
-        header::CONTENT_TYPE,
-        HeaderValue::from_static("application/vnd.apple.mpegurl"),
-    );
+    headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(content_type));
     headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     res
 }
