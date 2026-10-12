@@ -1,21 +1,21 @@
 import { useEffect, useRef } from "react";
 
-import { useProgram } from "../api/queries";
-import type { Channel, Program } from "../api/schemas";
-import { genreStyle } from "../domain/genre";
-import { formatDate, formatRange, isOnAir } from "../domain/time";
-import { watchPath } from "./router";
+import type { Channel, Program, ProgramDetail } from "../../api/schemas";
+import { genreStyle } from "../../domain/genre";
+import { formatDate, formatRange, isOnAir } from "../../domain/time";
+import { watchPath } from "../services/routes";
 
 type Props = {
 	program: Program;
 	channel: Channel | undefined;
+	/** 詳細を取得するまでは undefined。 */
+	extended: ProgramDetail["extended"] | undefined;
 	now: number;
 	onClose: () => void;
 };
 
-export function ProgramDialog({ program, channel, now, onClose }: Props) {
+export function ProgramDialog({ program, channel, extended, now, onClose }: Props) {
 	const dialogRef = useRef<HTMLDialogElement>(null);
-	const detail = useProgram(program.id);
 	const onAir = isOnAir(program.startAt, program.duration, now);
 
 	useEffect(() => {
@@ -38,7 +38,7 @@ export function ProgramDialog({ program, channel, now, onClose }: Props) {
 					<p className="text-caption text-fg-subtle">{genreStyle(program.genres).label}</p>
 				</div>
 				<p className="text-body whitespace-pre-wrap text-fg-secondary">{program.description}</p>
-				{detail.data?.extended.map((item) => (
+				{extended?.map((item) => (
 					<div key={item.key} className="flex flex-col gap-1">
 						<h3 className="text-heading text-fg">{item.key}</h3>
 						<p className="text-body whitespace-pre-wrap text-fg-muted">{item.value}</p>

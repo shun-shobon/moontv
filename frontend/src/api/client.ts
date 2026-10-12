@@ -1,6 +1,5 @@
 import * as v from "valibot";
 
-import type { Codec, Quality } from "./schemas";
 import {
 	ChannelSchema,
 	ErrorBodySchema,
@@ -8,6 +7,8 @@ import {
 	ProgramSchema,
 	StatusSchema,
 } from "./schemas";
+import type { LiveTarget } from "./urls";
+import { livePath } from "./urls";
 
 class ApiError extends Error {
 	readonly status: number;
@@ -52,30 +53,14 @@ export const fetchPrograms = async (startMs: number, endMs: number) =>
 export const fetchProgram = async (id: number) =>
 	await getJson(`/api/programs/${id}`, ProgramDetailSchema);
 
-export const logoUrl = (serviceId: number) => `/api/channels/${serviceId}/logo`;
-
-export type LiveTarget = {
-	serviceId: number;
-	codec: Codec;
-	quality: Quality;
-	viewerId: string;
-};
-
-const liveBase = ({ serviceId, codec, quality, viewerId }: LiveTarget) =>
-	`/api/live/${serviceId}/${codec}/${quality}/${viewerId}`;
-
-/** Video.js の HLS エンジンはプレイリスト内の相対パスをこの URL を基準に解決するため、絶対 URL にする。 */
-export const masterPlaylistUrl = (target: LiveTarget) =>
-	new URL(`${liveBase(target)}/master.m3u8`, location.href).href;
-
 /** チューナーの確保と最初のセグメント生成を待つ。失敗理由はサーバーのメッセージで返る。 */
 export async function startLive(target: LiveTarget, signal: AbortSignal): Promise<void> {
-	await request(liveBase(target), { method: "PUT", signal });
+	await request(livePath(target), { method: "PUT", signal });
 }
 
 /** ページを閉じる途中でも届くよう keepalive で送る。 */
 export function leaveLive(target: LiveTarget): void {
-	void fetch(liveBase(target), { method: "DELETE", keepalive: true }).catch(() => {
+	void fetch(livePath(target), { method: "DELETE", keepalive: true }).catch(() => {
 		// 届かなくてもサーバー側が無視聴タイムアウトでセッションを止める。
 	});
 }

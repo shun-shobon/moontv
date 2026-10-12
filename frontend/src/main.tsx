@@ -3,8 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { App } from "./ui/app";
-import { interceptNavigations } from "./ui/router";
+import { App } from "./ui/containers/App";
+import { interceptNavigations } from "./ui/services/navigation";
 
 const queryClient = new QueryClient({
 	defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: true } },
