@@ -1,5 +1,13 @@
 {
+	"id": "/",
 	"name": "moontv",
+	"short_name": "moontv",
+	"lang": "ja",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#070b11",
+	"theme_color": "#070b11",
 	"icons": [
 		{ "src": "/icon-192.png", "type": "image/png", "sizes": "192x192" },
 		{ "src": "/icon-512.png", "type": "image/png", "sizes": "512x512" },
