@@ -8,7 +8,8 @@
 		<link rel="icon" href="/favicon.ico" sizes="32x32" />
 		<link rel="icon" href="/icon.svg" type="image/svg+xml" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-		<link rel="manifest" href="/manifest.webmanifest" />
+		<!-- マニフェストは既定で Cookie なしで取得され、Cloudflare Access などの認証プロキシに弾かれる。 -->
+		<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
 		<title>moontv</title>
 	</head>
 	<body class="bg-canvas">
