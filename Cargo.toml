@@ -25,3 +25,7 @@ unicode-normalization = "=0.1.25"
 [profile.release]
 lto = "thin"
 strip = true
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
