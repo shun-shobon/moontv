@@ -1,3 +1,4 @@
+import { GearIcon } from "@videojs/react/icons";
 import { clsx } from "clsx";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,10 +19,6 @@ const CODEC_LABELS: Record<Preferences["codec"], string> = {
 	h264: "H.264",
 };
 
-/**
- * Video.js のコントロールバー内に React Portal で描画する設定メニュー。
- * `.video-js button` が display と background を上書きするため、それらには `!` を付けている。
- */
 export function PlayerSettings({
 	qualities,
 	codecs,
@@ -62,7 +59,7 @@ export function PlayerSettings({
 				aria-label="画質設定"
 				aria-expanded={open}
 				title="画質設定"
-				className="flex! h-full w-16 items-center justify-center gap-1 text-caption-strong"
+				className="flex h-full w-16 items-center justify-center gap-1 text-caption-strong"
 				onClick={() => {
 					setOpen((v) => !v);
 				}}
@@ -122,8 +119,8 @@ function OptionGroup<T extends string>({
 						type="button"
 						aria-pressed={active}
 						className={clsx(
-							"flex! items-center justify-between rounded-md px-2 py-1.5 text-left",
-							active ? "bg-selected! text-fg" : "text-fg-secondary hover:bg-surface-hover!",
+							"flex items-center justify-between rounded-md px-2 py-1.5 text-left",
+							active ? "bg-selected text-fg" : "text-fg-secondary hover:bg-surface-hover",
 						)}
 						onClick={() => {
 							onSelect(option);
@@ -135,21 +132,5 @@ function OptionGroup<T extends string>({
 				);
 			})}
 		</fieldset>
-	);
-}
-
-function GearIcon() {
-	return (
-		<svg
-			aria-hidden
-			viewBox="0 0 24 24"
-			className="size-4"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-		>
-			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-			<path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
-		</svg>
 	);
 }

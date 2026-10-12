@@ -19,12 +19,12 @@
 	},
 	"dependencies": {
 		"@tanstack/react-query": "5.104.1",
+		"@videojs/react": "10.0.1",
 		"clsx": "2.1.1",
 		"react": "19.3.0",
 		"react-dom": "19.3.0",
 		"universal-router": "10.0.3",
-		"valibot": "1.5.0",
-		"video.js": "8.24.1"
+		"valibot": "1.5.0"
 	},
 	"devDependencies": {
 		"@resvg/resvg-js": "2.6.2",

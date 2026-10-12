@@ -153,11 +153,6 @@
 	--text-caption-strong--font-weight: var(--scale-weight-semibold);
 }
 
-/* 一時停止ボタンを外しているので、OS などに止められたときの再開手段として中央の再生ボタンを出す。 */
-.video-js.vjs-has-started.vjs-paused .vjs-big-play-button {
-	display: block;
-}
-
 /* Tailwind v4 はボタンの既定カーソルをブラウザー標準(default)に戻したため、押せる見た目に揃える。 */
 @layer base {
 	button:not(:disabled),

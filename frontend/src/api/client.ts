@@ -64,7 +64,9 @@ export type LiveTarget = {
 const liveBase = ({ serviceId, codec, quality, viewerId }: LiveTarget) =>
 	`/api/live/${serviceId}/${codec}/${quality}/${viewerId}`;
 
-export const masterPlaylistUrl = (target: LiveTarget) => `${liveBase(target)}/master.m3u8`;
+/** Video.js の HLS エンジンはプレイリスト内の相対パスをこの URL を基準に解決するため、絶対 URL にする。 */
+export const masterPlaylistUrl = (target: LiveTarget) =>
+	new URL(`${liveBase(target)}/master.m3u8`, location.href).href;
 
 /** チューナーの確保と最初のセグメント生成を待つ。失敗理由はサーバーのメッセージで返る。 */
 export async function startLive(target: LiveTarget, signal: AbortSignal): Promise<void> {
