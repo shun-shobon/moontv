@@ -36,7 +36,7 @@ export function ChannelList({ channels: allChannels, activeId, now, layout }: Pr
 							type="button"
 							role="tab"
 							aria-selected={type === currentType}
-							className={`rounded-md px-3 py-1.5 ${type === currentType ? "bg-zinc-800 text-zinc-50" : "text-zinc-400 hover:text-zinc-100"}`}
+							className={`rounded-md px-3 py-1.5 ${type === currentType ? "bg-selected text-fg" : "text-fg-muted hover:text-fg"}`}
 							onClick={() => {
 								setSelectedType(type);
 							}}
@@ -67,8 +67,8 @@ function ChannelCard({ channel, active, now }: { channel: Channel; active: boole
 	const { present, following } = channel;
 	const progress = present == null ? null : progressOf(present.startAt, present.duration, now);
 	const frame = active
-		? "bg-zinc-800/80 ring-amber-300/60"
-		: "bg-zinc-900/60 ring-zinc-800 hover:bg-zinc-900";
+		? "bg-selected ring-accent/40"
+		: "bg-surface ring-line hover:bg-surface-hover";
 
 	return (
 		<a
@@ -81,21 +81,21 @@ function ChannelCard({ channel, active, now }: { channel: Channel; active: boole
 				<span className="truncate font-medium">{channel.name}</span>
 			</div>
 			{present == null ? (
-				<p className="text-sm text-zinc-500">番組情報なし</p>
+				<p className="text-fg-subtle text-sm">番組情報なし</p>
 			) : (
 				<div className="flex flex-col gap-1">
-					<p className="line-clamp-2 text-sm leading-snug text-zinc-200">{present.name}</p>
-					<p className="text-xs text-zinc-500 tabular-nums">
+					<p className="text-fg line-clamp-2 text-sm leading-snug">{present.name}</p>
+					<p className="text-fg-subtle text-xs tabular-nums">
 						{formatRange(present.startAt, present.duration)}
 					</p>
 					{progress != null && (
-						<div className="h-1 overflow-hidden rounded-full bg-zinc-800">
-							<div className="h-full bg-amber-300" style={{ width: `${progress * 100}%` }} />
+						<div className="bg-track h-1 overflow-hidden rounded-full">
+							<div className="bg-accent-strong h-full" style={{ width: `${progress * 100}%` }} />
 						</div>
 					)}
 				</div>
 			)}
-			{following != null && <p className="truncate text-xs text-zinc-500">次: {following.name}</p>}
+			{following != null && <p className="text-fg-subtle truncate text-xs">次: {following.name}</p>}
 		</a>
 	);
 }
@@ -105,7 +105,7 @@ function ChannelBadge({ channel }: { channel: Channel }) {
 		return <img src={logoUrl(channel.id)} alt="" className="h-6 w-auto shrink-0 rounded-sm" />;
 	}
 	return (
-		<span className="flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md bg-zinc-800 px-1.5 text-xs font-semibold text-zinc-300 tabular-nums">
+		<span className="bg-selected text-fg-secondary flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums">
 			{channel.remoteControlKeyId ?? channel.channel}
 		</span>
 	);

@@ -31,4 +31,5 @@
 - 配信 URL は `/api/live/{service}/{codec}/{quality}/{viewer}/...`。セッションは前3要素で共有し、`viewer` ごとの最終アクセスで視聴継続を判定する。視聴者がいなくなったセッションは止める。
 - フロントエンドは `PUT /api/live/...` で起動完了を待ってからプレイヤーに `master.m3u8` を渡す。起動失敗の理由を画面に出すため。
 - HEVC は `hvc1` タグ付きの fMP4 で出力する。Safari は `hev1` を再生できない。
+- 色は `frontend/src/index.css` の semantic token（`--color-*`）だけを使う。Tailwind 既定のパレットは無効にしてあり、`bg-zinc-900` などは書いても生成されない。
 - 実機確認は `mirakc` に接続できる環境で行う。チューナーを占有するので、検証後はセッションを止める。

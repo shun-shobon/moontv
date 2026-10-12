@@ -1,5 +1,91 @@
 @import "tailwindcss";
 
+/*
+ * 色は2層で定義する。
+ * - primitive（--palette-*）: 色そのもの。ユーティリティを生成しないので、コンポーネントからは使えない。
+ * - semantic（--color-*）: 役割ごとの色。コンポーネントはこちらだけを使う。
+ * Tailwind 既定のカラーパレットは primitive にあたるため、`--color-*: initial` で無効にしている。
+ */
+:root {
+	--palette-black: oklch(0 0 0);
+
+	/* 夜空の青みを帯びた無彩色。映像より目立たないよう彩度を抑える。 */
+	--palette-night-950: oklch(0.125 0.012 255);
+	--palette-night-900: oklch(0.15 0.014 255);
+	--palette-night-850: oklch(0.18 0.016 255);
+	--palette-night-800: oklch(0.215 0.018 255);
+	--palette-night-700: oklch(0.28 0.02 255);
+	--palette-night-600: oklch(0.45 0.02 255);
+	--palette-night-500: oklch(0.58 0.02 255);
+	--palette-night-400: oklch(0.7 0.018 255);
+	--palette-night-300: oklch(0.81 0.014 255);
+	--palette-night-200: oklch(0.89 0.01 255);
+	--palette-night-100: oklch(0.95 0.008 255);
+
+	--palette-moon-400: oklch(0.78 0.075 240);
+	--palette-moon-300: oklch(0.85 0.06 238);
+	--palette-moon-200: oklch(0.91 0.04 236);
+
+	/* 番組表のジャンル色。明度と彩度を揃え、色相だけで区別する。 */
+	--palette-hue-blue: oklch(0.66 0.08 245);
+	--palette-hue-green: oklch(0.66 0.08 155);
+	--palette-hue-cyan: oklch(0.66 0.08 210);
+	--palette-hue-rose: oklch(0.66 0.08 5);
+	--palette-hue-magenta: oklch(0.66 0.08 320);
+	--palette-hue-amber: oklch(0.66 0.08 75);
+	--palette-hue-red: oklch(0.66 0.08 30);
+	--palette-hue-pink: oklch(0.66 0.08 345);
+	--palette-hue-indigo: oklch(0.66 0.08 275);
+	--palette-hue-violet: oklch(0.66 0.08 295);
+	--palette-hue-lime: oklch(0.66 0.08 125);
+	--palette-hue-teal: oklch(0.66 0.08 185);
+}
+
+@theme {
+	--color-*: initial;
+
+	/* 背景 */
+	--color-canvas: var(--palette-night-900);
+	--color-surface: var(--palette-night-850);
+	--color-surface-hover: var(--palette-night-800);
+	--color-selected: var(--palette-night-800);
+	--color-overlay: var(--palette-night-850);
+	--color-scrim: var(--palette-night-950);
+	--color-video: var(--palette-black);
+	--color-track: var(--palette-night-800);
+
+	/* 境界線 */
+	--color-line: var(--palette-night-800);
+	--color-line-strong: var(--palette-night-700);
+
+	/* 文字 */
+	--color-fg: var(--palette-night-100);
+	--color-fg-secondary: var(--palette-night-300);
+	--color-fg-muted: var(--palette-night-400);
+	--color-fg-subtle: var(--palette-night-500);
+
+	/* 強調 */
+	--color-accent: var(--palette-moon-300);
+	--color-accent-hover: var(--palette-moon-200);
+	--color-accent-strong: var(--palette-moon-400);
+	--color-on-accent: var(--palette-night-950);
+
+	/* 番組ジャンル */
+	--color-genre-news: var(--palette-hue-blue);
+	--color-genre-sports: var(--palette-hue-green);
+	--color-genre-info: var(--palette-hue-cyan);
+	--color-genre-drama: var(--palette-hue-rose);
+	--color-genre-music: var(--palette-hue-magenta);
+	--color-genre-variety: var(--palette-hue-amber);
+	--color-genre-movie: var(--palette-hue-red);
+	--color-genre-anime: var(--palette-hue-pink);
+	--color-genre-documentary: var(--palette-hue-indigo);
+	--color-genre-theater: var(--palette-hue-violet);
+	--color-genre-hobby: var(--palette-hue-lime);
+	--color-genre-welfare: var(--palette-hue-teal);
+	--color-genre-other: var(--palette-night-500);
+}
+
 /* 一時停止ボタンを外しているので、OS などに止められたときの再開手段として中央の再生ボタンを出す。 */
 .video-js.vjs-has-started.vjs-paused .vjs-big-play-button {
 	display: block;

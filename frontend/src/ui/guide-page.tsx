@@ -49,13 +49,13 @@ export function GuidePage() {
 
 	return (
 		<div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-			<div className="flex shrink-0 gap-1 overflow-x-auto border-b border-zinc-800 px-4 py-2 text-sm">
+			<div className="border-line flex shrink-0 gap-1 overflow-x-auto border-b px-4 py-2 text-sm">
 				{days.map((day) => (
 					<button
 						key={day}
 						type="button"
 						aria-pressed={day === dayStart}
-						className={`shrink-0 rounded-md px-3 py-1.5 ${day === dayStart ? "bg-zinc-800 text-zinc-50" : "text-zinc-400 hover:text-zinc-100"}`}
+						className={`shrink-0 rounded-md px-3 py-1.5 ${day === dayStart ? "bg-selected text-fg" : "text-fg-muted hover:text-fg"}`}
 						onClick={() => {
 							setDayStart(day);
 						}}
@@ -65,11 +65,11 @@ export function GuidePage() {
 				))}
 			</div>
 			{programs.isError || channels.isError ? (
-				<p className="p-8 text-center text-sm text-zinc-400">番組情報を取得できませんでした。</p>
+				<p className="text-fg-muted p-8 text-center text-sm">番組情報を取得できませんでした。</p>
 			) : programs.data == null || channels.data == null ? (
-				<p className="p-8 text-center text-sm text-zinc-400">読み込み中…</p>
+				<p className="text-fg-muted p-8 text-center text-sm">読み込み中…</p>
 			) : programs.data.length === 0 ? (
-				<p className="p-8 text-center text-sm text-zinc-400">
+				<p className="text-fg-muted p-8 text-center text-sm">
 					番組情報がありません。mirakc が EPG を取得するまでお待ちください。
 				</p>
 			) : (
@@ -117,15 +117,15 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 			className="relative"
 			style={{ width: TIME_COLUMN_WIDTH_PX + channels.length * COLUMN_WIDTH_PX }}
 		>
-			<div className="sticky top-0 z-20 flex border-b border-zinc-800 bg-zinc-950">
+			<div className="border-line bg-canvas sticky top-0 z-20 flex border-b">
 				<div
-					className="sticky left-0 z-30 shrink-0 bg-zinc-950"
+					className="bg-canvas sticky left-0 z-30 shrink-0"
 					style={{ width: TIME_COLUMN_WIDTH_PX }}
 				/>
 				{channels.map((channel) => (
 					<div
 						key={channel.id}
-						className="shrink-0 truncate border-l border-zinc-800 px-2 py-2 text-center text-xs font-medium"
+						className="border-line shrink-0 truncate border-l px-2 py-2 text-center text-xs font-medium"
 						style={{ width: COLUMN_WIDTH_PX }}
 					>
 						{channel.name}
@@ -134,13 +134,13 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 			</div>
 			<div className="relative flex" style={{ height }}>
 				<div
-					className="sticky left-0 z-10 shrink-0 bg-zinc-950"
+					className="bg-canvas sticky left-0 z-10 shrink-0"
 					style={{ width: TIME_COLUMN_WIDTH_PX }}
 				>
 					{hours.map((hour) => (
 						<div
 							key={hour}
-							className="border-t border-zinc-800 pt-1 text-center text-xs font-semibold text-zinc-400 tabular-nums"
+							className="border-line text-fg-muted border-t pt-1 text-center text-xs font-semibold tabular-nums"
 							style={{ height: toPx(HOUR_MS) }}
 						>
 							{new Date(hour).getHours()}
@@ -150,7 +150,7 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 				{channels.map((channel) => (
 					<div
 						key={channel.id}
-						className="relative shrink-0 border-l border-zinc-800"
+						className="border-line relative shrink-0 border-l"
 						style={{ width: COLUMN_WIDTH_PX }}
 					>
 						{programs
@@ -169,7 +169,7 @@ function Grid({ channels, programs, dayStart, dayEnd, now, onSelect }: GridProps
 				))}
 				{showNow && (
 					<div
-						className="pointer-events-none absolute right-0 left-0 z-10 border-t-2 border-amber-300"
+						className="border-accent-strong pointer-events-none absolute right-0 left-0 z-10 border-t-2"
 						style={{ top: toPx(now - dayStart) }}
 					/>
 				)}
@@ -203,11 +203,11 @@ function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: CellProps) {
 				onSelect(program);
 			}}
 		>
-			<span className="mr-1 font-semibold text-zinc-400 tabular-nums">
+			<span className="text-fg-muted mr-1 font-semibold tabular-nums">
 				{formatTime(program.startAt)}
 			</span>
-			<span className="font-medium text-zinc-100">{program.name}</span>
-			{height > 48 && <span className="mt-0.5 block text-zinc-400">{program.description}</span>}
+			<span className="text-fg font-medium">{program.name}</span>
+			{height > 48 && <span className="text-fg-muted mt-0.5 block">{program.description}</span>}
 		</button>
 	);
 }

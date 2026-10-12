@@ -1,4 +1,5 @@
 import "video.js/dist/video-js.css";
+import "./live-player.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import videojs from "video.js";
@@ -181,21 +182,21 @@ function PlayerView({
 	}, [serviceId, codec, quality, viewerId]);
 
 	return (
-		<div className="relative aspect-video w-full overflow-hidden bg-black">
+		<div className="bg-video relative aspect-video w-full overflow-hidden">
 			<div ref={attachPlayer} className="absolute inset-0" />
 			{settingsHost != null && createPortal(<PlayerSettings {...settings} />, settingsHost)}
 			{current.kind === "starting" && (
-				<div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black text-sm text-zinc-300">
-					<div className="size-8 animate-spin rounded-full border-2 border-zinc-600 border-t-amber-300" />
+				<div className="bg-video text-fg-secondary pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 text-sm">
+					<div className="border-line-strong border-t-accent size-8 animate-spin rounded-full border-2" />
 					チューナーを起動しています…
 				</div>
 			)}
 			{current.kind === "error" && (
-				<div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/80 p-6 text-center text-sm text-zinc-200">
+				<div className="bg-video/80 text-fg absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center text-sm">
 					<p>{current.message}</p>
 					<button
 						type="button"
-						className="rounded-md bg-amber-300 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-200"
+						className="bg-accent text-on-accent hover:bg-accent-hover rounded-md px-4 py-2 font-medium"
 						onClick={onRetry}
 					>
 						再読み込み

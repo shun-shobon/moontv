@@ -70,7 +70,7 @@ export function PlayerSettings({
 				<span className="tabular-nums">{preferences.quality}</span>
 			</button>
 			{open && (
-				<div className="absolute right-0 bottom-full mb-2 flex w-48 flex-col gap-3 rounded-lg bg-zinc-900/95 p-3 text-left text-sm shadow-xl ring-1 ring-zinc-700">
+				<div className="bg-overlay/95 ring-line-strong absolute right-0 bottom-full mb-2 flex w-48 flex-col gap-3 rounded-lg p-3 text-left text-sm shadow-xl ring-1">
 					<OptionGroup
 						label="画質"
 						options={qualities}
@@ -112,7 +112,7 @@ function OptionGroup<T extends string>({
 }: OptionGroupProps<T>) {
 	return (
 		<fieldset className="flex flex-col gap-1">
-			<legend className="mb-1 text-xs text-zinc-400">{label}</legend>
+			<legend className="text-fg-muted mb-1 text-xs">{label}</legend>
 			{options.map((option) => {
 				const active = option === value;
 				return (
@@ -120,7 +120,7 @@ function OptionGroup<T extends string>({
 						key={option}
 						type="button"
 						aria-pressed={active}
-						className={`flex! items-center justify-between rounded-md px-2 py-1.5 text-left ${active ? "bg-zinc-700! text-zinc-50" : "text-zinc-300 hover:bg-zinc-800!"}`}
+						className={`flex! items-center justify-between rounded-md px-2 py-1.5 text-left ${active ? "bg-selected! text-fg" : "text-fg-secondary hover:bg-surface-hover!"}`}
 						onClick={() => {
 							onSelect(option);
 						}}
