@@ -138,10 +138,19 @@ async fn transcode(session: &LiveSession, setup: &EncoderSetup, stream: reqwest:
 
     let mut child = spawn_ffmpeg(session, setup)?;
     let mut stdin = child.stdin.take().context("ffmpeg stdin is unavailable")?;
-    let stderr = child.stderr.take().context("ffmpeg stderr is unavailable")?;
-
     let tail = Arc::new(Mutex::new(VecDeque::with_capacity(STDERR_TAIL_LINES)));
-    let stderr_task = tokio::spawn(collect_stderr(stderr, tail.clone()));
+    let stderr = child.stderr.take().context("ffmpeg stderr is unavailable")?;
+    let mut stderr_tasks = vec![tokio::spawn(collect_stderr(stderr, tail.clone()))];
+
+    let mut remux = if setup.encoder.needs_remux(session.key.codec) {
+        let stdout = child.stdout.take().context("ffmpeg stdout is unavailable")?;
+        let mut remux = spawn_remux(session, setup, stdout.try_into()?)?;
+        let stderr = remux.stderr.take().context("ffmpeg stderr is unavailable")?;
+        stderr_tasks.push(tokio::spawn(collect_stderr(stderr, tail.clone())));
+        Some(remux)
+    } else {
+        None
+    };
 
     let mut pipe_task = tokio::spawn(async move {
         let mut body = stream.bytes_stream();
@@ -163,17 +172,20 @@ async fn transcode(session: &LiveSession, setup: &EncoderSetup, stream: reqwest:
                 Ok(Err(e)) => Err(e),
                 Err(e) => Err(anyhow!("stream pipe task failed: {e}")),
             },
-            status = child.wait() => break Err(anyhow!(
-                "ffmpeg exited with {}",
-                status.map_or_else(|e| e.to_string(), |s| s.to_string())
-            )),
+            status = child.wait() => break Err(exit_error(status)),
+            status = wait_optional(remux.as_mut()) => break Err(exit_error(status)),
             () = &mut ready, if !is_ready => is_ready = true,
         }
     };
 
     pipe_task.abort();
     stop_child(&mut child).await;
-    stderr_task.abort();
+    if let Some(remux) = remux.as_mut() {
+        stop_child(remux).await;
+    }
+    for task in stderr_tasks {
+        task.abort();
+    }
 
     result.map_err(|e| {
         let tail = tail.lock().unwrap();
@@ -208,17 +220,76 @@ fn spawn_ffmpeg(session: &LiveSession, setup: &EncoderSetup) -> Result<Child> {
         .args(["-af", "aresample=async=1", "-c:a", "aac", "-ac", "2", "-ar", "48000"])
         .args(["-b:a", &format!("{}k", spec.audio_kbps)])
         .args(["-max_muxing_queue_size", "1024"])
-        .args(["-f", "hls", "-hls_time", &SEGMENT_SECONDS.to_string()])
-        .args(["-hls_list_size", &PLAYLIST_SEGMENTS.to_string()])
-        .args(["-hls_flags", "delete_segments+independent_segments"])
-        .args(["-hls_segment_type", "fmp4", "-hls_fmp4_init_filename", "init.mp4"])
-        .args(["-hls_segment_filename", "seg_%06d.m4s", MEDIA_PLAYLIST])
         .stdin(Stdio::piped())
+        .stderr(Stdio::piped())
+        .kill_on_drop(true);
+    if setup.encoder.needs_remux(session.key.codec) {
+        cmd.args(["-f", "mpegts", "pipe:1"]).stdout(Stdio::piped());
+    } else {
+        cmd.args(hls_args(session.key.codec)).stdout(Stdio::null());
+    }
+    cmd.spawn()
+        .with_context(|| format!("failed to spawn {}", setup.ffmpeg.display()))
+}
+
+fn spawn_remux(session: &LiveSession, setup: &EncoderSetup, input: Stdio) -> Result<Child> {
+    let mut cmd = Command::new(&setup.ffmpeg);
+    cmd.current_dir(&session.dir)
+        .args(["-hide_banner", "-loglevel", "warning", "-nostats"])
+        // 放送のキーフレームが届くまで映像は出力されないため、0.5 秒では映像の解像度を取りこぼす。
+        // 既定の 5 秒では配信開始が 1.5 秒ほど遅れる。
+        .args(["-analyzeduration", "2000000", "-f", "mpegts", "-i", "pipe:0"])
+        .args(["-map", "0", "-c", "copy", "-bsf:a", "aac_adtstoasc"])
+        .args(hls_args(session.key.codec))
+        .stdin(input)
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
         .kill_on_drop(true);
     cmd.spawn()
         .with_context(|| format!("failed to spawn {}", setup.ffmpeg.display()))
+}
+
+fn hls_args(codec: Codec) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    if codec == Codec::Hevc {
+        // Safari は hev1 タグの HEVC を再生できない。
+        out.extend(["-tag:v", "hvc1"].map(str::to_owned));
+    }
+    out.extend(
+        [
+            "-f",
+            "hls",
+            "-hls_time",
+            &SEGMENT_SECONDS.to_string(),
+            "-hls_list_size",
+            &PLAYLIST_SEGMENTS.to_string(),
+            "-hls_flags",
+            "delete_segments+independent_segments",
+            "-hls_segment_type",
+            "fmp4",
+            "-hls_fmp4_init_filename",
+            "init.mp4",
+            "-hls_segment_filename",
+            "seg_%06d.m4s",
+            MEDIA_PLAYLIST,
+        ]
+        .map(str::to_owned),
+    );
+    out
+}
+
+async fn wait_optional(child: Option<&mut Child>) -> std::io::Result<std::process::ExitStatus> {
+    match child {
+        Some(child) => child.wait().await,
+        None => std::future::pending().await,
+    }
+}
+
+fn exit_error(status: std::io::Result<std::process::ExitStatus>) -> anyhow::Error {
+    anyhow!(
+        "ffmpeg exited with {}",
+        status.map_or_else(|e| e.to_string(), |s| s.to_string())
+    )
 }
 
 async fn stop_child(child: &mut Child) {

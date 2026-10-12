@@ -158,11 +158,15 @@ impl Encoder {
         out.extend(args(&[
             "-b:v", &bitrate, "-maxrate", &maxrate, "-bufsize", &bufsize, "-g", &gop,
         ]));
-        if codec == Codec::Hevc {
-            // Safari は hev1 タグの HEVC を再生できない。
-            out.extend(args(&["-tag:v", "hvc1"]));
-        }
         out
+    }
+
+    /// AMD の VAAPI（Mesa）は HEVC の PPS を ffmpeg の extradata と異なる値で出力する。
+    /// hvc1 では extradata の PPS でデコードされ映像が壊れるため、出力 TS を別の ffmpeg で読み直して
+    /// 実際の PPS から hvcC を作らせる。HLS の muxer は最初のパケットより前に init.mp4 を書くので、
+    /// `extract_extradata` では直らない。
+    pub fn needs_remux(&self, codec: Codec) -> bool {
+        matches!(self, Self::Vaapi { .. }) && codec == Codec::Hevc
     }
 }
 
