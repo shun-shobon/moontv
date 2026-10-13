@@ -5,4 +5,5 @@ trustPolicy: no-downgrade
 trustPolicyIgnoreAfter: 10080
 minimumReleaseAgeExclude:
   - "@shun-shobon/*"
-allowBuilds: {}
+allowBuilds:
+  esbuild: false
