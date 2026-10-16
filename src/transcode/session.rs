@@ -224,7 +224,10 @@ fn spawn_ffmpeg(session: &LiveSession, setup: &EncoderSetup) -> Result<Child> {
         .stderr(Stdio::piped())
         .kill_on_drop(true);
     if setup.encoder.needs_remux(session.key.codec) {
-        cmd.args(["-f", "mpegts", "pipe:1"]).stdout(Stdio::piped());
+        // mpegts は可変フレームレートを許すため、hls と違って最初の映像フレームが複製されず、映像が音声より遅れて始まる。
+        // その差は fMP4 の edit list になるが、ブラウザーは無視するので映像が先行して再生される。
+        cmd.args(["-fps_mode", "cfr", "-f", "mpegts", "pipe:1"])
+            .stdout(Stdio::piped());
     } else {
         cmd.args(hls_args(session.key.codec)).stdout(Stdio::null());
     }
