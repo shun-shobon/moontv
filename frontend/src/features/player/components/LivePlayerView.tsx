@@ -38,7 +38,12 @@ export function LivePlayerView({ phase, sourceKey, src, settings, onMediaError, 
 				<UNSAFE_PortalProvider getContainer={() => container}>
 					{/* 切り替え中は旧ソースを外し、旧チャンネルの再生を止める。 */}
 					{phase.kind === "playing" && (
-						<LiveMedia key={sourceKey} src={src} onVideoChange={setVideo} />
+						<LiveMedia
+							key={sourceKey}
+							src={src}
+							showCaption={settings.preferences.captions}
+							onVideoChange={setVideo}
+						/>
 					)}
 					<MediaErrorWatcher onError={onMediaError} />
 					<BufferingIndicator

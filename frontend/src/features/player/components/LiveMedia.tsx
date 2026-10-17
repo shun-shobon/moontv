@@ -1,8 +1,11 @@
 import { usePlayer } from "@videojs/react/live-video";
-import { HlsVideo } from "@videojs/react/media/hls-video";
-import { useEffect, useRef } from "react";
+import type { HlsJsAdapter } from "@videojs/react/media/hlsjs-video";
+import { HlsJsVideo } from "@videojs/react/media/hlsjs-video";
+import { useEffect, useRef, useState } from "react";
 
+import { useCaptionTimeline } from "../hooks/useCaptionTimeline";
 import { isCausedByFullscreenExit, liveEdgeSeekTarget } from "../services/playback";
+import { CaptionOverlay } from "./CaptionOverlay";
 
 const resume = (video: HTMLVideoElement) => {
 	video.play().catch(() => {
@@ -22,16 +25,21 @@ const autoplay = (video: HTMLVideoElement) => {
 
 type Props = {
 	src: string;
+	showCaption: boolean;
 	onVideoChange: (video: HTMLVideoElement | null) => void;
 };
 
-export function LiveMedia({ src, onVideoChange }: Props) {
+export function LiveMedia({ src, showCaption, onVideoChange }: Props) {
 	const videoRef = useRef<HTMLVideoElement>(null);
+	const [element, setElement] = useState<HTMLVideoElement | null>(null);
+	const [media, setMedia] = useState<HlsJsAdapter | null>(null);
+	const timeline = useCaptionTimeline(media);
 	const isFullscreen = usePlayer((state) => state.isFullscreen);
 	const wasFullscreenRef = useRef(false);
 	const fullscreenExitedAtRef = useRef(Number.NEGATIVE_INFINITY);
 
 	useEffect(() => {
+		setElement(videoRef.current);
 		onVideoChange(videoRef.current);
 		return () => {
 			onVideoChange(null);
@@ -52,27 +60,33 @@ export function LiveMedia({ src, onVideoChange }: Props) {
 	}, [isFullscreen]);
 
 	return (
-		<HlsVideo
-			ref={videoRef}
-			src={src}
-			className="size-full object-contain"
-			playsInline
-			preload="auto"
-			onLoadStart={(event) => {
-				autoplay(event.currentTarget);
-			}}
-			onPlay={(event) => {
-				const video = event.currentTarget;
-				const target = liveEdgeSeekTarget(video.seekable, video.currentTime);
-				if (target != null) {
-					video.currentTime = target;
-				}
-			}}
-			onPause={(event) => {
-				if (isCausedByFullscreenExit(performance.now(), fullscreenExitedAtRef.current)) {
-					resume(event.currentTarget);
-				}
-			}}
-		/>
+		<>
+			<HlsJsVideo
+				ref={videoRef}
+				mediaRef={setMedia}
+				src={src}
+				// iOS でも ID3 を JavaScript で受け取れるよう、ネイティブの HLS ではなく hls.js で再生する。
+				source={{ src, preferPlayback: "mse" }}
+				className="size-full object-contain"
+				playsInline
+				preload="auto"
+				onLoadStart={(event) => {
+					autoplay(event.currentTarget);
+				}}
+				onPlay={(event) => {
+					const video = event.currentTarget;
+					const target = liveEdgeSeekTarget(video.seekable, video.currentTime);
+					if (target != null) {
+						video.currentTime = target;
+					}
+				}}
+				onPause={(event) => {
+					if (isCausedByFullscreenExit(performance.now(), fullscreenExitedAtRef.current)) {
+						resume(event.currentTarget);
+					}
+				}}
+			/>
+			<CaptionOverlay video={element} timeline={timeline} showCaption={showCaption} />
+		</>
 	);
 }

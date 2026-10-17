@@ -7,6 +7,7 @@
 | バックエンドの起動 | `MOONTV_MIRAKC_URL=http://<mirakc のホスト>:40772 cargo run` |
 | フロントエンドの開発サーバー | `pnpm -C frontend dev`（`/api` を `127.0.0.1:40780` へプロキシ） |
 | Storybook | `pnpm -C frontend storybook`（`http://localhost:6006`） |
+| 字幕の変換表の生成 | `python3 -I scripts/gen-caption-tables.py <libaribcaption のチェックアウト>`（`src/caption/tables/generated.rs` を書き出す。出典のコミットはファイルの先頭にある） |
 | アイコンの生成 | `pnpm -C frontend icons`（`frontend/scripts/icons.ts` の図形から `frontend/public` のアイコン一式を書き出す） |
 | 全検査 | `mise run check`（story の描画テストに Chromium を使う。初回は `pnpm -C frontend exec playwright install chromium-headless-shell`） |
 | リリースビルド | `mise run build` |
@@ -18,14 +19,15 @@
 | パス | 責務 |
 | --- | --- |
 | `src/mirakc.rs` | mirakc API クライアント |
-| `src/ts.rs` | MPEG-TS のパケットと PSI（PAT・PMT）の読み書き |
+| `src/ts.rs` | MPEG-TS のパケット、PSI（PAT・PMT）、PES の読み書き |
+| `src/caption/` | ARIB 字幕（STD-B24）の解読（`group` データグループ、`code` 8単位符号、`screen` 画面の状態と中間表現、`drcs` 外字、`tables` 変換表） |
 | `src/catalog.rs` | サービス・番組情報のキャッシュと API 向けの整形 |
-| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質・音声の定義、`encoder` エンコーダ別の引数と自動検出、`input` ffmpeg に渡す前の TS の書き換え、`session` 1本の配信、`manager` セッションの共有と停止） |
+| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質・音声の定義、`encoder` エンコーダ別の引数と自動検出、`input` ffmpeg に渡す前の TS の書き換え、`captions` 字幕を ID3 にして差し込む、`session` 1本の配信、`manager` セッションの共有と停止） |
 | `src/api.rs` | HTTP API |
 | `src/assets.rs` | 埋め込んだフロントエンドの配信 |
 | `frontend/src/app` | 画面の枠組みとルーティング |
 | `frontend/src/features/live` | チャンネル一覧と視聴画面 |
-| `frontend/src/features/player` | プレイヤー、視聴設定の保存、ブラウザーのコーデック判定、配信セッションの開始・終了 |
+| `frontend/src/features/player` | プレイヤー、字幕の描画、視聴設定の保存、ブラウザーのコーデック判定、配信セッションの開始・終了 |
 | `frontend/src/features/guide` | 番組表と番組詳細 |
 | `frontend/src/shared` | 複数の feature で使う API クライアント・スキーマ、時刻の規則、ルート定義、部品 |
 | `frontend/.storybook` | Storybook の設定と、story が共有する fixture・デコレーター |
@@ -46,6 +48,8 @@
 - 配信 URL は `/api/live/{service}/{codec}/{quality}/{audio}/{viewer}/...`。セッションは前4要素で共有し、`viewer` ごとの最終アクセスで視聴継続を判定する。視聴者がいなくなったセッションは止める。
 - `master.m3u8` 以下のメディアは `{session}/media.m3u8` のようにセッション ID を含む。同じキーで作り直されたセッションの断片を古いプレイヤーが読むと、`init.mp4` が食い違ってデコードに失敗するため。
 - 音声は TS の段階で選んだ1本だけを固定の PID に載せ替えて ffmpeg に渡す。ffmpeg は起動時の PMT にあった ES しか読まないため、番組の切り替わりで音声の本数や PID が変わっても音声が途切れないようにする。主音声・副音声は `component_tag` の小さい順（ARIB では 0x10 が主音声）で決める。mirakc の番組情報の音声は並び順に意味がないので、主音声フラグで並べ直す。
+- 字幕と文字スーパーはサーバーで解読し、画面全体の状態を JSON にして ID3 の PRIV フレーム（所有者 `moontv`）に包み、ffmpeg に渡す前の TS に差し込む。ffmpeg が映像と同じ規則で時刻を付け直して fMP4 の emsg に入れるので、プレイヤーは hls.js が返す時刻をそのまま再生位置と比べられる。プレイヤーを hls.js 版（`HlsJsVideo`）にしているのはこのためで、標準の再生エンジンは ID3 を読めない。iOS のネイティブ全画面では字幕を描けない。
+- ID3 は表示時刻が来るまで差し込まず、字幕が変わらなくても毎秒送り直す。ffmpeg は ID3 が途切れると出力を止めて待ち、時刻が前後すると扱えないため。PMT の ID3 の ES には登録記述子 `ID3 ` が要る。無いと ffmpeg が MP3 の音声と誤認する。
 - フロントエンドは `PUT /api/live/...` で起動完了を待ってからプレイヤーに `master.m3u8` を渡す。起動失敗の理由を画面に出すため。
 - ページの切り替えは `frontend/src/app/containers/screens.tsx` のルートの `action` で、ページのコードと描画に要るデータを読み込み終えてから行う。それまで前の画面を残す。データは react-query のキャッシュに入れるだけにし、ページは `useQuery` で読む。
 - HEVC は `hvc1` タグ付きの fMP4 で出力する。Safari は `hev1` を再生できない。

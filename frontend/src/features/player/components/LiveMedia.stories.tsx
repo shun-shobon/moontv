@@ -7,7 +7,7 @@ import { LiveMedia } from "./LiveMedia";
 /** Storybook には配信サーバーがないため、src に HLS の URL を入れたときだけ映像が出る。 */
 const meta = {
 	component: LiveMedia,
-	args: { src: "", onVideoChange: fn() },
+	args: { src: "", showCaption: true, onVideoChange: fn() },
 	decorators: [withPlayerFrame, withLivePlayer],
 } satisfies Meta<typeof LiveMedia>;
 export default meta;

@@ -8,10 +8,18 @@ const PreferencesSchema = v.object({
 	quality: QualitySchema,
 	codec: v.union([v.literal("auto"), CodecSchema]),
 	ambient: v.boolean(),
+	// 後から足した項目なので、保存済みの設定に無くても他の項目を捨てずに読めるようにする。
+	captions: v.optional(v.boolean(), false),
 });
 export type Preferences = v.InferOutput<typeof PreferencesSchema>;
 
-const DEFAULT_PREFERENCES: Preferences = { quality: "1080p", codec: "auto", ambient: true };
+/** 字幕は既定で出さない（TR-B14 第2巻 6.4）。 */
+const DEFAULT_PREFERENCES: Preferences = {
+	quality: "1080p",
+	codec: "auto",
+	ambient: true,
+	captions: false,
+};
 
 export const loadPreferences = (): Preferences => {
 	try {

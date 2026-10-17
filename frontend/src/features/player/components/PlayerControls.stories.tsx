@@ -11,7 +11,7 @@ const meta = {
 			qualities: ["1080p", "720p", "540p", "360p"],
 			codecs: ["hevc", "h264"],
 			activeCodec: "h264",
-			preferences: { quality: "720p", codec: "h264", ambient: false },
+			preferences: { quality: "720p", codec: "h264", ambient: false, captions: false },
 			onChange: fn(),
 			audios: [],
 			audio: "main",

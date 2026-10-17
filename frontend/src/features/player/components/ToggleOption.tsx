@@ -7,22 +7,22 @@ type Props = {
 	onToggle: (checked: boolean) => void;
 };
 
-const ITEM_ID = "toggle";
-
 /** Menu の中で使う。切り替えても Menu を閉じず、スイッチが動く様子を見せる。 */
 export function ToggleOption({ label, checked, onToggle }: Props) {
+	// 項目の ID は Menu 全体で一意である必要があるので、トグルを並べても重ならないラベルを使う。
+	const itemId = label;
 	return (
 		<MenuSection
 			aria-label={label}
 			selectionMode="multiple"
-			selectedKeys={checked ? [ITEM_ID] : []}
+			selectedKeys={checked ? [itemId] : []}
 			onSelectionChange={(keys) => {
-				onToggle(keys === "all" || keys.has(ITEM_ID));
+				onToggle(keys === "all" || keys.has(itemId));
 			}}
 			className="flex flex-col"
 		>
 			<MenuItem
-				id={ITEM_ID}
+				id={itemId}
 				textValue={label}
 				className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-fg-secondary transition-colors outline-none data-focused:bg-surface-hover data-focused:text-fg"
 			>

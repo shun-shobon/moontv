@@ -82,6 +82,13 @@ export function PlayerSettings({
 			/>
 			<Separator className="mx-2.5 border-t border-line-strong" />
 			<ToggleOption
+				label="字幕"
+				checked={preferences.captions}
+				onToggle={(captions) => {
+					onChange({ ...preferences, captions });
+				}}
+			/>
+			<ToggleOption
 				label="アンビエントモード"
 				checked={preferences.ambient}
 				onToggle={(ambient) => {
