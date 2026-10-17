@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldIntercept } from "./navigation";
+import { isInPageChange, shouldIntercept } from "./navigation";
 
 const ORIGIN = "http://moontv.local";
 
@@ -18,6 +18,21 @@ describe("shouldIntercept", () => {
 		["API へのアクセス", { destination: new URL(`${ORIGIN}/api/channels/1/logo`) }],
 	])("%sは横取りしない", (_, overrides) => {
 		expect(shouldIntercept(target(overrides), ORIGIN)).toBe(false);
+	});
+});
+
+describe("isInPageChange", () => {
+	it("クエリだけが変わる遷移はページ内の切り替えとする", () => {
+		expect(
+			isInPageChange(
+				new URL(`${ORIGIN}/guide?date=2026-10-17`),
+				new URL(`${ORIGIN}/guide?date=2026-10-18`),
+			),
+		).toBe(true);
+	});
+
+	it("パスが変わる遷移はページの切り替えとする", () => {
+		expect(isInPageChange(new URL(`${ORIGIN}/watch/1`), new URL(`${ORIGIN}/watch/2`))).toBe(false);
 	});
 });
 

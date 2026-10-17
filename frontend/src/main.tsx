@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 
 import { App } from "./app/containers/App";
-import type { Screen } from "./app/containers/screens";
+import type { Redirect, Screen } from "./app/containers/screens";
 import { LOADING_SCREEN, loadScreen } from "./app/containers/screens";
 import { interceptNavigations } from "./app/services/navigation";
 import { createStore } from "./app/services/store";
@@ -16,8 +16,12 @@ const queryClient = new QueryClient({
 
 const screens = createStore(LOADING_SCREEN);
 
-// 遷移の完了後にブラウザーがスクロール位置とフォーカスを戻すので、それまでに描画を終えておく。
-const show = (screen: Screen) => {
+const show = (screen: Screen | Redirect) => {
+	if ("redirect" in screen) {
+		navigation.navigate(screen.redirect, { history: "replace" });
+		return;
+	}
+	// 遷移の完了後にブラウザーがスクロール位置とフォーカスを戻すので、それまでに描画を終えておく。
 	flushSync(() => {
 		screens.set(screen);
 	});

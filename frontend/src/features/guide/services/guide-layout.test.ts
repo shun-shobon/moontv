@@ -8,6 +8,7 @@ import {
 	nowLineTop,
 	programBox,
 	programEnd,
+	resolveGuideDay,
 	selectableDays,
 	toPx,
 } from "./guide-layout";
@@ -22,6 +23,20 @@ describe("selectableDays", () => {
 		expect(days).toHaveLength(7);
 		expect(days[0]).toBe(DAY_START);
 		expect(days[6]).toBe(DAY_START + 6 * DAY_MS);
+	});
+});
+
+describe("resolveGuideDay", () => {
+	it("選べる日はそのまま返す", () => {
+		expect(resolveGuideDay(DAY_START + 6 * DAY_MS, DAY_START)).toBe(DAY_START + 6 * DAY_MS);
+	});
+
+	it.each([
+		["指定なし", null],
+		["過ぎた日", DAY_START - DAY_MS],
+		["先すぎる日", DAY_START + 7 * DAY_MS],
+	])("%sは今日にする", (_, requested) => {
+		expect(resolveGuideDay(requested, DAY_START)).toBe(DAY_START);
 	});
 });
 

@@ -5,16 +5,16 @@ import type { Program } from "../../../shared/api/schemas";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
 import { DAY_MS, startOfBroadcastDay } from "../../../shared/domain/time";
 import { useNow } from "../../../shared/hooks/useNow";
+import { guidePath } from "../../../shared/services/routes";
 import { usePrograms } from "../api/queries";
 import { DayTabs } from "../components/DayTabs";
 import { ProgramGrid } from "../components/ProgramGrid";
 import { guideColumns, initialScrollTop, selectableDays } from "../services/guide-layout";
 import { ProgramDetailDialog } from "./ProgramDetailDialog";
 
-export function GuidePage() {
+export function GuidePage({ dayStart }: { dayStart: number }) {
 	const now = useNow();
 	const today = startOfBroadcastDay(now);
-	const [dayStart, setDayStart] = useState(today);
 	const dayEnd = dayStart + DAY_MS;
 	const channels = useChannels();
 	const programs = usePrograms(dayStart, dayEnd);
@@ -31,9 +31,14 @@ export function GuidePage() {
 
 	const channelList = channels.data ?? [];
 
+	// 日付タブの切り替えで履歴が積み重ならないよう、今の履歴を置き換える。
+	const selectDay = (day: number) => {
+		navigation.navigate(guidePath(day), { history: "replace" });
+	};
+
 	return (
 		<div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-			<DayTabs days={selectableDays(today)} current={dayStart} onSelect={setDayStart} />
+			<DayTabs days={selectableDays(today)} current={dayStart} onSelect={selectDay} />
 			{programs.isError || channels.isError ? (
 				<StatusMessage>番組情報を取得できませんでした。</StatusMessage>
 			) : programs.data == null || channels.data == null ? (

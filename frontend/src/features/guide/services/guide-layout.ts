@@ -23,6 +23,10 @@ export const gridWidth = (columnCount: number) =>
 export const selectableDays = (today: number) =>
 	Array.from({ length: DAYS_AHEAD }, (_, i) => today + i * DAY_MS);
 
+/** 選べない日（過ぎた日や先すぎる日）や指定なしは今日にする。 */
+export const resolveGuideDay = (requested: number | null, today: number) =>
+	requested != null && selectableDays(today).includes(requested) ? requested : today;
+
 export const hourMarks = (dayStart: number) =>
 	Array.from({ length: 24 }, (_, i) => dayStart + i * HOUR_MS);
 
