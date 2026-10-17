@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn, waitFor } from "storybook/test";
+import { expect, fn, screen, waitFor } from "storybook/test";
 
 import { NOW, channel, program } from "../../../../.storybook/fixtures";
 import { HOUR_MS } from "../../../shared/domain/time";
@@ -15,26 +15,39 @@ const meta = {
 			{ key: "出演者", value: "【キャスター】月野 太郎\n【気象予報士】星川 花子" },
 		],
 		now: NOW,
-		onClose: fn(),
+		isOpen: true,
+		onOpenChange: fn(),
 	},
 } satisfies Meta<typeof ProgramDialog>;
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+// ダイアログは body 直下に描かれるので、canvas ではなく screen から探す。出てくるアニメーションの間は透明なので waitFor で待つ。
 export const OnAir: Story = {
-	play: async ({ args, canvas, userEvent }) => {
-		await expect(canvas.getByRole("link", { name: "視聴する" })).toBeVisible();
-		await userEvent.click(canvas.getByRole("button", { name: "閉じる" }));
-		await waitFor(() => expect(args.onClose).toHaveBeenCalled());
+	play: async ({ args, userEvent }) => {
+		const dialog = await screen.findByRole("dialog", { name: args.program.name });
+		await waitFor(() => expect(dialog).toBeVisible());
+		await expect(screen.getByRole("link", { name: "視聴する" })).toBeVisible();
+		await userEvent.click(screen.getByRole("button", { name: "閉じる" }));
+		await expect(args.onOpenChange).toHaveBeenCalledWith(false);
 	},
 };
 
 export const Upcoming: Story = {
 	args: { program: program({ startAt: NOW + HOUR_MS }) },
-	play: async ({ canvas }) => {
-		await expect(canvas.queryByRole("link", { name: "視聴する" })).not.toBeInTheDocument();
+	play: async () => {
+		await screen.findByRole("dialog");
+		await expect(screen.queryByRole("link", { name: "視聴する" })).not.toBeInTheDocument();
 	},
 };
 
 export const LoadingDetail: Story = { args: { extended: undefined } };
+
+export const DismissWithEscape: Story = {
+	play: async ({ args, userEvent }) => {
+		await screen.findByRole("dialog");
+		await userEvent.keyboard("{Escape}");
+		await expect(args.onOpenChange).toHaveBeenCalledWith(false);
+	},
+};

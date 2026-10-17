@@ -6,11 +6,12 @@ type Props = {
 	program: Program;
 	channel: Channel | undefined;
 	now: number;
-	onClose: () => void;
+	isOpen: boolean;
+	onOpenChange: (isOpen: boolean) => void;
 };
 
 /** 一覧の番組情報で先に開き、詳細は取得でき次第追加する。 */
-export function ProgramDetailDialog({ program, channel, now, onClose }: Props) {
+export function ProgramDetailDialog({ program, channel, now, isOpen, onOpenChange }: Props) {
 	const detail = useProgram(program.id);
 
 	return (
@@ -19,7 +20,8 @@ export function ProgramDetailDialog({ program, channel, now, onClose }: Props) {
 			channel={channel}
 			extended={detail.data?.extended}
 			now={now}
-			onClose={onClose}
+			isOpen={isOpen}
+			onOpenChange={onOpenChange}
 		/>
 	);
 }

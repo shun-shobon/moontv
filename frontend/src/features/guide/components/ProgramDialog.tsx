@@ -1,6 +1,9 @@
-import { useEffect, useRef } from "react";
+import { Dialog, Heading } from "react-aria-components";
 
 import type { Channel, Program } from "../../../shared/api/schemas";
+import { Button } from "../../../shared/components/Button";
+import { ButtonLink } from "../../../shared/components/ButtonLink";
+import { Sheet } from "../../../shared/components/Sheet";
 import { formatDate, formatRange, isOnAir } from "../../../shared/domain/time";
 import { watchPath } from "../../../shared/services/routes";
 import type { ProgramDetail } from "../api/schemas";
@@ -12,59 +15,52 @@ type Props = {
 	/** 詳細を取得するまでは undefined。 */
 	extended: ProgramDetail["extended"] | undefined;
 	now: number;
-	onClose: () => void;
+	isOpen: boolean;
+	onOpenChange: (isOpen: boolean) => void;
 };
 
-export function ProgramDialog({ program, channel, extended, now, onClose }: Props) {
-	const dialogRef = useRef<HTMLDialogElement>(null);
+export function ProgramDialog({ program, channel, extended, now, isOpen, onOpenChange }: Props) {
 	const onAir = isOnAir(program.startAt, program.duration, now);
 
-	useEffect(() => {
-		dialogRef.current?.showModal();
-	}, []);
-
 	return (
-		<dialog
-			ref={dialogRef}
-			onClose={onClose}
-			className="m-auto max-h-[85dvh] w-[min(40rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl bg-surface p-0 text-fg ring-1 ring-line-strong backdrop:bg-scrim/70"
-		>
-			<div className="flex flex-col gap-4 p-6">
+		<Sheet isOpen={isOpen} onOpenChange={onOpenChange} blurBackdrop>
+			<Dialog className="flex flex-col gap-5 p-6 pt-1 outline-none sm:pt-6">
 				<div className="flex flex-col gap-1">
 					<p className="text-label text-fg-muted">
 						{channel?.name} ・ {formatDate(program.startAt)}{" "}
 						{formatRange(program.startAt, program.duration)}
 					</p>
-					<h2 className="text-title">{program.name}</h2>
+					<Heading slot="title" className="text-title">
+						{program.name}
+					</Heading>
 					<p className="text-caption text-fg-subtle">{genreStyle(program.genres).label}</p>
 				</div>
 				<p className="text-body whitespace-pre-wrap text-fg-secondary">{program.description}</p>
-				{extended?.map((item) => (
-					<div key={item.key} className="flex flex-col gap-1">
-						<h3 className="text-heading text-fg">{item.key}</h3>
-						<p className="text-body whitespace-pre-wrap text-fg-muted">{item.value}</p>
+				{extended === undefined ? (
+					<div className="flex animate-pulse flex-col gap-2" aria-hidden>
+						<div className="h-3 w-24 rounded-full bg-line" />
+						<div className="h-3 w-full rounded-full bg-line" />
+						<div className="h-3 w-2/3 rounded-full bg-line" />
 					</div>
-				))}
+				) : (
+					extended.map((item) => (
+						<div key={item.key} className="flex flex-col gap-1 border-l-2 border-line-strong pl-3">
+							<h3 className="text-heading text-fg">{item.key}</h3>
+							<p className="text-body whitespace-pre-wrap text-fg-muted">{item.value}</p>
+						</div>
+					))
+				)}
 				<div className="flex justify-end gap-2">
-					<button
-						type="button"
-						className="rounded-md px-4 py-2 text-action text-fg-secondary hover:bg-surface-hover"
-						onClick={() => {
-							dialogRef.current?.close();
-						}}
-					>
+					<Button variant="quiet" slot="close">
 						閉じる
-					</button>
+					</Button>
 					{onAir && (
-						<a
-							href={watchPath(program.serviceId)}
-							className="rounded-md bg-accent px-4 py-2 text-action text-on-accent hover:bg-accent-hover"
-						>
+						<ButtonLink variant="primary" href={watchPath(program.serviceId)}>
 							視聴する
-						</a>
+						</ButtonLink>
 					)}
 				</div>
-			</div>
-		</dialog>
+			</Dialog>
+		</Sheet>
 	);
 }

@@ -18,7 +18,9 @@ export function GuidePage({ dayStart }: { dayStart: number }) {
 	const dayEnd = dayStart + DAY_MS;
 	const channels = useChannels();
 	const programs = usePrograms(dayStart, dayEnd);
+	// 閉じるアニメーションの間も中身を描くため、選んだ番組は閉じても残す。
 	const [selected, setSelected] = useState<Program | null>(null);
+	const [dialogOpen, setDialogOpen] = useState(false);
 	// useNow は最大 15 秒遅れるので、日を切り替えた瞬間の時刻で位置を決める。
 	const scrollToNow = useCallback(
 		(el: HTMLDivElement | null) => {
@@ -55,7 +57,10 @@ export function GuidePage({ dayStart }: { dayStart: number }) {
 						dayStart={dayStart}
 						dayEnd={dayEnd}
 						now={now}
-						onSelect={setSelected}
+						onSelect={(program) => {
+							setSelected(program);
+							setDialogOpen(true);
+						}}
 					/>
 				</div>
 			)}
@@ -64,9 +69,8 @@ export function GuidePage({ dayStart }: { dayStart: number }) {
 					program={selected}
 					channel={channelList.find((c) => c.id === selected.serviceId)}
 					now={now}
-					onClose={() => {
-						setSelected(null);
-					}}
+					isOpen={dialogOpen}
+					onOpenChange={setDialogOpen}
 				/>
 			)}
 		</div>
