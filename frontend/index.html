@@ -4,7 +4,6 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 		<meta name="theme-color" content="#070b11" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<link rel="icon" href="/favicon.ico" sizes="32x32" />
 		<link rel="icon" href="/icon.svg" type="image/svg+xml" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -13,6 +12,16 @@
 		<title>moontv</title>
 	</head>
 	<body class="bg-canvas">
+		<!--
+			iOS 27 の PWA は、画面上端に固定要素がないと上端にぼかしをかける。
+			この判定はステータスバーが画面に重なっていないときだけ働くため、apple-mobile-web-app-status-bar-style の black-translucent は指定しない。
+			WebKit は描画結果ではなくスタイルで判定するため、背景を文字（空）に切り抜いて見えなくする。
+			opacity・visibility・display で隠すと判定から外れる。高さは 10px を超える必要がある。
+		-->
+		<div
+			class="pointer-events-none fixed inset-x-0 top-0 z-[2147483647] h-[11px] bg-canvas bg-clip-text"
+			aria-hidden="true"
+		></div>
 		<div id="root"></div>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
