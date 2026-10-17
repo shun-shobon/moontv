@@ -1,3 +1,5 @@
+import { Button } from "../../shared/components/Button";
+
 type Props = { onReload: () => void };
 
 export function ErrorPage({ onReload }: Props) {
@@ -8,13 +10,9 @@ export function ErrorPage({ onReload }: Props) {
 				サーバーに接続できないか、画面の表示中に問題が起きました。moontv と mirakc
 				が起動しているか確認してください。
 			</p>
-			<button
-				type="button"
-				className="rounded-md bg-accent px-4 py-2 text-action text-on-accent hover:bg-accent-hover"
-				onClick={onReload}
-			>
+			<Button variant="primary" onPress={onReload}>
 				再読み込み
-			</button>
+			</Button>
 		</div>
 	);
 }

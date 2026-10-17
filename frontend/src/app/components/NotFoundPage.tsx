@@ -1,3 +1,5 @@
+import { ButtonLink } from "../../shared/components/ButtonLink";
+
 export function NotFoundPage() {
 	return (
 		<div className="flex flex-col items-center gap-4 p-8 text-center">
@@ -5,12 +7,9 @@ export function NotFoundPage() {
 			<p className="text-body text-fg-muted">
 				URL が間違っているか、チャンネルがなくなった可能性があります。
 			</p>
-			<a
-				href="/"
-				className="rounded-md bg-accent px-4 py-2 text-action text-on-accent hover:bg-accent-hover"
-			>
+			<ButtonLink variant="primary" href="/">
 				チャンネル一覧へ
-			</a>
+			</ButtonLink>
 		</div>
 	);
 }

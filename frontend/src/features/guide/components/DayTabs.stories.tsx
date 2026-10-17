@@ -17,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
 	play: async ({ args, canvas, userEvent }) => {
-		const [, second] = canvas.getAllByRole("button");
+		const [, second] = canvas.getAllByRole("radio");
 		await userEvent.click(second!);
 		await expect(args.onSelect).toHaveBeenCalledWith(days[1]);
 	},

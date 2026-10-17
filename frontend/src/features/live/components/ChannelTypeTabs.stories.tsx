@@ -13,7 +13,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
 	play: async ({ args, canvas, userEvent }) => {
-		await userEvent.click(canvas.getByRole("tab", { name: "スカパー" }));
+		await userEvent.click(canvas.getByRole("radio", { name: "スカパー" }));
 		await expect(args.onSelect).toHaveBeenCalledWith("SKY");
 	},
 };

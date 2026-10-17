@@ -1,5 +1,4 @@
-import { clsx } from "clsx";
-
+import { SegmentedControl } from "../../../shared/components/SegmentedControl";
 import { channelTypeLabel } from "../services/channel-list";
 
 type Props = {
@@ -10,24 +9,13 @@ type Props = {
 
 export function ChannelTypeTabs({ types, current, onSelect }: Props) {
 	return (
-		<div className="flex gap-1 text-label" role="tablist">
-			{types.map((type) => (
-				<button
-					key={type}
-					type="button"
-					role="tab"
-					aria-selected={type === current}
-					className={clsx(
-						"rounded-md px-3 py-1.5",
-						type === current ? "bg-selected text-fg" : "text-fg-muted hover:text-fg",
-					)}
-					onClick={() => {
-						onSelect(type);
-					}}
-				>
-					{channelTypeLabel(type)}
-				</button>
-			))}
-		</div>
+		<SegmentedControl
+			label="放送波"
+			options={types}
+			value={current}
+			format={channelTypeLabel}
+			onChange={onSelect}
+			className="flex gap-1"
+		/>
 	);
 }

@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import { Button } from "react-aria-components";
 
 import type { Program } from "../../../shared/api/schemas";
 import { formatTime } from "../../../shared/domain/time";
@@ -19,15 +20,14 @@ export function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: Props)
 	const { className } = genreStyle(program.genres);
 
 	return (
-		<button
-			type="button"
+		<Button
 			className={clsx(
-				"absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left text-caption hover:brightness-150",
+				"absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left text-caption transition-[filter,box-shadow] duration-150 outline-none data-focus-visible:z-10 data-focus-visible:ring-2 data-focus-visible:ring-accent data-focus-visible:ring-inset data-hovered:brightness-150 data-pressed:brightness-125",
 				className,
 				ended && "opacity-50",
 			)}
 			style={{ top, height }}
-			onClick={() => {
+			onPress={() => {
 				onSelect(program);
 			}}
 		>
@@ -38,6 +38,6 @@ export function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: Props)
 			{showsDescription && (
 				<span className="mt-0.5 block text-fg-muted">{program.description}</span>
 			)}
-		</button>
+		</Button>
 	);
 }

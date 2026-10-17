@@ -159,3 +159,28 @@
 		cursor: pointer;
 	}
 }
+
+/*
+ * React Aria の部品（data-rac 付き）は data-focus-visible を見る。:focus-visible はプログラムからフォーカスを移したときにも付くため。
+ * Video.js の部品など React Aria 以外は :focus-visible を見る。
+ */
+@utility focus-ring {
+	outline: 2px solid transparent;
+	outline-offset: 2px;
+
+	&[data-focus-visible],
+	&:not([data-rac]):focus-visible {
+		outline-color: var(--color-accent);
+	}
+}
+
+@layer base {
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		::before,
+		::after {
+			animation-duration: 1ms !important;
+			transition-duration: 1ms !important;
+		}
+	}
+}

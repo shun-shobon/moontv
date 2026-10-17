@@ -50,4 +50,5 @@
 - UI のコンポーネントは1ファイル1つにし、ファイル名をコンポーネント名（PascalCase）に合わせる。
 - `components/` のコンポーネントには同じ場所に `*.stories.tsx` を置く。story は `pnpm -C frontend test` でブラウザー上に描画され、`play` の検証も実行される。
 - 色と文字は `frontend/src/index.css` の semantic token（`--color-*`、`--text-*`）だけを使う。文字のサイズ・太さ・行間は `text-title` などの役割名1つで指定する。Tailwind 既定の値は無効にしてあり、`bg-zinc-900` や `text-sm`、`font-semibold` などは書いても生成されない。
+- 押す・選ぶ・開く部品は `react-aria-components` で組み、状態は `data-hovered`・`data-pressed`・`data-selected` などで装飾する。キーボードフォーカスの表示は `focus-ring` ユーティリティを使う。
 - 実機確認は `mirakc` に接続できる環境で行う。チューナーを占有するので、検証後はセッションを止める。

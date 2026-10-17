@@ -15,7 +15,7 @@ type Story = StoryObj<typeof meta>;
 export const Grid: Story = {
 	play: async ({ canvas, userEvent }) => {
 		await expect(canvas.queryByText("サブチャンネル")).not.toBeInTheDocument();
-		await userEvent.click(canvas.getByRole("tab", { name: "BS" }));
+		await userEvent.click(canvas.getByRole("radio", { name: "BS" }));
 		await expect(canvas.getByText("BS放送")).toBeVisible();
 		await expect(canvas.queryByText("テレビ総合")).not.toBeInTheDocument();
 	},
@@ -31,6 +31,6 @@ export const List: Story = {
 		),
 	],
 	play: async ({ canvas }) => {
-		await expect(canvas.getByRole("tab", { name: "BS" })).toHaveAttribute("aria-selected", "true");
+		await expect(canvas.getByRole("radio", { name: "BS" })).toBeChecked();
 	},
 };

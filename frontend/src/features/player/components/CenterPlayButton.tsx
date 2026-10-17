@@ -5,7 +5,7 @@ import { PlayIcon } from "@videojs/react/icons";
 export function CenterPlayButton() {
 	return (
 		<PlayButton
-			className="absolute inset-0 m-auto flex size-16 items-center justify-center rounded-full bg-canvas/75 text-fg hover:text-accent-hover"
+			className="absolute inset-0 m-auto flex size-16 items-center justify-center rounded-full bg-canvas/75 text-fg focus-ring transition duration-200 ease-out hover:scale-110 hover:text-accent-hover active:scale-95 starting:scale-75 starting:opacity-0"
 			render={(props, state) =>
 				state.paused ? (
 					<button {...props}>
