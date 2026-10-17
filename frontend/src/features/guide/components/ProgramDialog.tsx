@@ -24,33 +24,38 @@ export function ProgramDialog({ program, channel, extended, now, isOpen, onOpenC
 
 	return (
 		<Sheet isOpen={isOpen} onOpenChange={onOpenChange} blurBackdrop>
-			<Dialog className="flex flex-col gap-5 p-6 pt-1 outline-none sm:pt-6">
-				<div className="flex flex-col gap-1">
-					<p className="text-label text-fg-muted">
-						{channel?.name} ・ {formatDate(program.startAt)}{" "}
-						{formatRange(program.startAt, program.duration)}
-					</p>
-					<Heading slot="title" className="text-title">
-						{program.name}
-					</Heading>
-					<p className="text-caption text-fg-subtle">{genreStyle(program.genres).label}</p>
-				</div>
-				<p className="text-body whitespace-pre-wrap text-fg-secondary">{program.description}</p>
-				{extended === undefined ? (
-					<div className="flex animate-pulse flex-col gap-2" aria-hidden>
-						<div className="h-3 w-24 rounded-full bg-line" />
-						<div className="h-3 w-full rounded-full bg-line" />
-						<div className="h-3 w-2/3 rounded-full bg-line" />
+			<Dialog className="flex min-h-0 flex-col outline-none">
+				<div className="flex min-h-0 flex-col gap-5 overflow-y-auto p-6 pt-1 sm:pt-6">
+					<div className="flex flex-col gap-1">
+						<p className="text-label text-fg-muted">
+							{channel?.name} ・ {formatDate(program.startAt)}{" "}
+							{formatRange(program.startAt, program.duration)}
+						</p>
+						<Heading slot="title" className="text-title">
+							{program.name}
+						</Heading>
+						<p className="text-caption text-fg-subtle">{genreStyle(program.genres).label}</p>
 					</div>
-				) : (
-					extended.map((item) => (
-						<div key={item.key} className="flex flex-col gap-1 border-l-2 border-line-strong pl-3">
-							<h3 className="text-heading text-fg">{item.key}</h3>
-							<p className="text-body whitespace-pre-wrap text-fg-muted">{item.value}</p>
+					<p className="text-body whitespace-pre-wrap text-fg-secondary">{program.description}</p>
+					{extended === undefined ? (
+						<div className="flex animate-pulse flex-col gap-2" aria-hidden>
+							<div className="h-3 w-24 rounded-full bg-line" />
+							<div className="h-3 w-full rounded-full bg-line" />
+							<div className="h-3 w-2/3 rounded-full bg-line" />
 						</div>
-					))
-				)}
-				<div className="flex justify-end gap-2">
+					) : (
+						extended.map((item) => (
+							<div
+								key={item.key}
+								className="flex flex-col gap-1 border-l-2 border-line-strong pl-3"
+							>
+								<h3 className="text-heading text-fg">{item.key}</h3>
+								<p className="text-body whitespace-pre-wrap text-fg-muted">{item.value}</p>
+							</div>
+						))
+					)}
+				</div>
+				<div className="flex shrink-0 justify-end gap-2 border-t border-line px-6 py-3">
 					<Button variant="quiet" slot="close">
 						閉じる
 					</Button>

@@ -7,7 +7,10 @@ import { useMove } from "react-aria/useMove";
 /** これより下までハンドルを引いて離したら閉じる。 */
 const CLOSE_DISTANCE_PX = 96;
 
-/** Sheet の中身の面。狭い画面ではハンドルを下に引いて閉じられる。Modal の中で使う。 */
+/**
+ * Sheet の中身の面。狭い画面ではハンドルを下に引いて閉じられる。Modal の中で使う。
+ * 中身はスクロールさせないので、ボタン欄を下に固定できるよう、スクロールする部分は中身の側で決める。
+ */
 export function SheetPanel({ children }: { children: ReactNode }) {
 	const state = useContext(OverlayTriggerStateContext);
 	const [offset, setOffset] = useState(0);
@@ -49,7 +52,7 @@ export function SheetPanel({ children }: { children: ReactNode }) {
 			>
 				<div className="h-1 w-10 rounded-full bg-line-strong" />
 			</div>
-			<div className="min-h-0 overflow-y-auto pb-[env(safe-area-inset-bottom)] sm:pb-0">
+			<div className="flex min-h-0 flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
 				{children}
 			</div>
 		</div>

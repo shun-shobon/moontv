@@ -51,3 +51,20 @@ export const DismissWithEscape: Story = {
 		await expect(args.onOpenChange).toHaveBeenCalledWith(false);
 	},
 };
+
+export const LongDetail: Story = {
+	args: {
+		extended: Array.from({ length: 12 }, (_, i) => ({
+			key: `項目${i + 1}`,
+			value:
+				"番組の詳しい説明がここに入ります。\n複数行にわたる長い説明でも、ボタンは下に残ります。",
+		})),
+	},
+	play: async () => {
+		await screen.findByRole("dialog");
+		await waitFor(() => {
+			const { bottom } = screen.getByRole("button", { name: "閉じる" }).getBoundingClientRect();
+			return expect(bottom).toBeLessThanOrEqual(window.innerHeight);
+		});
+	},
+};

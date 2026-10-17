@@ -82,7 +82,7 @@ export function PlayerSettings({
 			</Button>
 			{isPhone ? (
 				<Sheet blurBackdrop={false}>
-					<div className="p-2 text-label">{menu}</div>
+					<div className="min-h-0 overflow-y-auto p-2 text-label">{menu}</div>
 				</Sheet>
 			) : (
 				<Popover
