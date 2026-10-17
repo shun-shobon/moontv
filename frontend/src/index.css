@@ -58,6 +58,9 @@
 }
 
 @theme {
+	/* src/shared/services/breakpoints.ts と揃える。 */
+	--breakpoint-sm: 40rem;
+
 	--color-*: initial;
 
 	/* 背景 */

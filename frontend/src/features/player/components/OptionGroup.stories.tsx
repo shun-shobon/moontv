@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Menu } from "react-aria-components";
 import { expect, fn } from "storybook/test";
 
 import { OptionGroup } from "./OptionGroup";
@@ -14,9 +15,12 @@ const meta = {
 	},
 	decorators: [
 		(Story) => (
-			<div className="w-48 rounded-lg bg-overlay/95 p-3 text-label">
+			<Menu
+				aria-label="再生設定"
+				className="flex w-56 flex-col rounded-xl bg-overlay/90 p-1.5 text-label"
+			>
 				<Story />
-			</div>
+			</Menu>
 		),
 	],
 } satisfies Meta<typeof OptionGroup<string>>;
@@ -26,11 +30,17 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
 	play: async ({ args, canvas, userEvent }) => {
-		await expect(canvas.getByRole("button", { name: /720p/u })).toHaveAttribute(
-			"aria-pressed",
-			"true",
-		);
-		await userEvent.click(canvas.getByRole("button", { name: "360p" }));
+		await expect(canvas.getByRole("menuitemradio", { name: "720p" })).toBeChecked();
+		await userEvent.click(canvas.getByRole("menuitemradio", { name: "360p" }));
 		await expect(args.onSelect).toHaveBeenCalledWith("360p");
+	},
+};
+
+export const ArrowKeysDoNotSelect: Story = {
+	play: async ({ args, canvas, userEvent }) => {
+		canvas.getByRole("menuitemradio", { name: "720p" }).focus();
+		await userEvent.keyboard("{ArrowDown}");
+		await expect(canvas.getByRole("menuitemradio", { name: "540p" })).toHaveFocus();
+		await expect(args.onSelect).not.toHaveBeenCalled();
 	},
 };

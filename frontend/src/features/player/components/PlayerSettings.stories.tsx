@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn } from "storybook/test";
+import { expect, fn, screen, waitFor } from "storybook/test";
 
+import { withLivePlayer } from "../../../../.storybook/decorators";
 import { PlayerSettings } from "./PlayerSettings";
 
 const meta = {
@@ -20,6 +21,7 @@ const meta = {
 				</div>
 			</div>
 		),
+		withLivePlayer,
 	],
 } satisfies Meta<typeof PlayerSettings>;
 export default meta;
@@ -28,12 +30,31 @@ type Story = StoryObj<typeof meta>;
 
 export const Closed: Story = {};
 
-export const Open: Story = {
+// メニューは body 直下に描かれるので、canvas ではなく screen から探す。出てくるアニメーションの間は透明なので waitFor で待つ。
+export const SelectQuality: Story = {
 	play: async ({ args, canvas, userEvent }) => {
 		await userEvent.click(canvas.getByRole("button", { name: "再生設定" }));
-		await userEvent.click(canvas.getByRole("button", { name: "720p" }));
+		await userEvent.click(await screen.findByRole("menuitemradio", { name: "720p" }));
 		await expect(args.onChange).toHaveBeenCalledWith({ ...args.preferences, quality: "720p" });
-		await expect(canvas.queryByRole("button", { name: "720p" })).not.toBeInTheDocument();
+		await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
+	},
+};
+
+export const ToggleKeepsMenuOpen: Story = {
+	play: async ({ args, canvas, userEvent }) => {
 		await userEvent.click(canvas.getByRole("button", { name: "再生設定" }));
+		await userEvent.click(
+			await screen.findByRole("menuitemcheckbox", { name: "アンビエントモード" }),
+		);
+		await expect(args.onChange).toHaveBeenCalledWith({ ...args.preferences, ambient: false });
+		await waitFor(() => expect(screen.getByRole("menu")).toBeVisible());
+	},
+};
+
+export const Open: Story = {
+	play: async ({ canvas, userEvent }) => {
+		await userEvent.click(canvas.getByRole("button", { name: "再生設定" }));
+		const menu = await screen.findByRole("menu");
+		await waitFor(() => expect(menu).toBeVisible());
 	},
 };

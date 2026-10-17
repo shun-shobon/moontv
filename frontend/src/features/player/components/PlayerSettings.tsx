@@ -1,8 +1,13 @@
 import { GearIcon } from "@videojs/react/icons";
-import { useCallback, useRef, useState } from "react";
+import { usePlayer } from "@videojs/react/live-video";
+import { useEffect, useState } from "react";
+import { Button, Menu, MenuTrigger, Popover, Separator } from "react-aria-components";
+import { useUNSAFE_PortalContext } from "react-aria/PortalProvider";
 
 import type { Codec, Quality } from "../../../shared/api/schemas";
-import { useOutsidePointerDown } from "../hooks/useOutsidePointerDown";
+import { Sheet } from "../../../shared/components/Sheet";
+import { useMediaQuery } from "../../../shared/hooks/useMediaQuery";
+import { PHONE_MEDIA_QUERY } from "../../../shared/services/breakpoints";
 import type { Preferences } from "../media/preferences";
 import { codecOptionLabel, codecOptions } from "../services/player-settings";
 import { OptionGroup } from "./OptionGroup";
@@ -23,62 +28,72 @@ export function PlayerSettings({
 	preferences,
 	onChange,
 }: PlayerSettingsProps) {
-	const [open, setOpen] = useState(false);
-	const rootRef = useRef<HTMLDivElement>(null);
-	const close = useCallback(() => {
-		setOpen(false);
-	}, []);
-	useOutsidePointerDown(rootRef, open, close);
+	// 既定の基準は body なので、描画先のプレイヤーに収まる位置と高さを計算させる。プレイヤーが小さいと上にはみ出て切れるため。
+	const { getContainer } = useUNSAFE_PortalContext();
+	const boundary = getContainer?.() ?? undefined;
+	// 小さなポップオーバーでは選びにくいので、スマホ幅では下から出るシートにする。
+	const isPhone = useMediaQuery(PHONE_MEDIA_QUERY);
 
-	const select = (next: Preferences) => {
-		onChange(next);
-		close();
-	};
+	const [open, setOpen] = useState(false);
+	// 開いている間にポインターが止まっても、操作バーごとメニューの起点が消えないようにする。
+	const requestControlsLock = usePlayer((state) => state.requestControlsLock);
+	useEffect(() => (open ? requestControlsLock() : undefined), [open, requestControlsLock]);
+
+	const menu = (
+		<Menu aria-label="再生設定" className="flex flex-col gap-1 outline-none">
+			<OptionGroup
+				label="画質"
+				options={qualities}
+				value={preferences.quality}
+				format={(q) => q}
+				onSelect={(quality) => {
+					onChange({ ...preferences, quality });
+				}}
+			/>
+			<Separator className="mx-2.5 border-t border-line-strong" />
+			<OptionGroup
+				label="コーデック"
+				options={codecOptions(codecs)}
+				value={preferences.codec}
+				format={(c) => codecOptionLabel(c, activeCodec)}
+				onSelect={(codec) => {
+					onChange({ ...preferences, codec });
+				}}
+			/>
+			<Separator className="mx-2.5 border-t border-line-strong" />
+			<ToggleOption
+				label="アンビエントモード"
+				checked={preferences.ambient}
+				onToggle={(ambient) => {
+					onChange({ ...preferences, ambient });
+				}}
+			/>
+		</Menu>
+	);
 
 	return (
-		<div ref={rootRef} className="relative flex h-full items-center">
-			<button
-				type="button"
+		<MenuTrigger isOpen={open} onOpenChange={setOpen}>
+			<Button
 				aria-label="再生設定"
-				aria-expanded={open}
-				title="再生設定"
-				className="flex h-full w-16 items-center justify-center gap-1 text-caption-strong"
-				onClick={() => {
-					setOpen((v) => !v);
-				}}
+				className="group flex h-full w-16 items-center justify-center gap-1 text-caption-strong focus-ring transition-colors data-hovered:text-accent-hover"
 			>
-				<GearIcon />
+				<GearIcon className="transition-transform duration-500 ease-out group-aria-expanded:rotate-90" />
 				<span className="tabular-nums">{preferences.quality}</span>
-			</button>
-			{open && (
-				<div className="absolute right-0 bottom-full mb-2 flex w-48 flex-col gap-3 rounded-lg bg-overlay/95 p-3 text-left text-label shadow-xl ring-1 ring-line-strong">
-					<OptionGroup
-						label="画質"
-						options={qualities}
-						value={preferences.quality}
-						format={(q) => q}
-						onSelect={(quality) => {
-							select({ ...preferences, quality });
-						}}
-					/>
-					<OptionGroup
-						label="コーデック"
-						options={codecOptions(codecs)}
-						value={preferences.codec}
-						format={(c) => codecOptionLabel(c, activeCodec)}
-						onSelect={(codec) => {
-							select({ ...preferences, codec });
-						}}
-					/>
-					<ToggleOption
-						label="アンビエントモード"
-						checked={preferences.ambient}
-						onToggle={(ambient) => {
-							select({ ...preferences, ambient });
-						}}
-					/>
-				</div>
+			</Button>
+			{isPhone ? (
+				<Sheet blurBackdrop={false}>
+					<div className="p-2 text-label">{menu}</div>
+				</Sheet>
+			) : (
+				<Popover
+					placement="top end"
+					offset={8}
+					boundaryElement={boundary}
+					className="w-56 origin-(--trigger-anchor-point) overflow-y-auto rounded-xl bg-overlay/90 p-1.5 text-label shadow-2xl ring-1 ring-line-strong backdrop-blur-md transition duration-200 ease-out data-entering:translate-y-1 data-entering:scale-95 data-entering:opacity-0 data-exiting:scale-95 data-exiting:opacity-0 data-exiting:duration-150"
+				>
+					{menu}
+				</Popover>
 			)}
-		</div>
+		</MenuTrigger>
 	);
 }
