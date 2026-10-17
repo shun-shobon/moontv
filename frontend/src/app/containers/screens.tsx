@@ -9,7 +9,7 @@ import { channelsQuery, statusQuery } from "../../shared/api/queries";
 import { StatusMessage } from "../../shared/components/StatusMessage";
 import { DAY_MS, startOfBroadcastDay } from "../../shared/domain/time";
 import { guidePath, parseGuideDate, parseServiceId } from "../../shared/services/routes";
-import type { Section } from "../components/AppHeader";
+import type { Section } from "../components/AppNav";
 import { ErrorPage } from "../components/ErrorPage";
 import { NotFoundPage } from "../components/NotFoundPage";
 

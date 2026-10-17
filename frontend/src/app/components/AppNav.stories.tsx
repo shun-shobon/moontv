@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { AppHeader } from "./AppHeader";
+import { AppNav } from "./AppNav";
 
 const meta = {
-	component: AppHeader,
+	component: AppNav,
 	parameters: { layout: "fullscreen" },
-} satisfies Meta<typeof AppHeader>;
+} satisfies Meta<typeof AppNav>;
 export default meta;
 
 type Story = StoryObj<typeof meta>;

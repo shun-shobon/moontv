@@ -37,7 +37,7 @@ export function GuidePage({ dayStart }: { dayStart: number }) {
 	};
 
 	return (
-		<div className="flex h-[calc(100dvh-3.5rem)] flex-col">
+		<div className="flex h-(--page-height) flex-col">
 			<DayTabs days={selectableDays(today)} current={dayStart} onSelect={selectDay} />
 			{programs.isError || channels.isError ? (
 				<StatusMessage>番組情報を取得できませんでした。</StatusMessage>

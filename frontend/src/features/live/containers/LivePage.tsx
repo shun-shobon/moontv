@@ -55,7 +55,7 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 					<NowPlaying channel={channel} />
 				</div>
 			</section>
-			<aside className="px-4 pb-4 lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto lg:px-0 lg:pb-0">
+			<aside className="px-4 pb-4 lg:max-h-[calc(var(--page-height)-2rem)] lg:overflow-y-auto lg:px-0 lg:pb-0">
 				<ChannelList channels={channels.data} activeId={serviceId} layout="list" />
 			</aside>
 		</div>
