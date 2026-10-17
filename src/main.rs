@@ -1,5 +1,6 @@
 mod api;
 mod assets;
+mod caption;
 mod catalog;
 mod mirakc;
 mod transcode;
