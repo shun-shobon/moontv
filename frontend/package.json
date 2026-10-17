@@ -14,7 +14,7 @@
 		"format:check": "oxfmt --check",
 		"icons": "node scripts/icons.ts",
 		"knip": "knip",
-		"lint": "oxlint",
+		"lint": "oxlint && node scripts/check-z-index.ts",
 		"lint:fix": "oxlint --fix",
 		"storybook": "storybook dev -p 6006",
 		"test": "vitest run",

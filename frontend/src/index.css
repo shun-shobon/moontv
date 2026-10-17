@@ -103,6 +103,23 @@
 	--color-genre-welfare: var(--palette-hue-teal);
 	--color-genre-other: var(--palette-night-500);
 
+	/*
+	 * 重なり順。Tailwind は数値の z-index を theme から消せないため、lint（scripts/check-z-index.ts）で禁じている。
+	 * 部品の中だけで重ねる値は、その部品の根に isolate を付けて画面全体の値と比べられないようにする。
+	 */
+	--z-index-nav: 10;
+	--z-index-modal: 20;
+	/* モーダルの中から開いても上に出す */
+	--z-index-popover: 30;
+	/* WebKit が上端のステータスバーの色を決めるときに、必ずこの要素を拾わせる（index.html） */
+	--z-index-status-bar: 2147483647;
+
+	/* 番組表の中 */
+	--z-index-guide-focus: 1;
+	--z-index-guide-time: 2;
+	--z-index-guide-now: 3;
+	--z-index-guide-header: 4;
+
 	--text-*: initial;
 	--font-weight-*: initial;
 	--leading-*: initial;

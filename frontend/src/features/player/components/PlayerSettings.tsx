@@ -89,6 +89,8 @@ export function PlayerSettings({
 					placement="top end"
 					offset={8}
 					boundaryElement={boundary}
+					// React Aria が style で z-index を付けるため、class ではなく style で上書きする。
+					style={{ zIndex: "var(--z-index-popover)" }}
 					className="w-56 origin-(--trigger-anchor-point) overflow-y-auto rounded-xl bg-overlay/90 p-1.5 text-label shadow-2xl ring-1 ring-line-strong backdrop-blur-md transition duration-200 ease-out data-entering:translate-y-1 data-entering:scale-95 data-entering:opacity-0 data-exiting:scale-95 data-exiting:opacity-0 data-exiting:duration-150"
 				>
 					{menu}

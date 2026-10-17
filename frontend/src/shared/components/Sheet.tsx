@@ -21,7 +21,7 @@ export function Sheet({ isOpen, onOpenChange, blurBackdrop, children }: Props) {
 			{...(onOpenChange === undefined ? {} : { onOpenChange })}
 			isDismissable
 			className={clsx(
-				"fixed inset-0 z-50 flex items-end justify-center bg-scrim/70 transition-opacity duration-300 ease-out data-entering:opacity-0 data-exiting:opacity-0 data-exiting:duration-200 sm:items-center sm:p-4",
+				"fixed inset-0 z-modal flex items-end justify-center bg-scrim/70 transition-opacity duration-300 ease-out data-entering:opacity-0 data-exiting:opacity-0 data-exiting:duration-200 sm:items-center sm:p-4",
 				blurBackdrop && "backdrop-blur-sm",
 			)}
 		>

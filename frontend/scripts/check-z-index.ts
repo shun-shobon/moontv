@@ -1,0 +1,22 @@
+import { glob, readFile } from "node:fs/promises";
+
+// z-10・-z-1・z-[999]・z-(--x) のような、役割名でない z-index の指定
+const NUMERIC_Z = /(?<![\w-])-?z-(?:\d|\[|\()/u;
+
+const violations: string[] = [];
+for await (const file of glob([
+	"index.html",
+	"src/**/*.{ts,tsx,css}",
+	".storybook/**/*.{ts,tsx,html}",
+])) {
+	const lines = (await readFile(file, "utf8")).split("\n");
+	lines.forEach((line, i) => {
+		if (NUMERIC_Z.test(line)) violations.push(`${file}:${i + 1}: ${line.trim()}`);
+	});
+}
+
+if (violations.length > 0) {
+	console.error("z-index は src/index.css の --z-index-* の役割名で指定してください。");
+	console.error(violations.join("\n"));
+	process.exit(1);
+}

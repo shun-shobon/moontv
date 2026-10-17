@@ -22,7 +22,7 @@ export function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: Props)
 	return (
 		<Button
 			className={clsx(
-				"absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left text-caption transition-[filter,box-shadow] duration-150 outline-none data-focus-visible:z-10 data-focus-visible:ring-2 data-focus-visible:ring-accent data-focus-visible:ring-inset data-hovered:brightness-150 data-pressed:brightness-125",
+				"absolute right-0 left-0 overflow-hidden border-t border-l-2 px-1.5 py-1 text-left text-caption transition-[filter,box-shadow] duration-150 outline-none data-focus-visible:z-guide-focus data-focus-visible:ring-2 data-focus-visible:ring-accent data-focus-visible:ring-inset data-hovered:brightness-150 data-pressed:brightness-125",
 				className,
 				ended && "opacity-50",
 			)}

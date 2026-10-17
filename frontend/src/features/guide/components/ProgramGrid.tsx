@@ -23,10 +23,10 @@ export function ProgramGrid({ channels, programs, dayStart, dayEnd, now, onSelec
 	const nowTop = nowLineTop(dayStart, dayEnd, now);
 
 	return (
-		<div className="relative" style={{ width: gridWidth(channels.length) }}>
-			<div className="sticky top-0 z-20 flex border-b border-line bg-canvas">
+		<div className="relative isolate" style={{ width: gridWidth(channels.length) }}>
+			<div className="sticky top-0 z-guide-header flex border-b border-line bg-canvas">
 				<div
-					className="sticky left-0 z-30 shrink-0 bg-canvas"
+					className="sticky left-0 z-guide-time shrink-0 bg-canvas"
 					style={{ width: TIME_COLUMN_WIDTH_PX }}
 				/>
 				{channels.map((channel) => (
@@ -41,7 +41,7 @@ export function ProgramGrid({ channels, programs, dayStart, dayEnd, now, onSelec
 			</div>
 			<div className="relative flex" style={{ height: DAY_HEIGHT_PX }}>
 				<div
-					className="sticky left-0 z-10 shrink-0 bg-canvas"
+					className="sticky left-0 z-guide-time shrink-0 bg-canvas"
 					style={{ width: TIME_COLUMN_WIDTH_PX }}
 				>
 					{hourMarks(dayStart).map((hour) => (
@@ -76,7 +76,7 @@ export function ProgramGrid({ channels, programs, dayStart, dayEnd, now, onSelec
 				))}
 				{nowTop != null && (
 					<div
-						className="pointer-events-none absolute right-0 left-0 z-10 border-t-2 border-accent-strong"
+						className="pointer-events-none absolute right-0 left-0 z-guide-now border-t-2 border-accent-strong"
 						style={{ top: nowTop }}
 					/>
 				)}
