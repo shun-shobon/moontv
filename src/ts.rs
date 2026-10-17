@@ -251,6 +251,124 @@ pub fn write_section(pid: u16, section: &[u8], counter: &mut u8, out: &mut Vec<u
     }
 }
 
+/// PTS は 33 ビットで一周する。
+pub const PTS_MASK: u64 = (1 << 33) - 1;
+
+/// PES ヘッダーの PTS を読む。PES の先頭を含むバイト列を渡す。
+pub fn pes_pts(pes: &[u8]) -> Option<u64> {
+    let [0, 0, 1, _, _, _, _, flags, _, p0, p1, p2, p3, p4, ..] = *pes else {
+        return None;
+    };
+    if flags & 0x80 == 0 {
+        return None;
+    }
+    Some(
+        (u64::from(p0 >> 1) & 0x07) << 30
+            | u64::from(p1) << 22
+            | u64::from(p2 >> 1) << 15
+            | u64::from(p3) << 7
+            | u64::from(p4 >> 1),
+    )
+}
+
+/// PES ヘッダーより後ろのデータ。
+pub fn pes_data(pes: &[u8]) -> Option<&[u8]> {
+    let header_len = usize::from(*pes.get(8)?);
+    pes.get(9 + header_len..)
+}
+
+/// PTS だけを持つ PES を作る。
+pub fn build_pes(stream_id: u8, pts: u64, data: &[u8]) -> Vec<u8> {
+    let pts = pts & PTS_MASK;
+    // 33 ビットの PTS を、マーカービットを挟んで 5 バイトに分ける。各バイトには下位 8 ビットだけを使う。
+    let low = |v: u64| v.to_le_bytes()[0];
+    let pts_bytes = [
+        0x21 | (low(pts >> 29) & 0x0e),
+        low(pts >> 22),
+        0x01 | (low(pts >> 14) & 0xfe),
+        low(pts >> 7),
+        0x01 | (low(pts << 1) & 0xfe),
+    ];
+    let len = u16::try_from(3 + pts_bytes.len() + data.len()).expect("PES payloads we build fit in 64 KiB");
+    let mut pes = vec![0, 0, 1, stream_id];
+    pes.extend_from_slice(&len.to_be_bytes());
+    pes.extend_from_slice(&[0x84, 0x80, 5]);
+    pes.extend_from_slice(&pts_bytes);
+    pes.extend_from_slice(data);
+    pes
+}
+
+/// 複数パケットにまたがる PES を組み立てる。`PES_packet_length` が 0 の PES は次の PES の先頭で区切る。
+pub struct PesAssembler {
+    buf: Vec<u8>,
+    started: bool,
+}
+
+impl PesAssembler {
+    pub const fn new() -> Self {
+        Self {
+            buf: Vec::new(),
+            started: false,
+        }
+    }
+
+    /// パケットを1つ受け取り、組み立て終わった PES を返す。
+    pub fn push(&mut self, packet: &[u8]) -> Vec<Vec<u8>> {
+        let mut done = Vec::new();
+        let Some(payload) = payload(packet) else {
+            return done;
+        };
+        if is_unit_start(packet) {
+            if self.started && !self.buf.is_empty() {
+                done.push(std::mem::take(&mut self.buf));
+            }
+            self.buf.clear();
+            self.started = true;
+        } else if !self.started {
+            return done;
+        }
+        self.buf.extend_from_slice(payload);
+        if self.buf.len() >= 6 {
+            let declared = usize::from(u16::from_be_bytes([self.buf[4], self.buf[5]]));
+            if declared != 0 && self.buf.len() >= 6 + declared {
+                self.buf.truncate(6 + declared);
+                self.started = false;
+                done.push(std::mem::take(&mut self.buf));
+            }
+        }
+        done
+    }
+}
+
+/// PES をパケットに分けて書き出す。最後のパケットはアダプテーションフィールドで詰める。
+pub fn write_pes(pid: u16, pes: &[u8], counter: &mut u8, out: &mut Vec<u8>) {
+    let [high, low] = pid.to_be_bytes();
+    let mut rest = pes;
+    let mut first = true;
+    while !rest.is_empty() {
+        let take = rest.len().min(PACKET_SIZE - 4);
+        let (chunk, tail) = rest.split_at(take);
+        let unit_start = if first { 0x40 } else { 0 };
+        let stuffing = PACKET_SIZE - 4 - chunk.len();
+        if stuffing == 0 {
+            out.extend_from_slice(&[SYNC_BYTE, unit_start | (high & 0x1f), low, 0x10 | *counter]);
+        } else {
+            out.extend_from_slice(&[SYNC_BYTE, unit_start | (high & 0x1f), low, 0x30 | *counter]);
+            // adaptation_field_length の 1 バイトを含めて stuffing バイトを使う。
+            let field_len = u8::try_from(stuffing - 1).expect("stuffing fits in a packet");
+            out.push(field_len);
+            if field_len > 0 {
+                out.push(0);
+                out.resize(out.len() + usize::from(field_len) - 1, 0xff);
+            }
+        }
+        out.extend_from_slice(chunk);
+        *counter = (*counter + 1) & 0x0f;
+        rest = tail;
+        first = false;
+    }
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
@@ -302,6 +420,46 @@ pub mod tests {
                 audio(0x0111, 0x11),
             ],
         }
+    }
+
+    #[test]
+    fn pes_round_trips_through_packets() {
+        let pes = build_pes(0xbd, 0x1_2345_6789, &[7; 300]);
+        assert_eq!(pes_pts(&pes), Some(0x1_2345_6789));
+        assert_eq!(pes_data(&pes), Some(&[7; 300][..]));
+
+        let mut counter = 0;
+        let mut out = Vec::new();
+        write_pes(0x0ff2, &pes, &mut counter, &mut out);
+        assert_eq!(out.len(), PACKET_SIZE * 2);
+
+        let mut pes_assembler = PesAssembler::new();
+        let assembled: Vec<_> = out.chunks(PACKET_SIZE).flat_map(|p| pes_assembler.push(p)).collect();
+        assert_eq!(assembled, vec![pes]);
+    }
+
+    #[test]
+    fn writes_a_pes_one_byte_short_of_a_full_packet() {
+        let pes = build_pes(0xbd, 0, &[1; PACKET_SIZE - 4 - 14 - 1]);
+        let mut counter = 0;
+        let mut out = Vec::new();
+        write_pes(0x0ff2, &pes, &mut counter, &mut out);
+        assert_eq!(out.len(), PACKET_SIZE);
+        assert_eq!(payload(&out), Some(&pes[..]));
+    }
+
+    #[test]
+    fn splits_pes_without_a_length_at_the_next_unit_start() {
+        let mut first = build_pes(0xbd, 1, &[1, 2, 3]);
+        first[4..6].copy_from_slice(&[0, 0]);
+        let second = build_pes(0xbd, 2, &[4]);
+        let mut assembler = PesAssembler::new();
+        assert_eq!(assembler.push(&packet(0x0130, true, 0, &first)), Vec::<Vec<u8>>::new());
+        let done = assembler.push(&packet(0x0130, true, 1, &second));
+        assert_eq!(done.len(), 2);
+        // 長さのない PES は次の PES まで区切れないので、詰め物まで含まれる。
+        assert!(done[0].starts_with(&first));
+        assert_eq!(done[1], second);
     }
 
     #[test]

@@ -11,6 +11,7 @@ use tokio::process::{Child, Command};
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
+use super::captions::ID3_PID;
 use super::encoder::{EncoderSetup, SEGMENT_SECONDS};
 use super::input::InputRewriter;
 use super::profile::{AudioTrack, Codec, Quality};
@@ -220,10 +221,20 @@ fn spawn_ffmpeg(session: &LiveSession, setup: &EncoderSetup) -> Result<Child> {
             "1000000",
         ])
         .args(["-f", "mpegts", "-i", "pipe:0"])
-        .args(["-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn"])
+        .args([
+            "-map",
+            "0:v:0",
+            "-map",
+            "0:a:0?",
+            "-map",
+            &format!("0:i:{ID3_PID:#x}?"),
+            "-sn",
+        ])
         .args(setup.encoder.video_args(session.key.codec, session.key.quality))
         // 放送の音声は番組の切り替わりでチャンネル数や途切れが生じるため、ステレオに揃えて隙間を埋める。
         .args(["-af", "aresample=async=1", "-c:a", "aac", "-ac", "2", "-ar", "48000"])
+        // 字幕の ID3 はそのまま通し、fMP4 では emsg に入れさせる。
+        .args(["-c:d", "copy"])
         .args(["-b:a", &format!("{}k", spec.audio_kbps)])
         .args(["-max_muxing_queue_size", "1024"])
         .stdin(Stdio::piped())

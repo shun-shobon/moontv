@@ -1,3 +1,4 @@
+pub mod captions;
 pub mod encoder;
 pub mod input;
 pub mod manager;

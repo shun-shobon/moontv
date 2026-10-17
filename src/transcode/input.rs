@@ -1,5 +1,6 @@
 //! ffmpeg に渡す前の TS の書き換え。
 
+use super::captions::Captions;
 use super::profile::AudioTrack;
 use crate::ts::{self, PACKET_SIZE, Pmt, SYNC_BYTE, SectionAssembler};
 
@@ -12,6 +13,7 @@ const STREAM_TYPE_AAC: u8 = 0x0f;
 
 /// 選んだ音声だけを残し、ffmpeg からは音声が常に1本に見えるようにする。
 /// 副音声を選んでいても、副音声のない番組では主音声を流す。
+/// あわせて字幕と文字スーパーを解読し、ID3 として差し込む。
 pub struct InputRewriter {
     audio: AudioTrack,
     pending: Vec<u8>,
@@ -25,10 +27,11 @@ pub struct InputRewriter {
     /// 切り替え直後は元の PES の途中から流さないよう、次の PES の先頭まで待つ。
     forwarding: Option<u16>,
     audio_counter: u8,
+    captions: Captions,
 }
 
 impl InputRewriter {
-    pub const fn new(audio: AudioTrack) -> Self {
+    pub fn new(audio: AudioTrack) -> Self {
         Self {
             audio,
             pending: Vec::new(),
@@ -41,6 +44,7 @@ impl InputRewriter {
             selected: None,
             forwarding: None,
             audio_counter: 0,
+            captions: Captions::new(),
         }
     }
 
@@ -73,13 +77,15 @@ impl InputRewriter {
         } else if Some(pid) == self.pmt_pid {
             for section in self.pmt.push(packet) {
                 if let Some(pmt) = Pmt::parse(&section) {
-                    let rewritten = self.select_audio(pmt);
+                    let mut rewritten = self.select_audio(pmt);
+                    self.captions.rewrite_pmt(&mut rewritten);
                     ts::write_section(pid, &rewritten.to_section(), &mut self.pmt_counter, out);
                 }
             }
         } else if self.audio_pids.contains(&pid) {
             self.rewrite_audio(pid, packet, out);
         } else {
+            self.captions.inspect(packet, out);
             out.extend_from_slice(packet);
         }
     }
@@ -207,7 +213,9 @@ mod tests {
         let input = stream(&sample_pmt(), &[(0x0110, true), (0x0111, true), (0x0111, false)]);
         let out = run(AudioTrack::Sub, &input);
 
-        assert_eq!(output_pmt(&out).streams.last().unwrap().component_tag(), Some(0x11));
+        let pmt = output_pmt(&out);
+        let audio = pmt.streams.iter().find(|s| s.stream_type == STREAM_TYPE_AAC).unwrap();
+        assert_eq!(audio.component_tag(), Some(0x11));
         assert_eq!(audio_payloads(&out), vec![0x11, 0x11]);
     }
 
