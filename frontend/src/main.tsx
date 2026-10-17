@@ -1,16 +1,29 @@
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
+import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 
 import { App } from "./app/containers/App";
+import type { Screen } from "./app/containers/screens";
+import { LOADING_SCREEN, loadScreen } from "./app/containers/screens";
 import { interceptNavigations } from "./app/services/navigation";
+import { createStore } from "./app/services/store";
 
 const queryClient = new QueryClient({
 	defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: true } },
 });
 
-interceptNavigations();
+const screens = createStore(LOADING_SCREEN);
+
+// 遷移の完了後にブラウザーがスクロール位置とフォーカスを戻すので、それまでに描画を終えておく。
+const show = (screen: Screen) => {
+	flushSync(() => {
+		screens.set(screen);
+	});
+};
+
+interceptNavigations(async (destination) => await loadScreen(destination, queryClient), show);
 
 const root = document.querySelector("#root");
 if (root == null) {
@@ -20,7 +33,14 @@ if (root == null) {
 createRoot(root).render(
 	<StrictMode>
 		<QueryClientProvider client={queryClient}>
-			<App />
+			<App screens={screens} />
 		</QueryClientProvider>
 	</StrictMode>,
 );
+
+const initialEntry = navigation.currentEntry;
+const initialScreen = await loadScreen(new URL(window.location.href), queryClient);
+// 最初の画面の読み込み中に別の画面へ移っていたら、そちらの結果を残す。
+if (navigation.currentEntry === initialEntry) {
+	show(initialScreen);
+}

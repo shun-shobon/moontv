@@ -45,6 +45,7 @@
 - 配信 URL は `/api/live/{service}/{codec}/{quality}/{viewer}/...`。セッションは前3要素で共有し、`viewer` ごとの最終アクセスで視聴継続を判定する。視聴者がいなくなったセッションは止める。
 - `master.m3u8` 以下のメディアは `{session}/media.m3u8` のようにセッション ID を含む。同じキーで作り直されたセッションの断片を古いプレイヤーが読むと、`init.mp4` が食い違ってデコードに失敗するため。
 - フロントエンドは `PUT /api/live/...` で起動完了を待ってからプレイヤーに `master.m3u8` を渡す。起動失敗の理由を画面に出すため。
+- ページの切り替えは `frontend/src/app/containers/screens.tsx` のルートの `action` で、ページのコードと描画に要るデータを読み込み終えてから行う。それまで前の画面を残す。データは react-query のキャッシュに入れるだけにし、ページは `useQuery` で読む。
 - HEVC は `hvc1` タグ付きの fMP4 で出力する。Safari は `hev1` を再生できない。
 - UI のコンポーネントは1ファイル1つにし、ファイル名をコンポーネント名（PascalCase）に合わせる。
 - `components/` のコンポーネントには同じ場所に `*.stories.tsx` を置く。story は `pnpm -C frontend test` でブラウザー上に描画され、`play` の検証も実行される。

@@ -13,3 +13,5 @@ type Story = StoryObj<typeof meta>;
 export const Live: Story = { args: { section: "live" } };
 
 export const Guide: Story = { args: { section: "guide" } };
+
+export const NoSection: Story = { args: { section: null } };

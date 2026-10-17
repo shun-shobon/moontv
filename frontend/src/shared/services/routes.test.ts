@@ -1,24 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveRoute, watchPath } from "./routes";
+import { parseServiceId, watchPath } from "./routes";
 
-describe("resolveRoute", () => {
-	it.each([
-		["/", { name: "home" }],
-		["/guide", { name: "guide" }],
-		["/watch/1024", { name: "watch", serviceId: 1024 }],
-	])("%s を対応する画面に解決する", (pathname, expected) => {
-		expect(resolveRoute(pathname)).toEqual(expected);
+describe("parseServiceId", () => {
+	it("数字だけのパラメーターを数値にする", () => {
+		expect(parseServiceId("1024")).toBe(1024);
 	});
 
-	it.each(["/watch/abc", "/watch/-1", "/unknown"])(
-		"%s のように解決できないパスはホームにする",
-		(pathname) => {
-			expect(resolveRoute(pathname)).toEqual({ name: "home" });
-		},
-	);
+	it.each(["abc", "-1", "1.5", "", ["1024"]])("%j は解釈できない", (param) => {
+		expect(parseServiceId(param)).toBeNull();
+	});
 
-	it("watchPath で作ったパスを同じサービスの視聴画面に解決する", () => {
-		expect(resolveRoute(watchPath(3273601024))).toEqual({ name: "watch", serviceId: 3273601024 });
+	it("watchPath で作ったパスのパラメーターを元のサービス ID に戻す", () => {
+		const param = watchPath(3273601024).split("/").at(-1);
+		expect(parseServiceId(param)).toBe(3273601024);
 	});
 });

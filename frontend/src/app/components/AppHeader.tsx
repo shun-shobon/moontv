@@ -1,6 +1,9 @@
 import { NavLink } from "./NavLink";
 
-type Props = { section: "live" | "guide" };
+export type Section = "live" | "guide";
+
+/** section が null のときは、どのナビゲーションも選択中にしない。404 ページなどで使う。 */
+type Props = { section: Section | null };
 
 export function AppHeader({ section }: Props) {
 	return (
