@@ -108,9 +108,11 @@
 	 * 部品の中だけで重ねる値は、その部品の根に isolate を付けて画面全体の値と比べられないようにする。
 	 */
 	--z-index-nav: 10;
-	--z-index-modal: 20;
+	/* スマホ幅で上端に固定する。設定シートは全画面のためにプレイヤーの中に描くので、ナビより上に置く。 */
+	--z-index-player: 20;
+	--z-index-modal: 30;
 	/* モーダルの中から開いても上に出す */
-	--z-index-popover: 30;
+	--z-index-popover: 40;
 	/* WebKit が上端のステータスバーの色を決めるときに、必ずこの要素を拾わせる（index.html） */
 	--z-index-status-bar: 2147483647;
 

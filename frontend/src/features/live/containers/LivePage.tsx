@@ -42,8 +42,9 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 	const channel = channels.data.find((c) => c.id === serviceId);
 
 	return (
-		<div className="mx-auto grid w-full max-w-[1800px] grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-4">
-			<section className="flex min-w-0 flex-col gap-4">
+		// 1列のときにプレイヤーをページの終わりまで固定するため、プレイヤーを grid の直下に置く。
+		<div className="mx-auto grid w-full max-w-[1800px] grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_1fr] lg:p-4">
+			<div className="sticky top-[env(safe-area-inset-top)] z-player min-w-0 lg:static">
 				<Suspense fallback={<PlayerPlaceholder />}>
 					<LivePlayer
 						serviceId={serviceId}
@@ -51,11 +52,11 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 						nowPlaying={channel && nowPlayingOf(channel)}
 					/>
 				</Suspense>
-				<div className="flex flex-col gap-4 px-4 lg:px-0">
-					<NowPlaying channel={channel} />
-				</div>
-			</section>
-			<aside className="px-4 pb-4 lg:max-h-[calc(var(--page-height)-2rem)] lg:overflow-y-auto lg:px-0 lg:pb-0">
+			</div>
+			<div className="flex min-w-0 flex-col gap-4 px-4 lg:px-0">
+				<NowPlaying channel={channel} />
+			</div>
+			<aside className="px-4 pb-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(var(--page-height)-2rem)] lg:overflow-y-auto lg:px-0 lg:pb-0">
 				<ChannelList channels={channels.data} activeId={serviceId} layout="list" />
 			</aside>
 		</div>
