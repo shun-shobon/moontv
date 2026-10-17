@@ -73,10 +73,11 @@ impl SessionManager {
             }
             let id = self.next_id.fetch_add(1, Ordering::Relaxed);
             let dir = self.root.join(format!(
-                "{}-{}-{}-{id}",
+                "{}-{}-{}-{}-{id}",
                 key.service_id,
                 key.codec.label(),
-                key.quality.label()
+                key.quality.label(),
+                key.audio.label()
             ));
             let session = Arc::new(LiveSession::new(id, key, channel, dir));
             session.touch(viewer);

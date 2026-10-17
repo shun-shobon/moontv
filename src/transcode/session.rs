@@ -12,7 +12,8 @@ use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
 use super::encoder::{EncoderSetup, SEGMENT_SECONDS};
-use super::profile::{Codec, Quality};
+use super::input::InputRewriter;
+use super::profile::{AudioTrack, Codec, Quality};
 use crate::mirakc::ChannelInfo;
 
 /// プレイヤーの再生開始時にバッファ不足で止まらないよう、2 セグメント揃ってから返す。
@@ -28,6 +29,7 @@ pub struct LiveKey {
     pub service_id: u64,
     pub codec: Codec,
     pub quality: Quality,
+    pub audio: AudioTrack,
 }
 
 #[derive(Debug, Clone)]
@@ -152,11 +154,15 @@ async fn transcode(session: &LiveSession, setup: &EncoderSetup, stream: reqwest:
         None
     };
 
+    let mut rewriter = InputRewriter::new(session.key.audio);
     let mut pipe_task = tokio::spawn(async move {
         let mut body = stream.bytes_stream();
+        let mut rewritten = Vec::new();
         while let Some(chunk) = body.next().await {
             let chunk = chunk.context("failed to read the tuner stream")?;
-            stdin.write_all(&chunk).await.context("failed to write to ffmpeg")?;
+            rewritten.clear();
+            rewriter.push(&chunk, &mut rewritten);
+            stdin.write_all(&rewritten).await.context("failed to write to ffmpeg")?;
         }
         anyhow::Ok(())
     });

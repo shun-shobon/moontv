@@ -3,6 +3,7 @@ mod assets;
 mod catalog;
 mod mirakc;
 mod transcode;
+mod ts;
 
 use std::net::SocketAddr;
 use std::path::PathBuf;

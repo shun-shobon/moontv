@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::mirakc::{ChannelInfo, MirakcClient, Program, Service};
+use crate::transcode::profile::AudioTrack;
 
 /// mirakc の /api/programs は全番組を返し数MBになるため、画面遷移ごとに取得しない。
 const CACHE_TTL: Duration = Duration::from_secs(60);
@@ -51,6 +52,14 @@ pub struct ProgramDto {
     pub description: String,
     pub genres: Vec<u8>,
     pub is_free: bool,
+    pub audios: Vec<AudioDto>,
+}
+
+#[derive(Serialize)]
+pub struct AudioDto {
+    pub track: AudioTrack,
+    /// ISO 639-2 の言語コード（`jpn` など）。
+    pub lang: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -211,7 +220,22 @@ fn to_dto(program: &Program) -> ProgramDto {
         description: normalize(program.description.as_deref().unwrap_or_default()),
         genres: program.genres.iter().flatten().map(|g| g.lv1).collect(),
         is_free: program.is_free,
+        audios: audios(program),
     }
+}
+
+/// 配信側は主音声を最初、2本目を副音声として選ぶので、番組情報も主音声フラグで同じ順に並べる。
+fn audios(program: &Program) -> Vec<AudioDto> {
+    let mut audios: Vec<_> = program.audios.iter().flatten().collect();
+    audios.sort_by_key(|a| !a.is_main);
+    audios
+        .into_iter()
+        .zip([AudioTrack::Main, AudioTrack::Sub])
+        .map(|(audio, track)| AudioDto {
+            track,
+            lang: audio.langs.first().cloned(),
+        })
+        .collect()
 }
 
 /// ARIB の文字列は英数字が全角で送られてくるため NFKC で半角に揃える。
@@ -284,5 +308,35 @@ mod tests {
     fn normalize_converts_fullwidth_and_enclosed_symbols() {
         assert_eq!(normalize("ＴＯＫＹＯ　ＭＸ１"), "TOKYO MX1");
         assert_eq!(normalize("ニュース🈑🈞"), "ニュース[字][再]");
+    }
+
+    fn program_with_audios(audios: &serde_json::Value) -> Program {
+        serde_json::from_value(serde_json::json!({
+            "id": 1, "networkId": 32736, "serviceId": 1024, "startAt": 0, "duration": 60_000,
+            "audios": audios,
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn puts_the_main_audio_first_regardless_of_order() {
+        let program = program_with_audios(&serde_json::json!([
+            { "componentType": 3, "isMain": false, "langs": ["eng"] },
+            { "componentType": 3, "isMain": true, "langs": ["jpn"] },
+        ]));
+        let audios: Vec<_> = audios(&program).into_iter().map(|a| (a.track, a.lang)).collect();
+        assert_eq!(
+            audios,
+            vec![
+                (AudioTrack::Main, Some("jpn".to_owned())),
+                (AudioTrack::Sub, Some("eng".to_owned())),
+            ]
+        );
+    }
+
+    #[test]
+    fn has_no_audios_when_mirakc_omits_them() {
+        let program = program_with_audios(&serde_json::Value::Null);
+        assert!(audios(&program).is_empty());
     }
 }

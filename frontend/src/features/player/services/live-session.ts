@@ -9,9 +9,9 @@ export const MEDIA_ERROR_PHASE: LivePhase = { kind: "error", message: "再生が
 
 /** 再試行で同じ配信を作り直したとき、前回の状態を持ち越さないよう試行回数も含める。 */
 export const sessionKey = (
-	{ serviceId, codec, quality }: Omit<LiveTarget, "viewerId">,
+	{ serviceId, codec, quality, audio }: Omit<LiveTarget, "viewerId">,
 	attempt: number,
-) => `${serviceId}/${codec}/${quality}/${attempt}`;
+) => `${serviceId}/${codec}/${quality}/${audio}/${attempt}`;
 
 export const startFailurePhase = (error: unknown): LivePhase => {
 	const reason = error instanceof Error ? `（${error.message}）` : "";

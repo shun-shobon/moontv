@@ -45,12 +45,13 @@ export function LivePage({ serviceId }: { serviceId: number | null }) {
 		// 1列のときにプレイヤーをページの終わりまで固定するため、プレイヤーを grid の直下に置く。
 		<div className="mx-auto grid w-full max-w-[1800px] grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_1fr] lg:p-4">
 			{/* 横向きのスマホでは 16:9 が画面の高さを超え、固定すると下の内容が見えなくなるので、高さに収めて縦向きだけ固定する。 */}
-			<div className="z-player mx-auto w-full min-w-0 landscape:max-w-[calc((var(--page-height)-env(safe-area-inset-bottom))*16/9)] max-lg:portrait:sticky max-lg:portrait:top-[env(safe-area-inset-top)]">
+			<div className="z-player mx-auto w-full min-w-0 max-lg:portrait:sticky max-lg:portrait:top-[env(safe-area-inset-top)] landscape:max-w-[calc((var(--page-height)-env(safe-area-inset-bottom))*16/9)]">
 				<Suspense fallback={<PlayerPlaceholder />}>
 					<LivePlayer
 						serviceId={serviceId}
 						status={status.data}
 						nowPlaying={channel && nowPlayingOf(channel)}
+						audios={channel?.present?.audios ?? []}
 					/>
 				</Suspense>
 			</div>

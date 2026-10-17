@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { Button, Menu, MenuTrigger, Popover, Separator } from "react-aria-components";
 import { useUNSAFE_PortalContext } from "react-aria/PortalProvider";
 
-import type { Codec, Quality } from "../../../shared/api/schemas";
+import type { Audio, AudioTrack, Codec, Quality } from "../../../shared/api/schemas";
 import { Sheet } from "../../../shared/components/Sheet";
 import { useMediaQuery } from "../../../shared/hooks/useMediaQuery";
 import { PHONE_MEDIA_QUERY } from "../../../shared/services/breakpoints";
 import type { Preferences } from "../media/preferences";
-import { codecOptionLabel, codecOptions } from "../services/player-settings";
+import { audioOptionLabel, codecOptionLabel, codecOptions } from "../services/player-settings";
 import { OptionGroup } from "./OptionGroup";
 import { ToggleOption } from "./ToggleOption";
 
@@ -19,6 +19,10 @@ export type PlayerSettingsProps = {
 	activeCodec: Codec;
 	preferences: Preferences;
 	onChange: (preferences: Preferences) => void;
+	/** 放送中の番組の音声。2本以上あるときだけ選べるようにする。 */
+	audios: readonly Audio[];
+	audio: AudioTrack;
+	onAudioChange: (audio: AudioTrack) => void;
 };
 
 export function PlayerSettings({
@@ -27,6 +31,9 @@ export function PlayerSettings({
 	activeCodec,
 	preferences,
 	onChange,
+	audios,
+	audio,
+	onAudioChange,
 }: PlayerSettingsProps) {
 	// 既定の基準は body なので、描画先のプレイヤーに収まる位置と高さを計算させる。プレイヤーが小さいと上にはみ出て切れるため。
 	const { getContainer } = useUNSAFE_PortalContext();
@@ -51,6 +58,19 @@ export function PlayerSettings({
 				}}
 			/>
 			<Separator className="mx-2.5 border-t border-line-strong" />
+			{/* コーデックより先に置き、プレイヤーが低くてメニューが切れても副音声があることに気づけるようにする。 */}
+			{audios.length >= 2 && (
+				<>
+					<OptionGroup
+						label="音声"
+						options={audios.map((a) => a.track)}
+						value={audio}
+						format={(track) => audioOptionLabel(track, audios)}
+						onSelect={onAudioChange}
+					/>
+					<Separator className="mx-2.5 border-t border-line-strong" />
+				</>
+			)}
 			<OptionGroup
 				label="コーデック"
 				options={codecOptions(codecs)}

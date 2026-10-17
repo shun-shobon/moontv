@@ -91,5 +91,6 @@ function program(): Program {
 		description: "",
 		genres: [],
 		isFree: true,
+		audios: [],
 	};
 }

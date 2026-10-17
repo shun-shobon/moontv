@@ -10,14 +10,14 @@ import { MEDIA_ERROR_PHASE, sessionKey, startFailurePhase } from "../../services
  * 視聴をやめたときとページを閉じたときは視聴終了を伝え、サーバーがセッションを早く止められるようにする。
  */
 export const useLiveSession = (target: LiveTarget, attempt: number) => {
-	const { serviceId, codec, quality, viewerId } = target;
+	const { serviceId, codec, quality, audio, viewerId } = target;
 	const key = sessionKey(target, attempt);
 	const [state, setState] = useState<{ key: string; phase: LivePhase } | null>(null);
 	const phase: LivePhase = state?.key === key ? state.phase : { kind: "starting" };
 	const keyRef = useRef(key);
 
 	useEffect(() => {
-		const current: LiveTarget = { serviceId, codec, quality, viewerId };
+		const current: LiveTarget = { serviceId, codec, quality, audio, viewerId };
 		const controller = new AbortController();
 		keyRef.current = key;
 
@@ -43,7 +43,7 @@ export const useLiveSession = (target: LiveTarget, attempt: number) => {
 			window.removeEventListener("pagehide", onPageHide);
 			leaveLive(current);
 		};
-	}, [key, serviceId, codec, quality, viewerId]);
+	}, [key, serviceId, codec, quality, audio, viewerId]);
 
 	// 参照を変えると、切り替え前のソースで起きたエラーを新しい配信のものとして拾い直してしまう。
 	const reportMediaError = useCallback(() => {

@@ -21,6 +21,23 @@ pub enum Quality {
 
 pub const QUALITIES: [Quality; 4] = [Quality::P1080, Quality::P720, Quality::P540, Quality::P360];
 
+/// 二か国語放送や解説放送の2本目の音声が副音声。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AudioTrack {
+    Main,
+    Sub,
+}
+
+impl AudioTrack {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Main => "main",
+            Self::Sub => "sub",
+        }
+    }
+}
+
 pub struct Spec {
     pub width: u32,
     pub height: u32,

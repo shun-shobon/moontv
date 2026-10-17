@@ -48,6 +48,17 @@ pub struct Program {
     pub description: Option<String>,
     pub extended: Option<serde_json::Map<String, serde_json::Value>>,
     pub genres: Option<Vec<Genre>>,
+    pub audios: Option<Vec<Audio>>,
+}
+
+/// mirakc は音声を `component_tag` をキーにした連想配列から返すため、並び順に意味はない。
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Audio {
+    #[serde(default)]
+    pub is_main: bool,
+    #[serde(default)]
+    pub langs: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

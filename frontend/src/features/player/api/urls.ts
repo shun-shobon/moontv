@@ -1,14 +1,15 @@
-import type { Codec, Quality } from "../../../shared/api/schemas";
+import type { AudioTrack, Codec, Quality } from "../../../shared/api/schemas";
 
 export type LiveTarget = {
 	serviceId: number;
 	codec: Codec;
 	quality: Quality;
+	audio: AudioTrack;
 	viewerId: string;
 };
 
-export const livePath = ({ serviceId, codec, quality, viewerId }: LiveTarget) =>
-	`/api/live/${serviceId}/${codec}/${quality}/${viewerId}`;
+export const livePath = ({ serviceId, codec, quality, audio, viewerId }: LiveTarget) =>
+	`/api/live/${serviceId}/${codec}/${quality}/${audio}/${viewerId}`;
 
 /** Video.js の HLS エンジンはプレイリスト内の相対パスをこの URL を基準に解決するため、絶対 URL にする。 */
 export const masterPlaylistUrl = (target: LiveTarget) =>

@@ -48,5 +48,6 @@ function program(name: string): Program {
 		description: "",
 		genres: [],
 		isFree: true,
+		audios: [],
 	};
 }

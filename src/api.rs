@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::catalog::Catalog;
 use crate::transcode::manager::{AcquireError, SessionManager};
-use crate::transcode::profile::{Codec, QUALITIES, Quality};
+use crate::transcode::profile::{AudioTrack, Codec, QUALITIES, Quality};
 use crate::transcode::session::{LiveKey, LiveSession, MEDIA_PLAYLIST};
 
 /// チューナーの起動と最初のセグメント生成を合わせても通常は10秒以内に終わる。
@@ -31,15 +31,15 @@ pub fn router(state: AppState) -> Router {
         .route("/api/programs", get(programs))
         .route("/api/programs/{id}", get(program))
         .route(
-            "/api/live/{service}/{codec}/{quality}/{viewer}",
+            "/api/live/{service}/{codec}/{quality}/{audio}/{viewer}",
             axum::routing::put(start_live).delete(leave_live),
         )
         .route(
-            "/api/live/{service}/{codec}/{quality}/{viewer}/master.m3u8",
+            "/api/live/{service}/{codec}/{quality}/{audio}/{viewer}/master.m3u8",
             get(master_playlist),
         )
         .route(
-            "/api/live/{service}/{codec}/{quality}/{viewer}/{session}/{file}",
+            "/api/live/{service}/{codec}/{quality}/{audio}/{viewer}/{session}/{file}",
             get(live_file),
         )
         .with_state(state)
@@ -125,9 +125,9 @@ async fn logo(State(state): State<AppState>, Path(id): Path<u64>) -> ApiResult<R
         .into_response())
 }
 
-type LivePath = (u64, Codec, Quality, String);
+type LivePath = (u64, Codec, Quality, AudioTrack, String);
 
-fn live_key(state: &AppState, (service_id, codec, quality, viewer): &LivePath) -> ApiResult<LiveKey> {
+fn live_key(state: &AppState, (service_id, codec, quality, audio, viewer): &LivePath) -> ApiResult<LiveKey> {
     let valid_viewer =
         !viewer.is_empty() && viewer.len() <= 64 && viewer.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-');
     if !valid_viewer {
@@ -143,12 +143,13 @@ fn live_key(state: &AppState, (service_id, codec, quality, viewer): &LivePath) -
         service_id: *service_id,
         codec: *codec,
         quality: *quality,
+        audio: *audio,
     })
 }
 
 async fn ready_session(state: &AppState, path: &LivePath) -> ApiResult<Arc<LiveSession>> {
     let key = live_key(state, path)?;
-    let session = state.sessions.acquire(key, &path.3).await.map_err(|e| match e {
+    let session = state.sessions.acquire(key, &path.4).await.map_err(|e| match e {
         AcquireError::UnknownService => ApiError(StatusCode::NOT_FOUND, "service not found".into()),
         AcquireError::Other(e) => e.into(),
     })?;
@@ -167,7 +168,7 @@ async fn start_live(State(state): State<AppState>, Path(path): Path<LivePath>) -
 
 async fn leave_live(State(state): State<AppState>, Path(path): Path<LivePath>) -> ApiResult<StatusCode> {
     let key = live_key(&state, &path)?;
-    state.sessions.leave(key, &path.3);
+    state.sessions.leave(key, &path.4);
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -185,9 +186,17 @@ async fn master_playlist(State(state): State<AppState>, Path(path): Path<LivePat
 
 async fn live_file(
     State(state): State<AppState>,
-    Path((service, codec, quality, viewer, session_id, file)): Path<(u64, Codec, Quality, String, u64, String)>,
+    Path((service, codec, quality, audio, viewer, session_id, file)): Path<(
+        u64,
+        Codec,
+        Quality,
+        AudioTrack,
+        String,
+        u64,
+        String,
+    )>,
 ) -> ApiResult<Response> {
-    let key = live_key(&state, &(service, codec, quality, viewer.clone()))?;
+    let key = live_key(&state, &(service, codec, quality, audio, viewer.clone()))?;
     let content_type = match file.rsplit_once('.').map(|(_, ext)| ext) {
         Some("m3u8") => "application/vnd.apple.mpegurl",
         Some("m4s") => "video/iso.segment",

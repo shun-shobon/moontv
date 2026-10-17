@@ -6,6 +6,15 @@ export type Codec = v.InferOutput<typeof CodecSchema>;
 export const QualitySchema = v.picklist(["1080p", "720p", "540p", "360p"]);
 export type Quality = v.InferOutput<typeof QualitySchema>;
 
+export const AudioTrackSchema = v.picklist(["main", "sub"]);
+export type AudioTrack = v.InferOutput<typeof AudioTrackSchema>;
+
+export const AudioSchema = v.object({
+	track: AudioTrackSchema,
+	lang: v.nullable(v.string()),
+});
+export type Audio = v.InferOutput<typeof AudioSchema>;
+
 export const StatusSchema = v.object({
 	version: v.string(),
 	encoder: v.string(),
@@ -23,6 +32,7 @@ export const ProgramSchema = v.object({
 	description: v.string(),
 	genres: v.array(v.number()),
 	isFree: v.boolean(),
+	audios: v.array(AudioSchema),
 });
 export type Program = v.InferOutput<typeof ProgramSchema>;
 

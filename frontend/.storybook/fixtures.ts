@@ -17,6 +17,7 @@ export const program = (overrides: Partial<Program> = {}): Program => ({
 	description: "国内外の最新ニュースと天気をお伝えします。",
 	genres: [0],
 	isFree: true,
+	audios: [],
 	...overrides,
 });
 

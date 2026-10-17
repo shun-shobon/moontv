@@ -18,8 +18,9 @@
 | パス | 責務 |
 | --- | --- |
 | `src/mirakc.rs` | mirakc API クライアント |
+| `src/ts.rs` | MPEG-TS のパケットと PSI（PAT・PMT）の読み書き |
 | `src/catalog.rs` | サービス・番組情報のキャッシュと API 向けの整形 |
-| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質定義、`encoder` エンコーダ別の引数と自動検出、`session` 1本の配信、`manager` セッションの共有と停止） |
+| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質・音声の定義、`encoder` エンコーダ別の引数と自動検出、`input` ffmpeg に渡す前の TS の書き換え、`session` 1本の配信、`manager` セッションの共有と停止） |
 | `src/api.rs` | HTTP API |
 | `src/assets.rs` | 埋め込んだフロントエンドの配信 |
 | `frontend/src/app` | 画面の枠組みとルーティング |
@@ -42,8 +43,9 @@
 ## 設計上の前提
 
 - チューナーは1つしかない前提で、別チャンネルの要求が来たら既存セッションを止めて譲る（`SessionManager::open_stream`）。mirakc はチューナーを確保できないとき 404 を返す。
-- 配信 URL は `/api/live/{service}/{codec}/{quality}/{viewer}/...`。セッションは前3要素で共有し、`viewer` ごとの最終アクセスで視聴継続を判定する。視聴者がいなくなったセッションは止める。
+- 配信 URL は `/api/live/{service}/{codec}/{quality}/{audio}/{viewer}/...`。セッションは前4要素で共有し、`viewer` ごとの最終アクセスで視聴継続を判定する。視聴者がいなくなったセッションは止める。
 - `master.m3u8` 以下のメディアは `{session}/media.m3u8` のようにセッション ID を含む。同じキーで作り直されたセッションの断片を古いプレイヤーが読むと、`init.mp4` が食い違ってデコードに失敗するため。
+- 音声は TS の段階で選んだ1本だけを固定の PID に載せ替えて ffmpeg に渡す。ffmpeg は起動時の PMT にあった ES しか読まないため、番組の切り替わりで音声の本数や PID が変わっても音声が途切れないようにする。主音声・副音声は `component_tag` の小さい順（ARIB では 0x10 が主音声）で決める。mirakc の番組情報の音声は並び順に意味がないので、主音声フラグで並べ直す。
 - フロントエンドは `PUT /api/live/...` で起動完了を待ってからプレイヤーに `master.m3u8` を渡す。起動失敗の理由を画面に出すため。
 - ページの切り替えは `frontend/src/app/containers/screens.tsx` のルートの `action` で、ページのコードと描画に要るデータを読み込み終えてから行う。それまで前の画面を残す。データは react-query のキャッシュに入れるだけにし、ページは `useQuery` で読む。
 - HEVC は `hvc1` タグ付きの fMP4 で出力する。Safari は `hev1` を再生できない。

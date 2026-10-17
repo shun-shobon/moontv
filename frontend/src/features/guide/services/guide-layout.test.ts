@@ -157,6 +157,7 @@ function program(overrides: Partial<Program>): Program {
 		description: "",
 		genres: [],
 		isFree: true,
+		audios: [],
 		...overrides,
 	};
 }
