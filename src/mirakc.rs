@@ -73,6 +73,11 @@ impl Program {
     }
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct Tuner {
+    pub types: Vec<String>,
+}
+
 #[derive(Debug)]
 pub enum OpenStreamError {
     TunerUnavailable,
@@ -129,6 +134,10 @@ impl MirakcClient {
 
     pub async fn programs(&self) -> Result<Vec<Program>> {
         self.get_json("/api/programs").await
+    }
+
+    pub async fn tuners(&self) -> Result<Vec<Tuner>> {
+        self.get_json("/api/tuners").await
     }
 
     pub async fn program(&self, id: u64) -> Result<Option<Program>> {

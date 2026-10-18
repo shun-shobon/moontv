@@ -32,7 +32,7 @@ pub fn router(state: AppState) -> Router {
         .route("/api/programs/{id}", get(program))
         .route(
             "/api/live/{service}/{codec}/{quality}/{audio}/{viewer}",
-            axum::routing::put(start_live).delete(leave_live),
+            get(live_end).put(start_live).delete(leave_live),
         )
         .route(
             "/api/live/{service}/{codec}/{quality}/{audio}/{viewer}/master.m3u8",
@@ -164,6 +164,19 @@ async fn ready_session(state: &AppState, path: &LivePath) -> ApiResult<Arc<LiveS
 async fn start_live(State(state): State<AppState>, Path(path): Path<LivePath>) -> ApiResult<StatusCode> {
     ready_session(&state, &path).await?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Serialize)]
+struct LiveEndDto {
+    evicted: bool,
+}
+
+/// プレイヤーが再生の中断を検知したときに呼び、チューナーを譲らされたのかを画面に出す。
+async fn live_end(State(state): State<AppState>, Path(path): Path<LivePath>) -> ApiResult<Json<LiveEndDto>> {
+    let key = live_key(&state, &path)?;
+    Ok(Json(LiveEndDto {
+        evicted: state.sessions.was_evicted(key, &path.4),
+    }))
 }
 
 async fn leave_live(State(state): State<AppState>, Path(path): Path<LivePath>) -> ApiResult<StatusCode> {

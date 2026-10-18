@@ -68,6 +68,10 @@ impl LiveSession {
         viewers.insert(viewer.to_owned(), Instant::now());
     }
 
+    pub fn viewers(&self) -> Vec<String> {
+        self.viewers.lock().unwrap().keys().cloned().collect()
+    }
+
     /// 視聴者が残っていなければ true を返す。
     pub fn leave(&self, viewer: &str) -> bool {
         let mut viewers = self.viewers.lock().unwrap();

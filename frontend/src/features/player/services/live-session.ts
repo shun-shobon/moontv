@@ -7,6 +7,11 @@ export type LivePhase =
 
 export const MEDIA_ERROR_PHASE: LivePhase = { kind: "error", message: "再生が中断されました" };
 
+export const EVICTED_PHASE: LivePhase = {
+	kind: "error",
+	message: "チューナーが足りないため、別のチャンネルの視聴に譲りました",
+};
+
 /** 再試行で同じ配信を作り直したとき、前回の状態を持ち越さないよう試行回数も含める。 */
 export const sessionKey = (
 	{ serviceId, codec, quality, audio }: Omit<LiveTarget, "viewerId">,

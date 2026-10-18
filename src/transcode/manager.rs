@@ -1,21 +1,23 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, anyhow};
 
 use super::encoder::EncoderSetup;
 use super::session::{self, LiveKey, LiveSession};
 use crate::catalog::Catalog;
-use crate::mirakc::{MirakcClient, OpenStreamError};
+use crate::mirakc::{ChannelInfo, MirakcClient, OpenStreamError};
 
 /// プレイヤーはセグメント長(1秒)ごとにプレイリストを取りに来るので、これだけ途絶えたら視聴終了とみなす。
 const VIEWER_TIMEOUT: Duration = Duration::from_secs(20);
 /// 他チャンネルのセッションを止めた後、mirakc がチューナーを解放するまで待つ上限。
 const TUNER_RELEASE_WAIT: Duration = Duration::from_secs(8);
 const TUNER_RETRY_INTERVAL: Duration = Duration::from_millis(50);
+/// チューナーを譲らされた視聴者のプレイヤーが、再生の中断を検知して理由を問い合わせるまでの猶予。
+const EVICTION_NOTICE_TTL: Duration = Duration::from_secs(60);
 
 pub struct SessionManager {
     sessions: Mutex<HashMap<LiveKey, Arc<LiveSession>>>,
@@ -24,6 +26,7 @@ pub struct SessionManager {
     mirakc: MirakcClient,
     catalog: Arc<Catalog>,
     next_id: AtomicU64,
+    evictions: Mutex<HashMap<String, (LiveKey, Instant)>>,
 }
 
 pub enum AcquireError {
@@ -45,6 +48,7 @@ impl SessionManager {
                     .duration_since(UNIX_EPOCH)
                     .map_or(0, |d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX)),
             ),
+            evictions: Mutex::new(HashMap::new()),
         }
     }
 
@@ -53,6 +57,7 @@ impl SessionManager {
     }
 
     pub async fn acquire(self: &Arc<Self>, key: LiveKey, viewer: &str) -> Result<Arc<LiveSession>, AcquireError> {
+        self.evictions.lock().unwrap().remove(viewer);
         if let Some(session) = self.get(key, viewer) {
             return Ok(session);
         }
@@ -133,7 +138,7 @@ impl SessionManager {
 
     async fn open_stream(&self, session: &LiveSession) -> Result<reqwest::Response> {
         let deadline = tokio::time::Instant::now() + TUNER_RELEASE_WAIT;
-        let mut evicted = false;
+        let mut waited = false;
         loop {
             match self.mirakc.open_stream(session.key.service_id).await {
                 Ok(stream) => return Ok(stream),
@@ -142,14 +147,13 @@ impl SessionManager {
                     if session.is_cancelled() {
                         return Err(anyhow!("cancelled"));
                     }
-                    // チューナーが足りないときは、最後に要求された視聴を優先して他チャンネルを止める。
-                    if !evicted {
-                        let victims = self.evict_other_channels(session);
-                        if victims.is_empty() {
+                    if !waited {
+                        let releasing = self.release_tuner(session).await?;
+                        if releasing.is_empty() {
                             return Err(anyhow!("no tuner is available"));
                         }
-                        evicted = true;
-                        let all_finished = futures_util::future::join_all(victims.iter().map(|s| s.wait_finished()));
+                        waited = true;
+                        let all_finished = futures_util::future::join_all(releasing.iter().map(|s| s.wait_finished()));
                         let _ = tokio::time::timeout_at(deadline, all_finished).await;
                         continue;
                     }
@@ -163,19 +167,68 @@ impl SessionManager {
         }
     }
 
-    fn evict_other_channels(&self, current: &LiveSession) -> Vec<Arc<LiveSession>> {
+    /// 解放を待つべきセッションを返す。
+    /// 終了処理中のものがあればそれを待つ。チャンネルを切り替えた直後に、切り替え前の配信を理由に別の視聴を止めないため。
+    /// 無ければ、最後に選ばれたのが一番古いチャンネルの配信を止めて、要求したチャンネルに譲る。
+    async fn release_tuner(&self, current: &LiveSession) -> Result<Vec<Arc<LiveSession>>> {
+        let types = self.shared_channel_types(&current.channel.channel_type).await?;
         let sessions = self.sessions.lock().unwrap();
-        let victims: Vec<_> = sessions
+        let candidates: Vec<_> = sessions
             .values()
-            .filter(|s| s.channel != current.channel)
+            .filter(|s| s.channel != current.channel && types.contains(&s.channel.channel_type))
             .cloned()
             .collect();
         drop(sessions);
+
+        let finishing: Vec<_> = candidates.iter().filter(|s| s.is_cancelled()).cloned().collect();
+        if !finishing.is_empty() {
+            return Ok(finishing);
+        }
+
+        // ID は作成順に振るので、チャンネル内で最大の ID がそのチャンネルを最後に選んだ時期を表す。
+        let mut last_chosen: HashMap<&ChannelInfo, u64> = HashMap::new();
+        for session in &candidates {
+            let id = last_chosen.entry(&session.channel).or_default();
+            *id = (*id).max(session.id);
+        }
+        let Some(channel) = last_chosen
+            .into_iter()
+            .min_by_key(|&(_, id)| id)
+            .map(|(c, _)| c.clone())
+        else {
+            return Ok(Vec::new());
+        };
+        // mirakc は同じチャンネルの配信を1つのチューナーで受けるので、そのチャンネルの配信を全部止めないと空かない。
+        let victims: Vec<_> = candidates.into_iter().filter(|s| s.channel == channel).collect();
         for session in &victims {
             tracing::info!(key = ?session.key, "stopping session to free a tuner");
+            let now = Instant::now();
+            self.evictions
+                .lock()
+                .unwrap()
+                .extend(session.viewers().into_iter().map(|v| (v, (session.key, now))));
             session.stop();
         }
-        victims
+        Ok(victims)
+    }
+
+    /// 要求したチャンネルを受信できるチューナーで受けている種類を返す。それ以外の配信を止めてもチューナーは空かない。
+    async fn shared_channel_types(&self, channel_type: &str) -> Result<HashSet<String>> {
+        let tuners = self.mirakc.tuners().await?;
+        Ok(tuners
+            .into_iter()
+            .filter(|t| t.types.iter().any(|ty| ty == channel_type))
+            .flat_map(|t| t.types)
+            .collect())
+    }
+
+    /// チューナーを譲ったために止めた配信の視聴者なら true を返す。
+    pub fn was_evicted(&self, key: LiveKey, viewer: &str) -> bool {
+        self.evictions
+            .lock()
+            .unwrap()
+            .get(viewer)
+            .is_some_and(|(evicted, _)| *evicted == key)
     }
 
     fn remove(&self, session: &Arc<LiveSession>) {
@@ -192,6 +245,11 @@ impl SessionManager {
             loop {
                 interval.tick().await;
                 let Some(manager) = manager.upgrade() else { return };
+                manager
+                    .evictions
+                    .lock()
+                    .unwrap()
+                    .retain(|_, (_, at)| at.elapsed() < EVICTION_NOTICE_TTL);
                 let sessions = manager.sessions.lock().unwrap();
                 for session in sessions.values().filter(|s| s.expire_viewers(VIEWER_TIMEOUT)) {
                     tracing::info!(key = ?session.key, "stopping idle session");

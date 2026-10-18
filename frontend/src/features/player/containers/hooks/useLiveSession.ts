@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { leaveLive, startLive } from "../../api/client";
+import { fetchLiveEnd, leaveLive, startLive } from "../../api/client";
 import type { LiveTarget } from "../../api/urls";
 import type { LivePhase } from "../../services/live-session";
-import { MEDIA_ERROR_PHASE, sessionKey, startFailurePhase } from "../../services/live-session";
+import {
+	EVICTED_PHASE,
+	MEDIA_ERROR_PHASE,
+	sessionKey,
+	startFailurePhase,
+} from "../../services/live-session";
 
 /**
  * 配信の起動完了を待ってから再生に進む。起動失敗の理由を画面に出すため。
@@ -15,11 +20,13 @@ export const useLiveSession = (target: LiveTarget, attempt: number) => {
 	const [state, setState] = useState<{ key: string; phase: LivePhase } | null>(null);
 	const phase: LivePhase = state?.key === key ? state.phase : { kind: "starting" };
 	const keyRef = useRef(key);
+	const targetRef = useRef(target);
 
 	useEffect(() => {
 		const current: LiveTarget = { serviceId, codec, quality, audio, viewerId };
 		const controller = new AbortController();
 		keyRef.current = key;
+		targetRef.current = current;
 
 		startLive(current, controller.signal)
 			.then(() => {
@@ -47,7 +54,19 @@ export const useLiveSession = (target: LiveTarget, attempt: number) => {
 
 	// 参照を変えると、切り替え前のソースで起きたエラーを新しい配信のものとして拾い直してしまう。
 	const reportMediaError = useCallback(() => {
-		setState({ key: keyRef.current, phase: MEDIA_ERROR_PHASE });
+		const errorKey = keyRef.current;
+		const report = (next: LivePhase) => {
+			if (keyRef.current === errorKey) {
+				setState({ key: errorKey, phase: next });
+			}
+		};
+		fetchLiveEnd(targetRef.current)
+			.then(({ evicted }) => {
+				report(evicted ? EVICTED_PHASE : MEDIA_ERROR_PHASE);
+			})
+			.catch(() => {
+				report(MEDIA_ERROR_PHASE);
+			});
 	}, []);
 
 	return { key, phase, reportMediaError };
