@@ -23,7 +23,9 @@ export function NavLink({ href, active, icon, children }: Props) {
 							: "scale-x-50 opacity-0 group-data-hovered:scale-x-100 group-data-hovered:bg-surface-hover group-data-hovered:opacity-100",
 					)}
 				/>
-				<span className={clsx("relative flex transition-colors *:size-5", active && "text-accent")}>
+				<span
+					className={clsx("relative flex transition-colors *:size-5", active && "text-fg-accent")}
+				>
 					{icon}
 				</span>
 			</span>

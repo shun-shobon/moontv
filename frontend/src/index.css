@@ -4,22 +4,25 @@
 :root {
 	--palette-black: oklch(0 0 0);
 
-	/* 夜空の青みを帯びた無彩色。映像より目立たないよう彩度を抑える。 */
-	--palette-night-950: oklch(0.125 0.012 255);
-	--palette-night-900: oklch(0.15 0.014 255);
-	--palette-night-850: oklch(0.18 0.016 255);
-	--palette-night-800: oklch(0.215 0.018 255);
-	--palette-night-700: oklch(0.28 0.02 255);
-	--palette-night-600: oklch(0.45 0.02 255);
-	--palette-night-500: oklch(0.58 0.02 255);
-	--palette-night-400: oklch(0.7 0.018 255);
-	--palette-night-300: oklch(0.81 0.014 255);
-	--palette-night-200: oklch(0.89 0.01 255);
-	--palette-night-100: oklch(0.95 0.008 255);
+	/* 青みがあると暗い面ほど紺に見えて映像の周りに色が残るため、ほぼ無彩色にする。 */
+	--palette-night-950: oklch(0.125 0.003 280);
+	--palette-night-900: oklch(0.15 0.003 280);
+	--palette-night-850: oklch(0.18 0.003 280);
+	--palette-night-800: oklch(0.215 0.003 280);
+	--palette-night-700: oklch(0.28 0.003 280);
+	--palette-night-600: oklch(0.45 0.003 280);
+	--palette-night-500: oklch(0.58 0.003 280);
+	--palette-night-400: oklch(0.7 0.003 280);
+	--palette-night-300: oklch(0.81 0.003 280);
+	--palette-night-200: oklch(0.89 0.003 280);
+	--palette-night-100: oklch(0.95 0.003 280);
 
-	--palette-moon-400: oklch(0.78 0.075 240);
-	--palette-moon-300: oklch(0.85 0.06 238);
-	--palette-moon-200: oklch(0.91 0.04 236);
+	/* 濃い群青は小さい文字にすると読めないので、文字とアイコンには明るい段を使う。 */
+	--palette-ultramarine-300: oklch(0.85 0.07 273);
+	--palette-ultramarine-400: oklch(0.78 0.11 273);
+	--palette-ultramarine-500: oklch(0.66 0.17 273);
+	--palette-ultramarine-600: oklch(0.62 0.19 273);
+	--palette-ultramarine-700: oklch(0.58 0.19 273);
 
 	/* 番組表のジャンル色。明度と彩度を揃え、色相だけで区別する。 */
 	--palette-hue-blue: oklch(0.66 0.08 245);
@@ -73,11 +76,15 @@
 	--color-fg-secondary: var(--palette-night-300);
 	--color-fg-muted: var(--palette-night-400);
 	--color-fg-subtle: var(--palette-night-500);
+	--color-fg-accent: var(--palette-ultramarine-400);
+	--color-fg-accent-hover: var(--palette-ultramarine-300);
 
-	--color-accent: var(--palette-moon-300);
-	--color-accent-hover: var(--palette-moon-200);
-	--color-accent-strong: var(--palette-moon-400);
-	--color-on-accent: var(--palette-night-950);
+	/* 塗り（トグル・スライダー・ボタン）の色。文字とアイコンには fg-accent を使う。 */
+	--color-accent: var(--palette-ultramarine-700);
+	--color-accent-hover: var(--palette-ultramarine-600);
+	/* 番組表のジャンル色の上でも埋もれないよう、塗りより明るくする。 */
+	--color-accent-strong: var(--palette-ultramarine-500);
+	--color-on-accent: var(--palette-night-100);
 
 	--color-genre-news: var(--palette-hue-blue);
 	--color-genre-sports: var(--palette-hue-green);
@@ -176,7 +183,7 @@
 
 	&[data-focus-visible],
 	&:not([data-rac]):focus-visible {
-		outline-color: var(--color-accent);
+		outline-color: var(--color-fg-accent);
 	}
 }
 

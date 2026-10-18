@@ -62,7 +62,7 @@ export function ProgramDialog({
 								<span className="ml-2">{formatMarks(program.marks)}</span>
 							)}
 							{scheduleState != null && (
-								<span className="ml-2 text-accent">{SCHEDULE_LABELS[scheduleState]}</span>
+								<span className="ml-2 text-fg-accent">{SCHEDULE_LABELS[scheduleState]}</span>
 							)}
 						</p>
 					</div>

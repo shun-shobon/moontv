@@ -33,7 +33,7 @@ type Props = {
 };
 
 const CENTER_BUTTON =
-	"flex items-center justify-center rounded-full bg-canvas/75 text-fg focus-ring transition duration-150 ease-out pointer-events-auto hover:text-accent-hover active:scale-90";
+	"flex items-center justify-center rounded-full bg-canvas/75 text-fg focus-ring transition duration-150 ease-out pointer-events-auto hover:text-fg-accent-hover active:scale-90";
 
 export function RecordingControls({ captions, onCaptionsChange }: Props) {
 	return (

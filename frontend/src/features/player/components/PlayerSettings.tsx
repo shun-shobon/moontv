@@ -101,7 +101,7 @@ export function PlayerSettings({
 		<MenuTrigger isOpen={open} onOpenChange={setOpen}>
 			<Button
 				aria-label="再生設定"
-				className="group flex h-full w-16 items-center justify-center gap-1 text-caption-strong focus-ring transition-colors data-hovered:text-accent-hover"
+				className="group flex h-full w-16 items-center justify-center gap-1 text-caption-strong focus-ring transition-colors data-hovered:text-fg-accent-hover"
 			>
 				<GearIcon className="transition-transform duration-500 ease-out group-aria-expanded:rotate-90" />
 				<span className="tabular-nums">{preferences.quality}</span>

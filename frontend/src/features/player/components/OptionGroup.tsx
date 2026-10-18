@@ -48,7 +48,7 @@ export function OptionGroup<T extends string>({
 								strokeWidth="2"
 								aria-hidden
 								className={clsx(
-									"size-4 shrink-0 text-accent transition duration-200 ease-out",
+									"size-4 shrink-0 text-fg-accent transition duration-200 ease-out",
 									isSelected ? "scale-100 opacity-100" : "scale-50 opacity-0",
 								)}
 							>

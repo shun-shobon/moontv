@@ -17,8 +17,8 @@ export const cardClassName = ({
 		press === "self" && "focus-ring data-pressed:scale-[0.98]",
 		// リンクは中身の一部だけなので、キーボードで選んだときの枠はカード全体に出す。
 		press === "link" &&
-			"relative outline-2 outline-offset-2 outline-transparent has-[a[data-focus-visible]]:outline-accent has-[a[data-pressed]]:scale-[0.98]",
-		active ? "bg-selected ring-accent/40" : "bg-surface ring-line",
+			"relative outline-2 outline-offset-2 outline-transparent has-[a[data-focus-visible]]:outline-fg-accent has-[a[data-pressed]]:scale-[0.98]",
+		active ? "bg-selected ring-fg-accent/40" : "bg-surface ring-line",
 		!active && press === "self" && "data-hovered:bg-surface-hover",
 		!active && press === "link" && "has-[a[data-hovered]]:bg-surface-hover",
 	);

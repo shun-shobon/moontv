@@ -45,7 +45,7 @@ export function ProgramCard({ program, channel, durationMs, status, href, active
 				<p
 					className={clsx(
 						"text-caption",
-						status.tone === "accent" ? "text-accent" : "text-fg-muted",
+						status.tone === "accent" ? "text-fg-accent" : "text-fg-muted",
 					)}
 				>
 					{status.label}
