@@ -31,6 +31,7 @@ from fontTools import subset
 from fontTools.pens.boundsPen import BoundsPen
 from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.pens.recordingPen import DecomposingRecordingPen, RecordingPen
+from fontTools.pens.reverseContourPen import ReverseContourPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import TTFont
@@ -52,12 +53,17 @@ ROW = 94
 KAPPA = 0.5523
 # 足す字を置く枠の、全角の送り幅に対する大きさ。
 BOX = 0.88
+# Rounded Mgen+ の「⅓」で、数字を縮める割合、分子を持ち上げる高さ、分母の最大の幅。
+FRACTION_SCALE = 0.6
+FRACTION_RAISE = 299
+FRACTION_MAX_WIDTH = 335
 
 # 92区56〜85点の楽器の略号（STD-B24 Table 7-10）。「|」の所で2区画に分ける。
 INSTRUMENTS = [
     "(vn)", "(ob)", "(cb)", "(ce|mb)", "(hp)", "(br)", "(p)", "(s)", "(ms)", "(t)", "(bs)", "(b)",
     "(tb)", "(tp)", "(ds)", "(ag)", "(eg)", "(vo)", "(fl)", "(ke|y)", "(sa|x)", "(sy|n)", "(or|g)", "(pe|r)",
 ]  # fmt: skip
+# Rounded Mgen+ に無い分数。ほかの分数とそろうよう、Mgen+ の「⅓」と同じ配置で組む。
 FRACTIONS = {0x2189: ("0", "3"), 0x2150: ("1", "7"), 0x2151: ("1", "9"), 0x2152: ("1", "10")}
 # Rounded Mgen+ にもある絵記号。天気・将棋の駒・地図記号の仲間はほとんど Noto から写すので、仲間内で字形をそろえる。
 NOTO_PREFERRED = {ord(char) for char in "☀☁☂☃☖☗♠♣♥♦♨☎"}
@@ -78,6 +84,26 @@ def circle(pen, cx: float, cy: float, r: float) -> None:
     pen.curveTo((cx - k, cy - r), (cx - r, cy - k), (cx - r, cy))
     pen.curveTo((cx - r, cy + k), (cx - k, cy + r), (cx, cy + r))
     pen.closePath()
+
+
+def rect(pen, x0: float, y0: float, x1: float, y1: float) -> None:
+    """時計回りの長方形。"""
+    pen.moveTo((x0, y0))
+    pen.lineTo((x0, y1))
+    pen.lineTo((x1, y1))
+    pen.lineTo((x1, y0))
+    pen.closePath()
+
+
+def contours(recording: RecordingPen) -> list[RecordingPen]:
+    out: list[RecordingPen] = []
+    current = RecordingPen()
+    for operator, operands in recording.value:
+        current.value.append((operator, operands))
+        if operator in ("closePath", "endPath"):
+            out.append(current)
+            current = RecordingPen()
+    return out
 
 
 def bounds(recording: RecordingPen) -> tuple[float, float, float, float]:
@@ -143,34 +169,57 @@ class Canvas:
 
     def instrument(self, left: str, right: str | None) -> list[RecordingPen]:
         """括弧書きの略号を横に詰めて置く。2区画に分けるものは、間を空けずに左右の区画に分ける。"""
-        cells = 1 if right is None else 2
         margin = self.width * (1 - BOX) / 2
-        total = self.advance(left) + (0 if right is None else self.advance(right))
-        scale = min(1, (self.width * cells - 2 * margin) / total)
         if right is None:
+            total = self.advance(left)
+            scale = min(1, (self.width - 2 * margin) / total)
             return [transformed(self.record(left), scale, 1, (self.width - total * scale) / 2, 0)]
+        # 左右で字の幅をそろえたまま、どちらも自分の区画からはみ出さないように詰める。
+        scale = min(1, (self.width - margin) / max(self.advance(left), self.advance(right)))
         return [
             transformed(self.record(left), scale, 1, self.width - self.advance(left) * scale, 0),
             transformed(self.record(right), scale, 1, 0, 0),
         ]
 
     def fraction(self, numerator: str, denominator: str) -> RecordingPen:
+        """Rounded Mgen+ の「⅓」の斜線を使い、数字を同じ大きさ・位置に置く。"""
+        # 「⅓」の輪郭は分子の「1」、分母の「3」、斜線の3つ。
+        third = sorted(contours(self.record("\u2153")), key=lambda contour: bounds(contour)[0])
+        numerator_left, denominator_right = bounds(third[0])[0], bounds(third[2])[2]
+        slash = third[1]
+        # 「⅓」の送り幅は全角より狭い。全角の区画の中央に来るようにずらす。
+        shift = (self.width - self.hmtx[self.cmap[0x2153]][0]) / 2
         out = RecordingPen()
-        slash = self.fit(self.record("\u2044"), self.width * 0.7, self.width / 2, self.cy)
-        slash.replay(out)
-        digit = self.width * 0.42
-        for text, cx, cy in [
-            (numerator, self.width * 0.28, self.cy + digit * 0.45),
-            (denominator, self.width * 0.72, self.cy - digit * 0.45),
-        ]:
+        transformed(slash, 1, 1, shift, 0).replay(out)
+        for text, baseline, align in [(numerator, FRACTION_RAISE, "left"), (denominator, 0, "right")]:
             recording = self.record(text)
-            x_min, y_min, x_max, y_max = bounds(recording)
+            left, _, right, _ = bounds(recording)
             # 2桁の分母も1桁と同じ高さにし、幅だけを詰める。
-            scale = digit / (y_max - y_min)
-            sx = min(scale, digit / (x_max - x_min))
-            transformed(
-                recording, sx, scale, cx - (x_min + x_max) / 2 * sx, cy - (y_min + y_max) / 2 * scale
-            ).replay(out)
+            sx = min(FRACTION_SCALE, FRACTION_MAX_WIDTH / (right - left))
+            dx = numerator_left - left * sx if align == "left" else denominator_right - right * sx
+            transformed(recording, sx, FRACTION_SCALE, dx + shift, baseline).replay(out)
+        return out
+
+    def scaled_up(self, char: str) -> RecordingPen:
+        """Rounded Mgen+ の字を、ほかの足す字と同じ枠いっぱいに広げる。"""
+        return self.fit(self.record(char), self.width * BOX, self.width / 2, self.cy)
+
+    def squared_key(self) -> RecordingPen:
+        """90-71（鍵）。枠は Rounded Mgen+ の「🄿」の枠を使い、中に鍵を描く。"""
+        out = RecordingPen()
+        for contour in contours(self.record("\U0001f13f"))[:2]:
+            contour.replay(out)
+        x0, y0, x1, y1 = bounds(contours(self.record("\U0001f13f"))[1])
+        unit = (x1 - x0) / 10
+        # 歯が右に出るぶん、軸を左に寄せて鍵全体を枠の中央に置く。
+        cx, cy = (x0 + x1) / 2 - unit * 0.5, (y0 + y1) / 2
+        stroke = unit * 0.85
+        ring_y, ring_r = cy + unit * 1.9, unit * 1.9
+        circle(out, cx, ring_y, ring_r)
+        circle(ReverseContourPen(out), cx, ring_y, ring_r - stroke)
+        rect(out, cx - stroke / 2, cy - unit * 3.8, cx + stroke / 2, ring_y - ring_r + stroke / 2)
+        for top in (cy - unit * 3.8 + stroke, cy - unit * 2 + stroke):
+            rect(out, cx, top - stroke, cx + unit * 1.6, top)
         return out
 
     def diamond_with_dot(self) -> RecordingPen:
@@ -184,6 +233,10 @@ def composed_glyphs(canvas: Canvas, additional: list[int], wanted: set[int]) -> 
     """Rounded Mgen+ に無い追加記号の字形。"""
     glyphs: dict[int, RecordingPen] = {
         0x27D0: canvas.diamond_with_dot(),
+        # 90-64・65・71 は Noto Sans Symbols にもあるが、並びの囲み文字に合わせて Mgen+ から作る。
+        0x2B1B: canvas.scaled_up("\u25a0"),
+        0x2B24: canvas.scaled_up("\u25cf"),
+        0x26BF: canvas.squared_key(),
         # 91-13 は地図記号の寺院。
         0x0FD6: canvas.record("\u534d"),
     }
