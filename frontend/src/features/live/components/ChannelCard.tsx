@@ -1,3 +1,4 @@
+import { clsx } from "clsx";
 import { Link } from "react-aria-components";
 
 import type { Channel } from "../../../shared/api/schemas";
@@ -16,7 +17,7 @@ export function ChannelCard({ channel, active }: Props) {
 		<Link
 			href={watchPath(channel.id)}
 			aria-current={active ? "page" : undefined}
-			className={cardClassName({ active, interactive: true })}
+			className={clsx("flex flex-col gap-2", cardClassName({ active, press: "self" }))}
 		>
 			<div className="flex items-center gap-3">
 				<ChannelBadge channel={channel} />

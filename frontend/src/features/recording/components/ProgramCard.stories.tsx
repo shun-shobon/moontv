@@ -36,6 +36,14 @@ export const Playable: Story = {
 	},
 };
 
+export const PlayableWithAction: Story = {
+	args: { action: <Button variant="quiet">削除</Button> },
+	play: async ({ canvas }) => {
+		await expect(canvas.getByRole("link")).toBeVisible();
+		await expect(canvas.getByRole("button", { name: "削除" })).toBeVisible();
+	},
+};
+
 export const Active: Story = { args: { active: true } };
 
 export const Converting: Story = {

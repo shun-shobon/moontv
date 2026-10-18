@@ -91,8 +91,9 @@ export function RecordingsPage() {
 							status={recordingStatus(state)}
 							href={state === "ready" ? recordingPath(program.id) : null}
 							active={false}
+							// 変換中のものは書き込みの途中なので消させない。
 							action={
-								state === "failed" && (
+								state === "converting" ? null : (
 									<DeleteRecordingButton
 										isPending={deletion.isPending && deletion.variables === program.id}
 										failed={deletion.isError && deletion.variables === program.id}
@@ -125,7 +126,7 @@ export function RecordingsPage() {
 								href={null}
 								active={false}
 								action={
-									(state === "scheduled" || state === "recording") && (
+									state === "scheduled" || state === "recording" ? (
 										<Button
 											variant="quiet"
 											isPending={targeted && scheduleMutation.isPending}
@@ -135,7 +136,7 @@ export function RecordingsPage() {
 										>
 											{state === "scheduled" ? "取り消す" : "録画を止める"}
 										</Button>
-									)
+									) : null
 								}
 							/>
 						</li>

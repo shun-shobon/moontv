@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 import { Link } from "react-aria-components";
 
 import type { Channel, Program } from "../../../shared/api/schemas";
@@ -17,11 +17,11 @@ type Props = {
 	/** 録画の長さ。録画していなければ null。 */
 	durationMs: number | null;
 	status: CardStatus | null;
-	/** 再生できる録画なら、カード全体をリンクにする。 */
+	/** 再生できる録画なら、カード全体を押せるようにする。 */
 	href: string | null;
 	active: boolean;
-	/** リンクの中にはボタンを置けないので、href がないカードにだけ置く。 */
-	action: ReactNode;
+	/** カードの右端に置く操作。 */
+	action: ReactElement | null;
 };
 
 export function ProgramCard({ program, channel, durationMs, status, href, active, action }: Props) {
@@ -54,21 +54,26 @@ export function ProgramCard({ program, channel, durationMs, status, href, active
 		</>
 	);
 
-	if (href != null) {
-		return (
-			<Link
-				href={href}
-				aria-current={active ? "page" : undefined}
-				className={cardClassName({ active, interactive: true })}
-			>
-				{content}
-			</Link>
-		);
-	}
 	return (
-		<div className={cardClassName({ active, interactive: false })}>
-			{content}
-			{action != null && <div className="-mr-2 -mb-2 flex justify-end">{action}</div>}
+		<div
+			className={clsx(
+				"flex items-center gap-3",
+				cardClassName({ active, press: href == null ? "none" : "link" }),
+			)}
+		>
+			{href == null ? (
+				<div className="flex min-w-0 flex-1 flex-col gap-2">{content}</div>
+			) : (
+				// 押せる範囲はカード全体に広げ、操作ボタンだけはその上に重ねて押せるようにする。
+				<Link
+					href={href}
+					aria-current={active ? "page" : undefined}
+					className="flex min-w-0 flex-1 flex-col gap-2 outline-none after:absolute after:inset-0 after:rounded-xl"
+				>
+					{content}
+				</Link>
+			)}
+			{action != null && <div className="relative shrink-0">{action}</div>}
 		</div>
 	);
 }
