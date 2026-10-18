@@ -36,16 +36,17 @@ export function RecordingControls({ captions, onCaptionsChange }: Props) {
 	return (
 		<Controls.Root>
 			<Controls.Content className="absolute inset-x-0 bottom-0 flex flex-col bg-linear-to-t from-scrim/90 to-transparent px-3 pt-6 text-fg transition-opacity duration-200 not-data-visible:pointer-events-none not-data-visible:opacity-0">
+				{/* シークは指を離したときに行われ、それまで fill は再生位置のままなので、ドラッグ中は指の位置を表示する。 */}
 				<TimeSlider.Root
 					aria-label="再生位置"
 					className="group/time relative flex h-5 w-full cursor-pointer items-center focus-ring"
 				>
 					<TimeSlider.Track className="relative h-1 w-full rounded-full bg-fg/25 transition-[height] duration-150 group-hover/time:h-1.5">
 						<TimeSlider.Buffer className="absolute inset-y-0 left-0 w-(--media-slider-buffer) rounded-full bg-fg/25" />
-						<TimeSlider.Fill className="absolute inset-y-0 left-0 w-(--media-slider-fill) rounded-full bg-accent" />
+						<TimeSlider.Fill className="absolute inset-y-0 left-0 w-(--media-slider-fill) rounded-full bg-accent group-data-dragging/time:w-(--media-slider-pointer)" />
 					</TimeSlider.Track>
-					<TimeSlider.Thumb className="absolute left-(--media-slider-fill) size-3 -translate-x-1/2 rounded-full bg-fg shadow transition-transform duration-150 group-hover/time:scale-125" />
-					<TimeSlider.Preview className="pointer-events-none absolute bottom-full left-(--media-slider-pointer) mb-2 -translate-x-1/2 rounded-md bg-overlay px-2 py-0.5 text-caption-strong tabular-nums opacity-0 transition-opacity group-hover/time:opacity-100">
+					<TimeSlider.Thumb className="absolute left-(--media-slider-fill) size-3 -translate-x-1/2 rounded-full bg-fg shadow transition-transform duration-150 group-hover/time:scale-125 group-data-dragging/time:left-(--media-slider-pointer) group-data-dragging/time:scale-125" />
+					<TimeSlider.Preview className="pointer-events-none absolute bottom-full left-(--media-slider-pointer) mb-2 -translate-x-1/2 rounded-md bg-overlay px-2 py-0.5 text-caption-strong tabular-nums opacity-0 transition-opacity group-hover/time:opacity-100 group-data-dragging/time:opacity-100">
 						<TimeSlider.Value type="pointer" />
 					</TimeSlider.Preview>
 				</TimeSlider.Root>
