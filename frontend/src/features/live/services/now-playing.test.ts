@@ -45,6 +45,7 @@ function program(name: string): Program {
 		startAt: 0,
 		duration: 60_000,
 		name,
+		marks: [],
 		description: "",
 		genres: [],
 		isFree: true,

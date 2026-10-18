@@ -88,6 +88,7 @@ function program(): Program {
 		startAt: 0,
 		duration: 60_000,
 		name: "番組",
+		marks: [],
 		description: "",
 		genres: [],
 		isFree: true,

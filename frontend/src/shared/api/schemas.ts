@@ -29,6 +29,8 @@ export const ProgramSchema = v.object({
 	startAt: v.number(),
 	duration: v.nullable(v.number()),
 	name: v.string(),
+	/** 番組名から取り出した「字幕」「再放送」などの属性。 */
+	marks: v.array(v.string()),
 	description: v.string(),
 	genres: v.array(v.number()),
 	isFree: v.boolean(),

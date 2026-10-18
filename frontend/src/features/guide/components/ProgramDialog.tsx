@@ -4,6 +4,7 @@ import type { Channel, Program } from "../../../shared/api/schemas";
 import { Button } from "../../../shared/components/Button";
 import { ButtonLink } from "../../../shared/components/ButtonLink";
 import { Sheet } from "../../../shared/components/Sheet";
+import { formatMarks } from "../../../shared/domain/program-marks";
 import { formatDate, formatRange, isOnAir } from "../../../shared/domain/time";
 import { watchPath } from "../../../shared/services/routes";
 import type { ProgramDetail } from "../api/schemas";
@@ -34,7 +35,12 @@ export function ProgramDialog({ program, channel, extended, now, isOpen, onOpenC
 						<Heading slot="title" className="text-title">
 							{program.name}
 						</Heading>
-						<p className="text-caption text-fg-subtle">{genreStyle(program.genres).label}</p>
+						<p className="text-caption text-fg-subtle">
+							{genreStyle(program.genres).label}
+							{program.marks.length > 0 && (
+								<span className="ml-2">{formatMarks(program.marks)}</span>
+							)}
+						</p>
 					</div>
 					<p className="text-body whitespace-pre-wrap text-fg-secondary">{program.description}</p>
 					{extended === undefined ? (

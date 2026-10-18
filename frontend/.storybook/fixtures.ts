@@ -14,6 +14,7 @@ export const program = (overrides: Partial<Program> = {}): Program => ({
 	startAt: new Date(2026, 9, 14, 20, 0).getTime(),
 	duration: HOUR_MS,
 	name: "ニュースウオッチ",
+	marks: ["字幕", "解説"],
 	description: "国内外の最新ニュースと天気をお伝えします。",
 	genres: [0],
 	isFree: true,

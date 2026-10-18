@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import { Button } from "react-aria-components";
 
 import type { Program } from "../../../shared/api/schemas";
+import { formatMarks } from "../../../shared/domain/program-marks";
 import { formatTime } from "../../../shared/domain/time";
 import { genreStyle } from "../domain/genre";
 import { programBox, programEnd } from "../services/guide-layout";
@@ -35,6 +36,9 @@ export function ProgramCell({ program, dayStart, dayEnd, now, onSelect }: Props)
 				{formatTime(program.startAt)}
 			</span>
 			<span className="text-fg">{program.name}</span>
+			{program.marks.length > 0 && (
+				<span className="ml-1 inline-block text-fg-subtle">{formatMarks(program.marks)}</span>
+			)}
 			{showsDescription && (
 				<span className="mt-0.5 block text-fg-muted">{program.description}</span>
 			)}

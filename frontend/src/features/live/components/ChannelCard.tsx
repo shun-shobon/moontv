@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import { Link } from "react-aria-components";
 
 import type { Channel } from "../../../shared/api/schemas";
+import { formatMarks } from "../../../shared/domain/program-marks";
 import { formatRange } from "../../../shared/domain/time";
 import { watchPath } from "../../../shared/services/routes";
 import { ChannelBadge } from "./ChannelBadge";
@@ -33,6 +34,7 @@ export function ChannelCard({ channel, active }: Props) {
 					<p className="line-clamp-2 text-label text-fg">{present.name}</p>
 					<p className="text-caption text-fg-subtle tabular-nums">
 						{formatRange(present.startAt, present.duration)}
+						{present.marks.length > 0 && <span className="ml-2">{formatMarks(present.marks)}</span>}
 					</p>
 				</div>
 			)}

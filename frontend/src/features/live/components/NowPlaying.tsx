@@ -1,4 +1,5 @@
 import type { Channel } from "../../../shared/api/schemas";
+import { formatMarks } from "../../../shared/domain/program-marks";
 import { formatRange } from "../../../shared/domain/time";
 
 export function NowPlaying({ channel }: { channel: Channel | undefined }) {
@@ -12,6 +13,7 @@ export function NowPlaying({ channel }: { channel: Channel | undefined }) {
 					<h1 className="text-title">{present.name}</h1>
 					<p className="text-label text-fg-subtle tabular-nums">
 						{formatRange(present.startAt, present.duration)}
+						{present.marks.length > 0 && <span className="ml-2">{formatMarks(present.marks)}</span>}
 					</p>
 					<p className="mt-1 text-body whitespace-pre-wrap text-fg-secondary">
 						{present.description}

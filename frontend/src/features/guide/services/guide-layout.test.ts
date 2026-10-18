@@ -154,6 +154,7 @@ function program(overrides: Partial<Program>): Program {
 		startAt: DAY_START,
 		duration: HOUR_MS,
 		name: "番組",
+		marks: [],
 		description: "",
 		genres: [],
 		isFree: true,
