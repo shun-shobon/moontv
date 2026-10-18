@@ -2,7 +2,7 @@ import { Suspense, lazy, useMemo } from "react";
 
 import { useChannels } from "../../../shared/api/queries";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
-import { logoUrl } from "../../live/api/urls";
+import { logoUrl } from "../../../shared/api/urls";
 import { PlayerPlaceholder } from "../../player/components/PlayerPlaceholder";
 import type { NowPlaying } from "../../player/media/media-session";
 import { useRecording } from "../api/queries";

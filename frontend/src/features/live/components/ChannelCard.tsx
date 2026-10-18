@@ -1,11 +1,11 @@
-import { clsx } from "clsx";
 import { Link } from "react-aria-components";
 
 import type { Channel } from "../../../shared/api/schemas";
+import { ChannelBadge } from "../../../shared/components/ChannelBadge";
 import { formatMarks } from "../../../shared/domain/program-marks";
 import { formatRange } from "../../../shared/domain/time";
+import { cardClassName } from "../../../shared/services/card-style";
 import { watchPath } from "../../../shared/services/routes";
-import { ChannelBadge } from "./ChannelBadge";
 
 type Props = { channel: Channel; active: boolean };
 
@@ -16,12 +16,7 @@ export function ChannelCard({ channel, active }: Props) {
 		<Link
 			href={watchPath(channel.id)}
 			aria-current={active ? "page" : undefined}
-			className={clsx(
-				"flex flex-col gap-2 rounded-xl p-3 ring-1 focus-ring transition duration-200 ease-out ring-inset data-pressed:scale-[0.98]",
-				active
-					? "bg-selected ring-accent/40"
-					: "bg-surface ring-line data-hovered:bg-surface-hover",
-			)}
+			className={cardClassName({ active, interactive: true })}
 		>
 			<div className="flex items-center gap-3">
 				<ChannelBadge channel={channel} />

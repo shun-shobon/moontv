@@ -1,4 +1,4 @@
-import type { Channel } from "../../../shared/api/schemas";
+import type { Channel } from "../api/schemas";
 import { logoUrl } from "../api/urls";
 
 export function ChannelBadge({ channel }: { channel: Channel }) {

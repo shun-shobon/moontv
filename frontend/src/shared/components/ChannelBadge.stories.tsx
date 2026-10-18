@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { channel } from "../../../../.storybook/fixtures";
+import { channel } from "../../../.storybook/fixtures";
 import { ChannelBadge } from "./ChannelBadge";
 
 const meta = {
