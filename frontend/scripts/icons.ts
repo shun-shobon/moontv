@@ -2,8 +2,8 @@ import { writeFileSync } from "node:fs";
 
 import { Resvg } from "@resvg/resvg-js";
 
-const night = "#0d1219";
-const moon = "#aad4f1";
+const night = "#111113";
+const moon = "#a0b3fe";
 
 const glyph = [
 	`<path d="M11.5 4.5 16 9.5l4.5-5" fill="none" stroke="${moon}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
