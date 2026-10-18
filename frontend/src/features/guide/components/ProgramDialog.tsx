@@ -1,26 +1,48 @@
 import { Dialog, Heading } from "react-aria-components";
 
-import type { Channel, Program } from "../../../shared/api/schemas";
+import type { Channel, Program, ScheduleState } from "../../../shared/api/schemas";
 import { Button } from "../../../shared/components/Button";
 import { ButtonLink } from "../../../shared/components/ButtonLink";
 import { Sheet } from "../../../shared/components/Sheet";
 import { formatMarks } from "../../../shared/domain/program-marks";
+import { SCHEDULE_LABELS } from "../../../shared/domain/schedule";
 import { formatDate, formatRange, isOnAir } from "../../../shared/domain/time";
 import { watchPath } from "../../../shared/services/routes";
 import type { ProgramDetail } from "../api/schemas";
 import { genreStyle } from "../domain/genre";
+import { reservationAction } from "../services/reservation";
+
+export type Reservation = {
+	state: ScheduleState | null;
+	isPending: boolean;
+	failed: boolean;
+	onChange: (scheduled: boolean) => void;
+};
 
 type Props = {
 	program: Program;
 	channel: Channel | undefined;
 	extended: ProgramDetail["extended"] | undefined;
+	/** mirakc で録画が無効なら null。 */
+	reservation: Reservation | null;
 	now: number;
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;
 };
 
-export function ProgramDialog({ program, channel, extended, now, isOpen, onOpenChange }: Props) {
+export function ProgramDialog({
+	program,
+	channel,
+	extended,
+	reservation,
+	now,
+	isOpen,
+	onOpenChange,
+}: Props) {
 	const onAir = isOnAir(program.startAt, program.duration, now);
+	const ended = !onAir && program.startAt <= now;
+	const scheduleState = reservation?.state ?? null;
+	const action = reservationAction(scheduleState, ended);
 
 	return (
 		<Sheet isOpen={isOpen} onOpenChange={onOpenChange} blurBackdrop>
@@ -38,6 +60,9 @@ export function ProgramDialog({ program, channel, extended, now, isOpen, onOpenC
 							{genreStyle(program.genres).label}
 							{program.marks.length > 0 && (
 								<span className="ml-2">{formatMarks(program.marks)}</span>
+							)}
+							{scheduleState != null && (
+								<span className="ml-2 text-accent">{SCHEDULE_LABELS[scheduleState]}</span>
 							)}
 						</p>
 					</div>
@@ -60,10 +85,26 @@ export function ProgramDialog({ program, channel, extended, now, isOpen, onOpenC
 						))
 					)}
 				</div>
-				<div className="flex shrink-0 justify-end gap-2 border-t border-line px-6 py-3">
+				<div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-line px-6 py-3">
+					{(reservation?.failed ?? false) && (
+						<p role="alert" className="mr-auto text-caption text-fg-muted">
+							録画予約を変更できませんでした
+						</p>
+					)}
 					<Button variant="quiet" slot="close">
 						閉じる
 					</Button>
+					{reservation != null && action != null && (
+						<Button
+							variant="quiet"
+							isPending={reservation.isPending}
+							onPress={() => {
+								reservation.onChange(action.scheduled);
+							}}
+						>
+							{action.label}
+						</Button>
+					)}
 					{onAir && (
 						<ButtonLink variant="primary" href={watchPath(program.serviceId)}>
 							視聴する

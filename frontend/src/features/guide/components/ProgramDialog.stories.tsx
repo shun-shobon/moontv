@@ -14,6 +14,7 @@ const meta = {
 			{ key: "番組内容", value: "きょうの主なニュース\n・各地の天気\n・スポーツ" },
 			{ key: "出演者", value: "【キャスター】月野 太郎\n【気象予報士】星川 花子" },
 		],
+		reservation: { state: null, isPending: false, failed: false, onChange: fn() },
 		now: NOW,
 		isOpen: true,
 		onOpenChange: fn(),
@@ -39,6 +40,55 @@ export const Upcoming: Story = {
 	play: async () => {
 		await screen.findByRole("dialog");
 		await expect(screen.queryByRole("link", { name: "視聴する" })).not.toBeInTheDocument();
+	},
+};
+
+export const Reserve: Story = {
+	args: { program: program({ startAt: NOW + HOUR_MS }) },
+	play: async ({ args, userEvent }) => {
+		await screen.findByRole("dialog");
+		await userEvent.click(screen.getByRole("button", { name: "録画予約" }));
+		await expect(args.reservation?.onChange).toHaveBeenCalledWith(true);
+	},
+};
+
+export const Scheduled: Story = {
+	args: {
+		program: program({ startAt: NOW + HOUR_MS }),
+		reservation: { state: "scheduled", isPending: false, failed: false, onChange: fn() },
+	},
+	play: async ({ args, userEvent }) => {
+		await screen.findByRole("dialog");
+		await waitFor(() => expect(screen.getByText("録画予約済み")).toBeVisible());
+		await userEvent.click(screen.getByRole("button", { name: "予約を取り消す" }));
+		await expect(args.reservation?.onChange).toHaveBeenCalledWith(false);
+	},
+};
+
+export const Recording: Story = {
+	args: { reservation: { state: "recording", isPending: false, failed: false, onChange: fn() } },
+	play: async () => {
+		await screen.findByRole("dialog");
+		await waitFor(() => expect(screen.getByRole("button", { name: "録画を止める" })).toBeVisible());
+	},
+};
+
+export const ReservationFailed: Story = {
+	args: {
+		program: program({ startAt: NOW + HOUR_MS }),
+		reservation: { state: null, isPending: false, failed: true, onChange: fn() },
+	},
+	play: async () => {
+		await screen.findByRole("dialog");
+		await expect(screen.getByRole("alert")).toHaveTextContent("録画予約を変更できませんでした");
+	},
+};
+
+export const RecordingDisabled: Story = {
+	args: { reservation: null },
+	play: async () => {
+		await screen.findByRole("dialog");
+		await expect(screen.queryByRole("button", { name: "録画予約" })).not.toBeInTheDocument();
 	},
 };
 

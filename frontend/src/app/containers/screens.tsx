@@ -5,7 +5,7 @@ import type { Routes } from "universal-router";
 
 import { programsQuery } from "../../features/guide/api/queries";
 import { resolveGuideDay } from "../../features/guide/services/guide-layout";
-import { channelsQuery, statusQuery } from "../../shared/api/queries";
+import { channelsQuery, schedulesQuery, statusQuery } from "../../shared/api/queries";
 import { StatusMessage } from "../../shared/components/StatusMessage";
 import { DAY_MS, startOfBroadcastDay } from "../../shared/domain/time";
 import { guidePath, parseGuideDate, parseServiceId } from "../../shared/services/routes";
@@ -89,6 +89,20 @@ const routes: Routes<Screen | Redirect> = [
 				queryClient.query({ ...programsQuery(dayStart, dayStart + DAY_MS), staleTime: "static" }),
 			]);
 			return { section: "guide", page: <GuidePage dayStart={dayStart} /> };
+		},
+	},
+	{
+		path: "/recordings",
+		action: async ({ queryClient }) => {
+			const [{ RecordingsPage }, status] = await Promise.all([
+				import("../../features/recording/containers/RecordingsPage"),
+				queryClient.query({ ...statusQuery, staleTime: "static" }),
+				queryClient.query({ ...channelsQuery, staleTime: "static" }),
+			]);
+			if (status.recording) {
+				await queryClient.query({ ...schedulesQuery, staleTime: "static" });
+			}
+			return { section: "recording", page: <RecordingsPage /> };
 		},
 	},
 ];

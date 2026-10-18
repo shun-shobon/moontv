@@ -9,7 +9,7 @@ import { ProgramCell } from "./ProgramCell";
 /** ProgramCell は日の始まりからの位置に置かれるため、開始位置までずらして切り出す。 */
 const meta = {
 	component: ProgramCell,
-	args: { dayStart: DAY_START, dayEnd: DAY_END, now: NOW, onSelect: fn() },
+	args: { scheduleState: null, dayStart: DAY_START, dayEnd: DAY_END, now: NOW, onSelect: fn() },
 	decorators: [
 		(Story, { args }) => {
 			const offset = toPx(args.program.startAt - DAY_START);
@@ -44,3 +44,14 @@ export const Ended: Story = {
 };
 
 export const UnknownGenre: Story = { args: { program: program({ genres: [] }) } };
+
+export const Scheduled: Story = {
+	args: { program: program({ startAt: NOW + HOUR_MS }), scheduleState: "scheduled" },
+	play: async ({ canvas }) => {
+		await expect(canvas.getByText("予約")).toBeVisible();
+	},
+};
+
+export const Recording: Story = {
+	args: { program: program(), scheduleState: "recording" },
+};

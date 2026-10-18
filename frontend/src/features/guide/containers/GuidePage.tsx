@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { useChannels } from "../../../shared/api/queries";
+import { useChannels, useSchedules, useStatus } from "../../../shared/api/queries";
 import type { Program } from "../../../shared/api/schemas";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
 import { DAY_MS, startOfBroadcastDay } from "../../../shared/domain/time";
@@ -18,6 +18,11 @@ export function GuidePage({ dayStart }: { dayStart: number }) {
 	const dayEnd = dayStart + DAY_MS;
 	const channels = useChannels();
 	const programs = usePrograms(dayStart, dayEnd);
+	const schedules = useSchedules(useStatus().data?.recording ?? false);
+	const scheduleStates = useMemo(
+		() => new Map(schedules.data?.map((s) => [s.program.id, s.state])),
+		[schedules.data],
+	);
 	// 閉じるアニメーションの間も中身を描くため、選んだ番組は閉じても残す。
 	const [selected, setSelected] = useState<Program | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -54,6 +59,7 @@ export function GuidePage({ dayStart }: { dayStart: number }) {
 					<ProgramGrid
 						channels={guideColumns(channels.data, programs.data)}
 						programs={programs.data}
+						scheduleStates={scheduleStates}
 						dayStart={dayStart}
 						dayEnd={dayEnd}
 						now={now}

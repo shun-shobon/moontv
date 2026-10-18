@@ -20,6 +20,8 @@ export const StatusSchema = v.object({
 	encoder: v.string(),
 	codecs: v.array(CodecSchema),
 	qualities: v.array(QualitySchema),
+	/** mirakc で録画を有効にしているか。 */
+	recording: v.boolean(),
 });
 export type Status = v.InferOutput<typeof StatusSchema>;
 
@@ -52,3 +54,12 @@ export const ChannelSchema = v.object({
 export type Channel = v.InferOutput<typeof ChannelSchema>;
 
 export const ErrorBodySchema = v.object({ error: v.string() });
+
+export const ScheduleStateSchema = v.picklist(["scheduled", "recording", "finished", "failed"]);
+export type ScheduleState = v.InferOutput<typeof ScheduleStateSchema>;
+
+export const ScheduleSchema = v.object({
+	state: ScheduleStateSchema,
+	program: ProgramSchema,
+});
+export type Schedule = v.InferOutput<typeof ScheduleSchema>;

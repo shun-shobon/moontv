@@ -12,6 +12,7 @@ const meta = {
 	args: {
 		channels,
 		programs: dayPrograms(channels),
+		scheduleStates: new Map(),
 		dayStart: DAY_START,
 		dayEnd: DAY_END,
 		now: NOW,

@@ -1,6 +1,6 @@
 import * as v from "valibot";
 
-import { ChannelSchema, ErrorBodySchema, StatusSchema } from "./schemas";
+import { ChannelSchema, ErrorBodySchema, ScheduleSchema, StatusSchema } from "./schemas";
 
 class ApiError extends Error {
 	readonly status: number;
@@ -38,3 +38,14 @@ export async function getJson<T extends v.GenericSchema>(
 export const fetchStatus = async () => await getJson("/api/status", StatusSchema);
 
 export const fetchChannels = async () => await getJson("/api/channels", v.array(ChannelSchema));
+
+export const fetchSchedules = async () =>
+	await getJson("/api/recording/schedules", v.array(ScheduleSchema));
+
+export async function addSchedule(programId: number): Promise<void> {
+	await request(`/api/recording/schedules/${programId}`, { method: "PUT" });
+}
+
+export async function removeSchedule(programId: number): Promise<void> {
+	await request(`/api/recording/schedules/${programId}`, { method: "DELETE" });
+}

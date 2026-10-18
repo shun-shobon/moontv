@@ -1,4 +1,4 @@
-import type { Channel, Program } from "../../../shared/api/schemas";
+import type { Channel, Program, ScheduleState } from "../../../shared/api/schemas";
 import {
 	COLUMN_WIDTH_PX,
 	DAY_HEIGHT_PX,
@@ -13,13 +13,22 @@ import { ProgramCell } from "./ProgramCell";
 type Props = {
 	channels: readonly Channel[];
 	programs: readonly Program[];
+	scheduleStates: ReadonlyMap<number, ScheduleState>;
 	dayStart: number;
 	dayEnd: number;
 	now: number;
 	onSelect: (program: Program) => void;
 };
 
-export function ProgramGrid({ channels, programs, dayStart, dayEnd, now, onSelect }: Props) {
+export function ProgramGrid({
+	channels,
+	programs,
+	scheduleStates,
+	dayStart,
+	dayEnd,
+	now,
+	onSelect,
+}: Props) {
 	const nowTop = nowLineTop(dayStart, dayEnd, now);
 
 	return (
@@ -66,6 +75,7 @@ export function ProgramGrid({ channels, programs, dayStart, dayEnd, now, onSelec
 								<ProgramCell
 									key={program.id}
 									program={program}
+									scheduleState={scheduleStates.get(program.id) ?? null}
 									dayStart={dayStart}
 									dayEnd={dayEnd}
 									now={now}
