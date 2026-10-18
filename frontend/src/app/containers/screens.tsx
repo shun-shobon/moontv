@@ -5,11 +5,16 @@ import type { Routes } from "universal-router";
 
 import { programsQuery } from "../../features/guide/api/queries";
 import { resolveGuideDay } from "../../features/guide/services/guide-layout";
-import { recordingsQuery } from "../../features/recording/api/queries";
+import { recordingQuery, recordingsQuery } from "../../features/recording/api/queries";
 import { channelsQuery, schedulesQuery, statusQuery } from "../../shared/api/queries";
 import { StatusMessage } from "../../shared/components/StatusMessage";
 import { DAY_MS, startOfBroadcastDay } from "../../shared/domain/time";
-import { guidePath, parseGuideDate, parseServiceId } from "../../shared/services/routes";
+import {
+	guidePath,
+	parseGuideDate,
+	parseProgramId,
+	parseServiceId,
+} from "../../shared/services/routes";
 import type { Section } from "../components/AppNav";
 import { ErrorPage } from "../components/ErrorPage";
 import { NotFoundPage } from "../components/NotFoundPage";
@@ -105,6 +110,30 @@ const routes: Routes<Screen | Redirect> = [
 				status.library && queryClient.query({ ...recordingsQuery, staleTime: "static" }),
 			]);
 			return { section: "recording", page: <RecordingsPage /> };
+		},
+	},
+	{
+		path: "/recordings/:programId",
+		action: async ({ queryClient }, params) => {
+			const programId = parseProgramId(params["programId"]);
+			if (programId == null) {
+				return null;
+			}
+			const [{ RecordingPlayerPage }, status] = await Promise.all([
+				import("../../features/recording/containers/RecordingPlayerPage"),
+				queryClient.query({ ...statusQuery, staleTime: "static" }),
+				queryClient.query({ ...channelsQuery, staleTime: "static" }),
+			]);
+			if (!status.library) {
+				return null;
+			}
+			const recording = await queryClient
+				.query({ ...recordingQuery(programId), staleTime: "static" })
+				.catch(() => null);
+			if (recording == null) {
+				return null;
+			}
+			return { section: "recording", page: <RecordingPlayerPage programId={programId} /> };
 		},
 	},
 ];

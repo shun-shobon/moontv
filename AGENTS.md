@@ -29,9 +29,9 @@
 | `src/assets.rs` | 埋め込んだフロントエンドの配信 |
 | `frontend/src/app` | 画面の枠組みとルーティング |
 | `frontend/src/features/live` | チャンネル一覧と視聴画面 |
-| `frontend/src/features/player` | プレイヤー、字幕の描画、視聴設定の保存、ブラウザーのコーデック判定、配信セッションの開始・終了 |
+| `frontend/src/features/player` | ライブと録画のプレイヤー、字幕の描画、視聴設定の保存、ブラウザーのコーデック判定、配信セッションの開始・終了 |
 | `frontend/src/features/guide` | 番組表と番組詳細（録画予約の操作を含む） |
-| `frontend/src/features/recording` | 録画と録画予約の一覧 |
+| `frontend/src/features/recording` | 録画と録画予約の一覧、録画の再生画面 |
 | `frontend/src/shared` | 複数の feature で使う API クライアント・スキーマ、時刻の規則、ルート定義、部品 |
 | `frontend/.storybook` | Storybook の設定と、story が共有する fixture・デコレーター |
 

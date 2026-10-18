@@ -1,7 +1,9 @@
 import { clsx } from "clsx";
 
 import { Button } from "../../../shared/components/Button";
+import { ButtonLink } from "../../../shared/components/ButtonLink";
 import { formatDate, formatRange } from "../../../shared/domain/time";
+import { recordingPath } from "../../../shared/services/routes";
 import type { Recording } from "../api/schemas";
 import { formatDuration } from "../domain/duration";
 
@@ -73,6 +75,11 @@ export function RecordingList({
 								)}
 							</p>
 						</div>
+						{state === "ready" && confirmingId !== program.id && (
+							<ButtonLink variant="quiet" href={recordingPath(program.id)}>
+								再生
+							</ButtonLink>
+						)}
 						{deletable &&
 							(confirmingId === program.id ? (
 								<div className="flex shrink-0 gap-1">

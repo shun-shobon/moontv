@@ -11,6 +11,10 @@ export const parseServiceId = (param: unknown): number | null => {
 
 export const watchPath = (serviceId: number) => `/watch/${serviceId}`;
 
+export const parseProgramId = parseServiceId;
+
+export const recordingPath = (programId: number) => `/recordings/${programId}`;
+
 const DATE_PARAM = /^\d{4}-\d{2}-\d{2}$/u;
 
 const pad = (n: number) => String(n).padStart(2, "0");

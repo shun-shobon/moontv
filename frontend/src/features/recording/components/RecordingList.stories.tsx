@@ -40,6 +40,10 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
 	play: async ({ args, canvas, userEvent }) => {
 		await expect(canvas.getByText("1時間")).toBeVisible();
+		await expect(canvas.getByRole("link", { name: "再生" })).toHaveAttribute(
+			"href",
+			`/recordings/${ready.program.id}`,
+		);
 		await expect(canvas.getByText("変換中")).toBeVisible();
 		// 変換中の録画は消せない。
 		await expect(canvas.getAllByRole("button", { name: "削除" })).toHaveLength(2);
