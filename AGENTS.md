@@ -8,6 +8,7 @@
 | フロントエンドの開発サーバー | `pnpm -C frontend dev`（`/api` を `127.0.0.1:40780` へプロキシ） |
 | Storybook | `pnpm -C frontend storybook`（`http://localhost:6006`） |
 | 字幕の変換表の生成 | `python3 -I scripts/gen-caption-tables.py <libaribcaption のチェックアウト>`（`src/caption/tables/generated.rs` を書き出す。出典のコミットはファイルの先頭にある） |
+| 字幕のフォントの生成 | `uv run --locked --script scripts/gen-caption-fonts.py <rounded-mgenplus-1c-regular.ttf>`（`frontend/src/features/player/media/fonts` の2つを書き出す。元フォントの入手先はスクリプトの先頭にある） |
 | アイコンの生成 | `pnpm -C frontend icons`（`frontend/scripts/icons.ts` の図形から `frontend/public` のアイコン一式を書き出す） |
 | 全検査 | `mise run check`（story の描画テストに Chromium を使う。初回は `pnpm -C frontend exec playwright install chromium-headless-shell`） |
 | リリースビルド | `mise run build` |
