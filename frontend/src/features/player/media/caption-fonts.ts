@@ -18,7 +18,7 @@ const register = () => {
 	}
 	registered = true;
 	document.fonts.add(new FontFace(SYMBOLS, `url("${symbolsUrl}") format("woff2")`));
-	// src の先頭の local() が見つかれば url() は取りに行かないので、ヒラギノがある端末は 4MB 近い本文を読まずに済む。
+	// src の先頭の local() が見つかれば url() は取りに行かないので、ヒラギノがある端末は 1MB を超える本文を読まずに済む。
 	document.fonts.add(
 		new FontFace(
 			TEXT,
