@@ -1,9 +1,12 @@
 import type { Rect } from "../services/caption-layout";
 import { alphaOf, glyphScale, isFlashHidden } from "../services/caption-layout";
 import type { CaptionBitmap, CaptionRun, CaptionSnapshot } from "../services/captions";
+import { CAPTION_FONT_FAMILY } from "./caption-fonts";
 
-/** 運用規定は丸ゴシックを推奨している（TR-B14 第3巻 4.4.2）。 */
-const FONT_FAMILY = '"Hiragino Maru Gothic ProN", "BIZ UDGothic", "Noto Sans JP", sans-serif';
+const PICTOGRAPHIC = /\p{Extended_Pictographic}/u;
+
+/** 同梱の記号フォントに無い絵記号も、端末の絵文字ではなく文字の字形で描かせる（VS15）。 */
+const asText = (glyph: string) => (PICTOGRAPHIC.test(glyph) ? `${glyph}\uFE0E` : glyph);
 
 /** DRCS のビットマップを文字色で塗った画像。色ごとに作り直さないよう覚えておく。 */
 export class BitmapCache {
@@ -42,7 +45,8 @@ const drawGlyph = (
 ) => {
 	const centerX = cellX + run.cellWidth / 2;
 	const centerY = run.y + run.cellHeight / 2;
-	const scale = glyphScale(context.measureText(glyph).width, run.fontWidth);
+	const text = asText(glyph);
+	const scale = glyphScale(context.measureText(text).width, run.fontWidth);
 	context.save();
 	context.translate(centerX, centerY);
 	context.scale(scale, 1);
@@ -50,10 +54,10 @@ const drawGlyph = (
 		context.strokeStyle = run.edge;
 		context.lineWidth = run.fontHeight / 8;
 		context.lineJoin = "round";
-		context.strokeText(glyph, 0, 0);
+		context.strokeText(text, 0, 0);
 	}
 	context.fillStyle = run.fg;
-	context.fillText(glyph, 0, 0);
+	context.fillText(text, 0, 0);
 	context.restore();
 };
 
@@ -88,7 +92,7 @@ const drawRun = (
 		context.fillRect(run.x, run.y, run.cellWidth * glyphs.length, run.cellHeight);
 	}
 	const hidden = run.flash && isFlashHidden(timeMs);
-	context.font = `${run.fontHeight}px ${FONT_FAMILY}`;
+	context.font = `${run.fontHeight}px ${CAPTION_FONT_FAMILY}`;
 	glyphs.forEach((glyph, i) => {
 		const cellX = run.x + run.cellWidth * i;
 		if (!hidden) {

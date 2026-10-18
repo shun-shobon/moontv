@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { BitmapCache, drawSnapshot } from "../media/caption-canvas";
+import { loadCaptionFonts } from "../media/caption-fonts";
 import { containedRect, isFlashHidden } from "../services/caption-layout";
 import type { CaptionState, CaptionTimeline } from "../services/captions";
 
@@ -11,6 +12,9 @@ type Props = {
 	/** 字幕を出すか。文字スーパー（速報など）は常に出す。 */
 	showCaption: boolean;
 };
+
+const textOf = (state: CaptionState) =>
+	[state.caption, state.superimpose].flatMap((s) => s.runs.map((run) => run.text)).join("");
 
 const hasFlash = (state: CaptionState | null) =>
 	state != null && [state.caption, state.superimpose].some((s) => s.runs.some((run) => run.flash));
@@ -54,6 +58,13 @@ export function CaptionOverlay({ video, timeline, showCaption }: Props) {
 			if (state == null) {
 				return;
 			}
+			// 読み込み中は代わりの書体で描いておき、読み終えたら描き直す。失敗したら代わりの書体のままにする。
+			void loadCaptionFonts(textOf(state))?.then(
+				() => {
+					drawn = "";
+				},
+				() => undefined,
+			);
 			const rect = containedRect(
 				{ width: canvas.clientWidth, height: canvas.clientHeight },
 				{ width: video.videoWidth, height: video.videoHeight },

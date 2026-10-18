@@ -100,6 +100,18 @@ export const UnderlineAndHighlight: Story = {
 	},
 };
 
+/** ARIB の追加記号。端末によっては絵文字になる字も、同梱のフォントで文字として描く。 */
+export const AdditionalSymbols: Story = {
+	args: {
+		timeline: timelineOf(
+			snapshot([
+				run({ x: 138, y: 329, text: "🈑🈓🈞🈡⛔⚡☔♨❗⭕", bg: "#00000000", edge: "#000000ff" }),
+				run({ x: 138, y: 389, text: "㊙🅿㉑⑴Ⅻ㍻㎡⅓（亂價圖）" }),
+			]),
+		),
+	},
+};
+
 /** 字幕を消しても文字スーパーは出す。 */
 export const SuperimposeOnly: Story = {
 	args: {
