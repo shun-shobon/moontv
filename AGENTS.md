@@ -23,15 +23,15 @@
 | `src/ts.rs` | MPEG-TS のパケット、PSI（PAT・PMT）、PES の読み書き |
 | `src/caption/` | ARIB 字幕（STD-B24）の解読（`group` データグループ、`code` 8単位符号、`screen` 画面の状態と中間表現、`drcs` 外字、`tables` 変換表） |
 | `src/catalog.rs` | サービス・番組情報のキャッシュと API 向けの整形 |
-| `src/recording.rs` | 録画予約の受け付けと一覧の整形（録画そのものは mirakc が行う） |
-| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質・音声の定義、`encoder` エンコーダ別の引数と自動検出、`input` ffmpeg に渡す前の TS の書き換え、`captions` 字幕を ID3 にして差し込む、`session` 1本の配信、`manager` セッションの共有と停止） |
+| `src/recording/` | 録画（`mod` 予約の中継、`library` 録画一覧と HLS への変換、`events` mirakc の録画の開始・終了の購読） |
+| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質・音声の定義、`encoder` エンコーダ別の引数と自動検出、`input` ffmpeg に渡す前の TS の書き換え、`captions` 字幕を ID3 にして差し込む、`pipeline` TS から HLS への変換、`session` 1本の配信、`manager` セッションの共有と停止） |
 | `src/api.rs` | HTTP API |
 | `src/assets.rs` | 埋め込んだフロントエンドの配信 |
 | `frontend/src/app` | 画面の枠組みとルーティング |
 | `frontend/src/features/live` | チャンネル一覧と視聴画面 |
 | `frontend/src/features/player` | プレイヤー、字幕の描画、視聴設定の保存、ブラウザーのコーデック判定、配信セッションの開始・終了 |
 | `frontend/src/features/guide` | 番組表と番組詳細（録画予約の操作を含む） |
-| `frontend/src/features/recording` | 録画予約の一覧 |
+| `frontend/src/features/recording` | 録画と録画予約の一覧 |
 | `frontend/src/shared` | 複数の feature で使う API クライアント・スキーマ、時刻の規則、ルート定義、部品 |
 | `frontend/.storybook` | Storybook の設定と、story が共有する fixture・デコレーター |
 
@@ -54,6 +54,7 @@
 - 字幕と文字スーパーはサーバーで解読し、画面全体の状態を JSON にして ID3 の PRIV フレーム（所有者 `moontv`）に包み、ffmpeg に渡す前の TS に差し込む。ffmpeg が映像と同じ規則で時刻を付け直して fMP4 の emsg に入れるので、プレイヤーは hls.js が返す時刻をそのまま再生位置と比べられる。プレイヤーを hls.js 版（`HlsJsVideo`）にしているのはこのためで、標準の再生エンジンは ID3 を読めない。iOS のネイティブ全画面では字幕を描けない。
 - ID3 は表示時刻が来るまで差し込まず、字幕が変わらなくても毎秒送り直す。ffmpeg は ID3 が途切れると出力を止めて待ち、時刻が前後すると扱えないため。PMT の ID3 の ES には登録記述子 `ID3 ` が要る。無いと ffmpeg が MP3 の音声と誤認する。
 - 録画は mirakc の録画機能に任せ、moontv は予約を中継する。予約はライブ視聴（優先度 0）より高い優先度で入れ、録画がチューナーを奪えるようにする。mirakc は `recording.basedir` を設定しないと録画の API を持たないので、`/api/status` の `recording` で有無を返し、画面はそれを見て予約の操作を出す。
+- 録画一覧は moontv が `--recordings-dir` に1録画1ディレクトリ（`meta.json` と HLS）で持つ。mirakc は終わった予約を15時間で消し、録画を途中で止めた予約はすぐ消すので、番組情報は録画の開始時に控える。mirakc のイベント（`/events`）で開始・終了を知り、つなぎ直すたびに予約と突き合わせて取りこぼしを拾う。変換は1本ずつ行い、終わった TS は消す。
 - フロントエンドは `PUT /api/live/...` で起動完了を待ってからプレイヤーに `master.m3u8` を渡す。起動失敗の理由を画面に出すため。
 - ページの切り替えは `frontend/src/app/containers/screens.tsx` のルートの `action` で、ページのコードと描画に要るデータを読み込み終えてから行う。それまで前の画面を残す。データは react-query のキャッシュに入れるだけにし、ページは `useQuery` で読む。
 - HEVC は `hvc1` タグ付きの fMP4 で出力する。Safari は `hev1` を再生できない。

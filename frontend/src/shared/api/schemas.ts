@@ -22,6 +22,8 @@ export const StatusSchema = v.object({
 	qualities: v.array(QualitySchema),
 	/** mirakc で録画を有効にしているか。 */
 	recording: v.boolean(),
+	/** 録画を変換して一覧にする設定があるか。 */
+	library: v.boolean(),
 });
 export type Status = v.InferOutput<typeof StatusSchema>;
 

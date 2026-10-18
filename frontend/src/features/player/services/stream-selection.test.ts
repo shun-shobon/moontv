@@ -50,6 +50,7 @@ function status(overrides: Partial<Status> = {}): Status {
 		codecs: ["hevc", "h264"],
 		qualities: ["1080p", "720p", "540p", "360p"],
 		recording: false,
+		library: false,
 		...overrides,
 	};
 }

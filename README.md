@@ -8,7 +8,7 @@
 
 - ライブ視聴とチャンネル一覧（放送中・次の番組と進捗）
 - 番組表（7日分、ジャンル別の色分け、番組詳細）
-- 録画予約（番組詳細から予約・取り消し、録画ページで予約の一覧。録画そのものは mirakc が行う）
+- 録画予約と録画一覧（番組詳細から予約・取り消し。録画そのものは mirakc が行い、終わった録画を moontv が 720p に変換して一覧に並べる）
 - HLS（fMP4）配信。HEVC を優先し、再生できないブラウザーには H.264 を配信
 - 画質切替（1080p / 720p / 540p / 360p）
 - 音声切替（二か国語放送・解説放送の主音声 / 副音声）
@@ -47,6 +47,8 @@ moontv --mirakc-url http://<mirakc のホスト>:40772
 | `--ffmpeg` | `MOONTV_FFMPEG` | `ffmpeg` | ffmpeg のパス |
 | `--encoder` | `MOONTV_ENCODER` | `auto` | `auto` / `vaapi` / `qsv` / `videotoolbox` / `software` |
 | `--vaapi-device` | `MOONTV_VAAPI_DEVICE` | `/dev/dri/renderD128` | VAAPI・QSV で使うデバイス（QSV は Intel のみ） |
+| `--recordings-dir` | `MOONTV_RECORDINGS_DIR` | なし | 変換した録画を置くディレクトリ |
+| `--mirakc-recording-dir` | `MOONTV_MIRAKC_RECORDING_DIR` | なし | mirakc の `recording.basedir`。録画を読み、変換後に消す |
 
 `auto` は起動時に `videotoolbox`（macOS のみ）→ `vaapi` → `qsv` → `software` の順に試しエンコードし、最初に動いたものを使います。AMD GPU では `vaapi` が選ばれます。選ばれたエンコーダは起動時のログで確認できます。
 
@@ -62,6 +64,8 @@ moontv --mirakc-url http://<mirakc のホスト>:40772
 ## 録画について
 
 録画予約には mirakc の録画機能を使います。mirakc の `config.yml` で `recording.basedir` を設定すると、番組詳細に「録画予約」が出ます。録画はライブ視聴より優先され、録画が始まるとチューナーを録画に譲ります。
+
+`--recordings-dir` と `--mirakc-recording-dir` を両方指定すると、録画が終わるたびに TS を 720p（HEVC が使えれば HEVC、なければ H.264）の HLS に変換し、録画ページに並べます。変換が終わった TS は消します。そのため moontv は mirakc と同じマシンで動かし、`recording.basedir` を読み書きできる必要があります。変換後の大きさは1時間で約 1GB です。
 
 ## 番組表について
 

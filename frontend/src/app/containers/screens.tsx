@@ -5,6 +5,7 @@ import type { Routes } from "universal-router";
 
 import { programsQuery } from "../../features/guide/api/queries";
 import { resolveGuideDay } from "../../features/guide/services/guide-layout";
+import { recordingsQuery } from "../../features/recording/api/queries";
 import { channelsQuery, schedulesQuery, statusQuery } from "../../shared/api/queries";
 import { StatusMessage } from "../../shared/components/StatusMessage";
 import { DAY_MS, startOfBroadcastDay } from "../../shared/domain/time";
@@ -99,9 +100,10 @@ const routes: Routes<Screen | Redirect> = [
 				queryClient.query({ ...statusQuery, staleTime: "static" }),
 				queryClient.query({ ...channelsQuery, staleTime: "static" }),
 			]);
-			if (status.recording) {
-				await queryClient.query({ ...schedulesQuery, staleTime: "static" });
-			}
+			await Promise.all([
+				status.recording && queryClient.query({ ...schedulesQuery, staleTime: "static" }),
+				status.library && queryClient.query({ ...recordingsQuery, staleTime: "static" }),
+			]);
 			return { section: "recording", page: <RecordingsPage /> };
 		},
 	},
