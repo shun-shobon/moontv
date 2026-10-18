@@ -59,6 +59,8 @@ INSTRUMENTS = [
     "(tb)", "(tp)", "(ds)", "(ag)", "(eg)", "(vo)", "(fl)", "(ke|y)", "(sa|x)", "(sy|n)", "(or|g)", "(pe|r)",
 ]  # fmt: skip
 FRACTIONS = {0x2189: ("0", "3"), 0x2150: ("1", "7"), 0x2151: ("1", "9"), 0x2152: ("1", "10")}
+# Rounded Mgen+ にもある絵記号。天気・将棋の駒・地図記号の仲間はほとんど Noto から写すので、仲間内で字形をそろえる。
+NOTO_PREFERRED = {ord(char) for char in "☀☁☂☃☖☗♠♣♥♦♨☎"}
 
 
 def table(source: str, name: str) -> list[int]:
@@ -193,7 +195,7 @@ def composed_glyphs(canvas: Canvas, additional: list[int], wanted: set[int]) -> 
         for recording in canvas.instrument(left, right or None):
             glyphs[additional[cell]] = recording
             cell += 1
-    for code in sorted(wanted - glyphs.keys() - canvas.cmap.keys()):
+    for code in sorted(wanted - glyphs.keys() - (canvas.cmap.keys() - NOTO_PREFERRED)):
         recording = canvas.from_noto(code)
         if recording is not None:
             glyphs[code] = recording
