@@ -1,26 +1,15 @@
-import {
-	Controls,
-	FullscreenButton,
-	LiveButton,
-	MuteButton,
-	PiPButton,
-	VolumeSlider,
-} from "@videojs/react";
+import { Controls, FullscreenButton, LiveButton, PiPButton } from "@videojs/react";
 import {
 	FullscreenEnterIcon,
 	FullscreenExitIcon,
 	PipEnterIcon,
 	PipExitIcon,
-	VolumeHighIcon,
-	VolumeLowIcon,
-	VolumeOffIcon,
 } from "@videojs/react/icons";
 
+import { CONTROL_BUTTON } from "../services/control-style";
 import type { PlayerSettingsProps } from "./PlayerSettings";
 import { PlayerSettings } from "./PlayerSettings";
-
-const CONTROL_BUTTON =
-	"focus-ring flex h-full w-10 items-center justify-center text-fg transition-[color,scale] duration-150 hover:text-accent-hover active:scale-90 data-disabled:opacity-50";
+import { VolumeControl } from "./VolumeControl";
 
 export function PlayerControls({ settings }: { settings: PlayerSettingsProps }) {
 	return (
@@ -30,26 +19,7 @@ export function PlayerControls({ settings }: { settings: PlayerSettingsProps }) 
 					aria-label="再生コントロール"
 					className="flex h-12 items-center bg-linear-to-t from-scrim/90 to-transparent px-1 text-fg"
 				>
-					<MuteButton
-						className={CONTROL_BUTTON}
-						render={(props, state) => (
-							<button {...props}>
-								{state.volumeLevel === "off" ? (
-									<VolumeOffIcon />
-								) : state.volumeLevel === "high" ? (
-									<VolumeHighIcon />
-								) : (
-									<VolumeLowIcon />
-								)}
-							</button>
-						)}
-					/>
-					<VolumeSlider.Root className="group/volume relative mr-2 flex h-full w-20 cursor-pointer items-center">
-						<VolumeSlider.Track className="relative h-1 w-full rounded-full bg-fg/30">
-							<VolumeSlider.Fill className="absolute inset-y-0 left-0 w-(--media-slider-fill) rounded-full bg-accent" />
-						</VolumeSlider.Track>
-						<VolumeSlider.Thumb className="absolute left-(--media-slider-fill) size-3 -translate-x-1/2 rounded-full bg-fg shadow transition-transform duration-150 group-hover/volume:scale-125" />
-					</VolumeSlider.Root>
+					<VolumeControl />
 					<LiveButton className="group/live flex h-full items-center gap-1.5 px-2 text-caption-strong text-fg-secondary not-data-live:hidden data-live-edge:text-fg">
 						<span className="size-2 rounded-full bg-fg-muted group-data-live-edge/live:bg-accent" />
 						ライブ

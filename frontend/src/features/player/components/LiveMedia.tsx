@@ -4,23 +4,9 @@ import { HlsJsVideo } from "@videojs/react/media/hlsjs-video";
 import { useEffect, useRef, useState } from "react";
 
 import { useCaptionTimeline } from "../hooks/useCaptionTimeline";
+import { autoplay, resume } from "../media/autoplay";
 import { isCausedByFullscreenExit, liveEdgeSeekTarget } from "../services/playback";
 import { CaptionOverlay } from "./CaptionOverlay";
-
-const resume = (video: HTMLVideoElement) => {
-	video.play().catch(() => {
-		// 再生を拒否されても、一時停止中に表示する中央の再生ボタンから再開できる。
-	});
-};
-
-const autoplay = (video: HTMLVideoElement) => {
-	video.play().catch((error: unknown) => {
-		if (error instanceof DOMException && error.name === "NotAllowedError") {
-			video.muted = true;
-			resume(video);
-		}
-	});
-};
 
 type Props = {
 	src: string;

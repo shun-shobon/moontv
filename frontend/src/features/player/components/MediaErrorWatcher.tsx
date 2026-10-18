@@ -1,8 +1,8 @@
-import { usePlayer } from "@videojs/react/live-video";
+import { usePlayer } from "@videojs/react";
 import { useEffect } from "react";
 
 export function MediaErrorWatcher({ onError }: { onError: () => void }) {
-	const error = usePlayer((state) => state.error);
+	const error = usePlayer((state) => state["error"]);
 
 	useEffect(() => {
 		if (error != null) {
