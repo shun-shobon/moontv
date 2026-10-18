@@ -39,6 +39,8 @@ SOURCES = {
 }
 BASIC_TABLES = ["ALNUM", "HIRAGANA", "KATAKANA", "JIS_X0201_KATAKANA", "HALFWIDTH"]
 UNDEFINED = 0xFFFD
+# 86区の追加漢字「鿅」。どの元フォントにも字形が無いので、端末のフォントに任せる。
+WITHOUT_GLYPH = {0x9FC5}
 ROW = 94
 # 3次ベジェ曲線で4分の1円を近似するときの、半径に対する制御点の距離。
 KAPPA = 0.5523
@@ -57,6 +59,12 @@ INSTRUMENTS = [
 FRACTIONS = {0x2189: ("0", "3"), 0x2150: ("1", "7"), 0x2151: ("1", "9"), 0x2152: ("1", "10")}
 # Rounded Mgen+ にもある絵記号。天気・将棋の駒・地図記号の仲間はほとんど Noto から写すので、仲間内で字形をそろえる。
 NOTO_PREFERRED = {ord(char) for char in "☀☁☂☃☖☗♠♣♥♦♨☎"}
+
+
+def drcs_replacements(source: str) -> set[int]:
+    body = re.search(r"pub static DRCS_REPLACEMENTS: .*? = \[(.*?)\n\];", source, re.S)
+    assert body
+    return {int(v, 16) for v in re.findall(r"'\\u\{([0-9a-f]+)\}'", body.group(1))}
 
 
 def table(source: str, name: str) -> list[int]:
@@ -290,10 +298,13 @@ def build(
     family: str,
     out: pathlib.Path,
     extend: Callable[[TTFont], set[int]] | None = None,
-) -> None:
+) -> set[int]:
     if extend is not None:
         codes = codes | extend(font)
-    codes = {code for code in codes - {UNDEFINED} if code in font.getBestCmap()}
+    cmap = font.getBestCmap()
+    missing = codes - {UNDEFINED} - WITHOUT_GLYPH - cmap.keys()
+    assert not missing, " ".join(f"U+{code:04X}" for code in sorted(missing))
+    codes = {code for code in codes if code in cmap}
     options = subset.Options()
     # 字幕は1字ずつマスに置くので、組版の機能も縦書きの字形も使わない。
     options.layout_features = []
@@ -313,6 +324,7 @@ def build(
     font.flavor = "woff2"
     font.save(out)
     print(f"{out.relative_to(ROOT)}: {len(codes)} 字, {out.stat().st_size} bytes")
+    return codes
 
 
 def write_sheet(fonts: list[TTFont], additional: list[int], out: pathlib.Path) -> None:
@@ -372,6 +384,8 @@ def main() -> None:
     # 92区の「日」「年」などは普通の漢字に割り当てられている。先頭の書体に入れると本文の漢字まで置き換わる。
     symbols = {code for code in additional[5 * ROW :] if code != UNDEFINED and not is_ideograph(code)}
     printable_ascii = set(range(0x20, 0x7F))
+    # DRCS を置き換えた字は普通の字として描くので、本文のフォントに要る。
+    drcs = drcs_replacements(tables)
 
     def add_symbols(font: TTFont) -> set[int]:
         canvas = Canvas(font, [TTFont(directory / name) for name in NOTO])
@@ -382,8 +396,10 @@ def main() -> None:
         return set(glyphs)
 
     OUT.mkdir(parents=True, exist_ok=True)
-    build(mgen(), symbols, "moontv Caption Symbols", OUT / "caption-symbols.woff2", add_symbols)
-    build(mgen(), basic | kanji | printable_ascii, "moontv Caption Text", OUT / "caption-text.woff2")
+    drawn = build(mgen(), symbols, "moontv Caption Symbols", OUT / "caption-symbols.woff2", add_symbols)
+    # 記号のフォントは書体の候補の先頭なので、そこにある字は本文のフォントに要らない。
+    text = (basic | kanji | printable_ascii | drcs) - drawn
+    build(mgen(), text, "moontv Caption Text", OUT / "caption-text.woff2")
     fonts = [TTFont(OUT / "caption-symbols.woff2"), TTFont(OUT / "caption-text.woff2")]
     write_sheet(fonts, additional, OUT / "caption-symbols.svg")
 
