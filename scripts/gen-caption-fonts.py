@@ -237,6 +237,8 @@ def composed_glyphs(canvas: Canvas, additional: list[int], wanted: set[int]) -> 
         0x2B1B: canvas.scaled_up("\u25a0"),
         0x2B24: canvas.scaled_up("\u25cf"),
         0x26BF: canvas.squared_key(),
+        # 93-77。Mgen+ の字は数式の大型演算子の作りで、全角より広く、下にずれている。
+        0x2A00: canvas.scaled_up("\u2a00"),
         # 91-13 は地図記号の寺院。
         0x0FD6: canvas.record("\u534d"),
     }
