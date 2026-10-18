@@ -3,7 +3,6 @@ import { SpinnerIcon } from "@videojs/react/icons";
 import { useState } from "react";
 
 import { AmbientGlow } from "./AmbientGlow";
-import { CenterPlayButton } from "./CenterPlayButton";
 import { MediaErrorWatcher } from "./MediaErrorWatcher";
 import { PlayerErrorOverlay } from "./PlayerErrorOverlay";
 import { RecordingControls } from "./RecordingControls";
@@ -44,7 +43,6 @@ export function RecordingPlayerView({
 						</div>
 					)}
 				/>
-				<CenterPlayButton />
 				<RecordingControls captions={captions} onCaptionsChange={onCaptionsChange} />
 				{failed && <PlayerErrorOverlay message="再生できませんでした" onRetry={onRetry} />}
 			</Container>

@@ -32,9 +32,41 @@ type Props = {
 	onCaptionsChange: (captions: boolean) => void;
 };
 
+const CENTER_BUTTON =
+	"flex items-center justify-center rounded-full bg-canvas/75 text-fg focus-ring transition duration-150 ease-out pointer-events-auto hover:text-accent-hover active:scale-90";
+
 export function RecordingControls({ captions, onCaptionsChange }: Props) {
 	return (
 		<Controls.Root>
+			{/* 操作バーと一緒に出し入れする。一時停止中は操作バーが出たままなので、ここも出たままになる。 */}
+			<Controls.Content className="pointer-events-none absolute inset-0 flex items-center justify-center gap-8 transition-[opacity,visibility] duration-200 not-data-visible:invisible not-data-visible:opacity-0">
+				<SeekButton
+					seconds={-BACK_SECONDS}
+					className={`${CENTER_BUTTON} size-12`}
+					render={(props) => (
+						<button {...props}>
+							<SeekIcon className="size-6 -scale-x-100" />
+						</button>
+					)}
+				/>
+				<PlayButton
+					className={`${CENTER_BUTTON} size-16`}
+					render={(props, state) => (
+						<button {...props}>
+							{state.paused ? <PlayIcon className="size-9" /> : <PauseIcon className="size-9" />}
+						</button>
+					)}
+				/>
+				<SeekButton
+					seconds={FORWARD_SECONDS}
+					className={`${CENTER_BUTTON} size-12`}
+					render={(props) => (
+						<button {...props}>
+							<SeekIcon className="size-6" />
+						</button>
+					)}
+				/>
+			</Controls.Content>
 			<Controls.Content className="absolute inset-x-0 bottom-0 flex flex-col bg-linear-to-t from-scrim/90 to-transparent px-3 pt-6 text-fg transition-opacity duration-200 not-data-visible:pointer-events-none not-data-visible:opacity-0">
 				{/* シークは指を離したときに行われ、それまで fill は再生位置のままなので、ドラッグ中は指の位置を表示する。 */}
 				<TimeSlider.Root
@@ -55,15 +87,16 @@ export function RecordingControls({ captions, onCaptionsChange }: Props) {
 					</TimeSlider.Preview>
 				</TimeSlider.Root>
 				<Controls.Group aria-label="再生コントロール" className="-mx-2 flex h-12 items-center">
+					{/* スマホでは中央に同じ操作があるので、横幅を空けるために下には出さない。 */}
 					<PlayButton
-						className={CONTROL_BUTTON}
+						className={`${CONTROL_BUTTON} max-sm:hidden`}
 						render={(props, state) => (
 							<button {...props}>{state.paused ? <PlayIcon /> : <PauseIcon />}</button>
 						)}
 					/>
 					<SeekButton
 						seconds={-BACK_SECONDS}
-						className={CONTROL_BUTTON}
+						className={`${CONTROL_BUTTON} max-sm:hidden`}
 						render={(props) => (
 							<button {...props}>
 								<SeekIcon className="-scale-x-100" />
@@ -72,7 +105,7 @@ export function RecordingControls({ captions, onCaptionsChange }: Props) {
 					/>
 					<SeekButton
 						seconds={FORWARD_SECONDS}
-						className={CONTROL_BUTTON}
+						className={`${CONTROL_BUTTON} max-sm:hidden`}
 						render={(props) => (
 							<button {...props}>
 								<SeekIcon />
