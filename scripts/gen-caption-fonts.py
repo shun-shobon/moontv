@@ -67,36 +67,14 @@ def table(source: str, name: str) -> list[int]:
     return [int(v, 16) for v in re.findall(r"\\u\{([0-9a-f]+)\}", body.group(1))]
 
 
-def circle(pen, cx: float, cy: float, r: float, clockwise: bool) -> None:
+def circle(pen, cx: float, cy: float, r: float) -> None:
+    """時計回りの円。TrueType では時計回りの輪郭が塗られる。"""
     k = r * KAPPA
-    # 上から時計回りに、4分の1円ずつの (制御点1, 制御点2, 終点)。
-    segments = [
-        ((cx + k, cy + r), (cx + r, cy + k), (cx + r, cy)),
-        ((cx + r, cy - k), (cx + k, cy - r), (cx, cy - r)),
-        ((cx - k, cy - r), (cx - r, cy - k), (cx - r, cy)),
-        ((cx - r, cy + k), (cx - k, cy + r), (cx, cy + r)),
-    ]
     pen.moveTo((cx, cy + r))
-    if clockwise:
-        for c1, c2, end in segments:
-            pen.curveTo(c1, c2, end)
-    else:
-        starts = [(cx, cy + r)] + [end for _, _, end in segments[:-1]]
-        for (c1, c2, _), start in reversed(list(zip(segments, starts))):
-            pen.curveTo(c2, c1, start)
-    pen.closePath()
-
-
-def rounded_bar(pen, cx: float, top: float, bottom: float, width: float) -> None:
-    """上下の端を半円にした縦棒。"""
-    r = width / 2
-    k = r * KAPPA
-    pen.moveTo((cx - r, top - r))
-    pen.curveTo((cx - r, top - r + k), (cx - k, top), (cx, top))
-    pen.curveTo((cx + k, top), (cx + r, top - r + k), (cx + r, top - r))
-    pen.lineTo((cx + r, bottom + r))
-    pen.curveTo((cx + r, bottom + r - k), (cx + k, bottom), (cx, bottom))
-    pen.curveTo((cx - k, bottom), (cx - r, bottom + r - k), (cx - r, bottom + r))
+    pen.curveTo((cx + k, cy + r), (cx + r, cy + k), (cx + r, cy))
+    pen.curveTo((cx + r, cy - k), (cx + k, cy - r), (cx, cy - r))
+    pen.curveTo((cx - k, cy - r), (cx - r, cy - k), (cx - r, cy))
+    pen.curveTo((cx - r, cy + k), (cx - k, cy + r), (cx, cy + r))
     pen.closePath()
 
 
@@ -193,33 +171,16 @@ class Canvas:
             ).replay(out)
         return out
 
-    def heavy_exclamation(self) -> RecordingPen:
-        out = RecordingPen()
-        size, cx = self.width * 0.9, self.width / 2
-        rounded_bar(out, cx, self.cy + size * 0.42, self.cy - size * 0.14, size * 0.2)
-        circle(out, cx, self.cy - size * 0.33, size * 0.1, clockwise=True)
-        return out
-
-    def heavy_circle(self) -> RecordingPen:
-        out = RecordingPen()
-        size, cx = self.width * 0.9, self.width / 2
-        circle(out, cx, self.cy, size * 0.42, clockwise=True)
-        circle(out, cx, self.cy, size * 0.42 - size * 0.12, clockwise=False)
-        return out
-
     def diamond_with_dot(self) -> RecordingPen:
         out = RecordingPen()
         self.record("\u25c7").replay(out)
-        circle(out, self.width / 2, self.cy, self.width * 0.07, clockwise=True)
+        circle(out, self.width / 2, self.cy, self.width * 0.07)
         return out
 
 
 def composed_glyphs(canvas: Canvas, additional: list[int], wanted: set[int]) -> dict[int, RecordingPen]:
     """Rounded Mgen+ に無い追加記号の字形。"""
     glyphs: dict[int, RecordingPen] = {
-        # 90-03（道路上の障害物）と 90-32 は Noto Sans Symbols にもあるが、丸ゴシックに合わせて描く。
-        0x2757: canvas.heavy_exclamation(),
-        0x2B55: canvas.heavy_circle(),
         0x27D0: canvas.diamond_with_dot(),
         # 91-13 は地図記号の寺院。
         0x0FD6: canvas.record("\u534d"),
