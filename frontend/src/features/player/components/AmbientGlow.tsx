@@ -4,7 +4,6 @@ const FRAME_INTERVAL_MS = 250;
 /** 場面転換で光がちらつかないよう、新しいフレームを少しずつ重ねて色を移す。 */
 const BLEND_ALPHA = 0.4;
 
-/** 映像の色をぼかしてプレイヤーの周囲に滲ませる。 */
 export function AmbientGlow({ video }: { video: HTMLVideoElement | null }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 

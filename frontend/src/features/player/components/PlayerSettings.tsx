@@ -19,7 +19,6 @@ export type PlayerSettingsProps = {
 	activeCodec: Codec;
 	preferences: Preferences;
 	onChange: (preferences: Preferences) => void;
-	/** 放送中の番組の音声。2本以上あるときだけ選べるようにする。 */
 	audios: readonly Audio[];
 	audio: AudioTrack;
 	onAudioChange: (audio: AudioTrack) => void;

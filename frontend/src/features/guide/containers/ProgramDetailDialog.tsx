@@ -10,7 +10,6 @@ type Props = {
 	onOpenChange: (isOpen: boolean) => void;
 };
 
-/** 一覧の番組情報で先に開き、詳細は取得でき次第追加する。 */
 export function ProgramDetailDialog({ program, channel, now, isOpen, onOpenChange }: Props) {
 	const detail = useProgram(program.id);
 

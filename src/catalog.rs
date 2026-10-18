@@ -198,7 +198,6 @@ impl Catalog {
     }
 }
 
-/// 同じ物理チャンネル・同じリモコン番号に、より若いサービスIDのサービスがあればサブチャンネルとみなす。
 fn is_subchannel(service: &Service, services: &[Service]) -> bool {
     services.iter().any(|other| {
         other.channel == service.channel
@@ -259,8 +258,7 @@ pub fn normalize(text: &str) -> String {
     out.nfkc().collect()
 }
 
-/// 番組名に [字] のような括弧書きで入る番組の属性（STD-B24 の追加記号 90〜92区）と、画面に出す名前。
-/// 番組名そのものに使われうる [Re] などと取り違えないよう、決まった表記だけを取り出す。
+/// 番組名そのものに使われうる [Re] などと取り違えないよう、決まった表記（STD-B24 の追加記号 90〜92区）だけを取り出す。
 const MARKS: [(&str, &str); 30] = [
     ("字", "字幕"),
     ("解", "解説"),
@@ -294,7 +292,6 @@ const MARKS: [(&str, &str); 30] = [
     ("PPV", "ペイ・パー・ビュー"),
 ];
 
-/// 正規化した番組名から [字] などを取り除き、属性の名前を現れた順に返す。
 fn split_marks(name: &str) -> (String, Vec<&'static str>) {
     let mut rest = name;
     let mut cleaned = String::with_capacity(name.len());

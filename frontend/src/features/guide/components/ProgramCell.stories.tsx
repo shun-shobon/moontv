@@ -6,7 +6,7 @@ import { HOUR_MS, MINUTE_MS } from "../../../shared/domain/time";
 import { COLUMN_WIDTH_PX, toPx } from "../services/guide-layout";
 import { ProgramCell } from "./ProgramCell";
 
-/** 番組表の列と同じ幅で、番組の開始位置が収まる範囲だけを切り出して見せる。 */
+/** ProgramCell は日の始まりからの位置に置かれるため、開始位置までずらして切り出す。 */
 const meta = {
 	component: ProgramCell,
 	args: { dayStart: DAY_START, dayEnd: DAY_END, now: NOW, onSelect: fn() },

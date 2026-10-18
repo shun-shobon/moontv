@@ -5,7 +5,6 @@ const PX_PER_MINUTE = 3;
 export const COLUMN_WIDTH_PX = 176;
 export const TIME_COLUMN_WIDTH_PX = 40;
 const DAYS_AHEAD = 7;
-/** 番組表を開いたとき、現在時刻の少し前から見えるようにする。 */
 const SCROLL_LEAD_MS = 30 * MINUTE_MS;
 /** 終了時刻が未定の番組も選べるよう、1時間分の枠を取る。 */
 const UNKNOWN_DURATION_MS = HOUR_MS;
@@ -23,7 +22,6 @@ export const gridWidth = (columnCount: number) =>
 export const selectableDays = (today: number) =>
 	Array.from({ length: DAYS_AHEAD }, (_, i) => today + i * DAY_MS);
 
-/** 選べない日（過ぎた日や先すぎる日）や指定なしは今日にする。 */
 export const resolveGuideDay = (requested: number | null, today: number) =>
 	requested != null && selectableDays(today).includes(requested) ? requested : today;
 
@@ -39,7 +37,6 @@ export const guideColumns = (channels: readonly Channel[], programs: readonly Pr
 export const programEnd = (program: Program) =>
 	program.startAt + (program.duration ?? UNKNOWN_DURATION_MS);
 
-/** 日をまたぐ番組は表示中の日の範囲に切り詰める。 */
 export const programBox = (program: Program, dayStart: number, dayEnd: number) => {
 	const start = Math.max(program.startAt, dayStart);
 	const end = Math.min(programEnd(program), dayEnd);

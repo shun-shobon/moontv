@@ -13,7 +13,6 @@ const resume = (video: HTMLVideoElement) => {
 	});
 };
 
-/** 音声付きの自動再生を拒否されたら、ミュートして再生だけは始める。 */
 const autoplay = (video: HTMLVideoElement) => {
 	video.play().catch((error: unknown) => {
 		if (error instanceof DOMException && error.name === "NotAllowedError") {

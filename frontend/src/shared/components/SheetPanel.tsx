@@ -4,13 +4,9 @@ import { useContext, useRef, useState } from "react";
 import { OverlayTriggerStateContext } from "react-aria-components";
 import { useMove } from "react-aria/useMove";
 
-/** これより下までハンドルを引いて離したら閉じる。 */
 const CLOSE_DISTANCE_PX = 96;
 
-/**
- * Sheet の中身の面。狭い画面ではハンドルを下に引いて閉じられる。Modal の中で使う。
- * 中身はスクロールさせないので、ボタン欄を下に固定できるよう、スクロールする部分は中身の側で決める。
- */
+/** ボタン欄を下に固定できるよう、スクロールは中身の側に任せる。 */
 export function SheetPanel({ children }: { children: ReactNode }) {
 	const state = useContext(OverlayTriggerStateContext);
 	const [offset, setOffset] = useState(0);

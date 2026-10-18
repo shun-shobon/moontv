@@ -6,10 +6,7 @@ type NavigationTarget = {
 	destination: URL;
 };
 
-/**
- * 同一オリジンのページ遷移だけを横取りする。API とファイル取得はブラウザーに任せる。
- * 再読み込みも横取りしない。古いチャンクを読めなくなったときに、ページごと読み直して直すため。
- */
+/** 再読み込みは横取りしない。古いチャンクを読めなくなったときに、ページごと読み直して直すため。 */
 export const shouldIntercept = (target: NavigationTarget, origin: string) =>
 	target.canIntercept &&
 	target.navigationType !== "reload" &&
@@ -18,13 +15,8 @@ export const shouldIntercept = (target: NavigationTarget, origin: string) =>
 	target.destination.origin === origin &&
 	!target.destination.pathname.startsWith("/api/");
 
-/** パスが同じなら、番組表の日付のようにページ内の状態を変える遷移として扱う。 */
 export const isInPageChange = (from: URL, to: URL) => from.pathname === to.pathname;
 
-/**
- * リロードせずに描画を切り替える。遷移先の準備が済むまで前の画面を残す。
- * 準備中に次の遷移が始まったら、古い遷移の結果は捨てる。
- */
 export const interceptNavigations = <T>(
 	prepare: (destination: URL) => Promise<T>,
 	show: (prepared: T) => void,

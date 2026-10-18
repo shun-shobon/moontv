@@ -22,7 +22,6 @@ declare module "universal-router" {
 
 export type Screen = { section: Section | null; page: ReactNode };
 
-/** URL を正しい形に置き換えて遷移し直す。 */
 export type Redirect = { redirect: string };
 
 export const LOADING_SCREEN: Screen = {
@@ -42,10 +41,7 @@ export const ERROR_PAGE = (
 
 const ERROR_SCREEN: Screen = { section: null, page: ERROR_PAGE };
 
-/**
- * ページのコードと、描画に要るデータを並べて待つ。
- * キャッシュがあれば古くても待たずに使う。更新はページの useQuery が裏で行う。
- */
+/** キャッシュがあれば古くても待たずに使う。更新はページの useQuery が裏で行う。 */
 const loadLive = async (queryClient: QueryClient) => {
 	const [{ LivePage }, , channels] = await Promise.all([
 		import("../../features/live/containers/LivePage"),
@@ -107,7 +103,6 @@ const router = new UniversalRouter<Screen | Redirect>(routes, {
 	},
 });
 
-/** 遷移先の画面を、表示に要るものを読み込み終えた状態で返す。失敗はエラー画面として返す。 */
 export const loadScreen = async (
 	destination: URL,
 	queryClient: QueryClient,

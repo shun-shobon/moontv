@@ -1,5 +1,3 @@
-//! ARIB 字幕（STD-B24）の解読。
-
 mod code;
 mod drcs;
 mod group;
@@ -15,19 +13,17 @@ use group::{DataGroup, UNIT_DRCS_1BYTE, UNIT_DRCS_2BYTE, UNIT_TEXT};
 pub use screen::Snapshot;
 use screen::{Layout, Screen};
 
-/// 字幕文1つから作る画面の状態。`delay` は字幕文の表示開始からの遅れ（90kHz）で、TIME による待ちで生じる。
+/// `delay` は字幕文の表示開始からの遅れ（90kHz）で、TIME による待ちで生じる。
 #[derive(Debug, PartialEq, Eq)]
 pub struct Frame {
     pub delay: u64,
     pub snapshot: Snapshot,
 }
 
-/// 1つの字幕 ES（字幕か文字スーパー）の第1言語を解読する。
 pub struct CaptionDecoder {
     decoder: Decoder,
     screen: Screen,
     set: Option<u8>,
-    /// 字幕管理データで定義された DRCS。字幕文ごとにここから始める。
     management_drcs: DrcsSet,
 }
 
@@ -45,7 +41,6 @@ impl CaptionDecoder {
         self.screen.snapshot()
     }
 
-    /// 字幕 PES の PES ヘッダーより後ろを受け取り、画面が変わったらその状態を返す。
     pub fn push(&mut self, pes_data: &[u8]) -> Vec<Frame> {
         match group::parse(pes_data) {
             Some(DataGroup::Management(m)) if self.set != Some(m.set) => {

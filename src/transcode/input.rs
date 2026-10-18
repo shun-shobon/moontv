@@ -1,19 +1,14 @@
-//! ffmpeg に渡す前の TS の書き換え。
-
 use super::captions::Captions;
 use super::profile::AudioTrack;
 use crate::ts::{self, PACKET_SIZE, Pmt, SYNC_BYTE, SectionAssembler};
 
-/// 選んだ音声を載せ替える PID。ARIB の地デジ・BS が ES に使う範囲と重ならない。
+/// ARIB の地デジ・BS が ES に使う範囲と重ならない。
 /// ffmpeg は起動時の PMT にあった PID しか読まないので、番組が変わって元の PID が変わっても同じ PID で出し続ける。
 const AUDIO_PID: u16 = 0x0ff1;
 
 /// ADTS の AAC。ARIB の音声はこれだけを使う。
 const STREAM_TYPE_AAC: u8 = 0x0f;
 
-/// 選んだ音声だけを残し、ffmpeg からは音声が常に1本に見えるようにする。
-/// 副音声を選んでいても、副音声のない番組では主音声を流す。
-/// あわせて字幕と文字スーパーを解読し、ID3 として差し込む。
 pub struct InputRewriter {
     audio: AudioTrack,
     pending: Vec<u8>,
@@ -48,7 +43,6 @@ impl InputRewriter {
         }
     }
 
-    /// 任意の区切りで届くバイト列を受け取り、書き換えたパケットを `out` に足す。
     pub fn push(&mut self, chunk: &[u8], out: &mut Vec<u8>) {
         self.pending.extend_from_slice(chunk);
         let mut start = 0;

@@ -1,8 +1,3 @@
-//! 字幕と文字スーパーを解読し、ID3 timed metadata として TS に差し込む。
-//!
-//! ffmpeg は ID3 を映像と同じ規則で時刻を付け直して fMP4 の emsg に入れるので、プレイヤーは受け取った時刻を
-//! そのまま再生位置と比べられる。
-
 use std::collections::VecDeque;
 
 use serde::Serialize;
@@ -10,7 +5,7 @@ use serde::Serialize;
 use crate::caption::{CaptionDecoder, Snapshot};
 use crate::ts::{self, ElementaryStream, PTS_MASK, PesAssembler, Pmt};
 
-/// ID3 を載せる PID。ARIB の地デジ・BS が ES に使う範囲と重ならない。
+/// ARIB の地デジ・BS が ES に使う範囲と重ならない値。
 pub const ID3_PID: u16 = 0x0ff2;
 const STREAM_TYPE_METADATA: u8 = 0x15;
 const STREAM_TYPE_PRIVATE_DATA: u8 = 0x06;
@@ -66,7 +61,6 @@ pub struct Captions {
     superimpose: Track,
     video_pid: Option<u16>,
     video_pts: Option<u64>,
-    /// まだ表示時刻が来ていない状態。時刻順に並ぶ。
     pending: VecDeque<(u64, Layer, Snapshot)>,
     current_caption: Snapshot,
     current_superimpose: Snapshot,
@@ -93,7 +87,6 @@ impl Captions {
         }
     }
 
-    /// PMT から字幕・文字スーパー・映像の ES を見つけ、ID3 の ES を足す。
     pub fn rewrite_pmt(&mut self, pmt: &mut Pmt) {
         let find = |tag: u8| {
             pmt.streams
@@ -115,7 +108,7 @@ impl Captions {
         });
     }
 
-    /// パケットを見て、ID3 を差し込む時刻になっていれば `out` に書き出す。パケット自体は書き出さない。
+    /// パケット自体は `out` に書き出さない。
     pub fn inspect(&mut self, packet: &[u8], out: &mut Vec<u8>) {
         let pid = ts::pid(packet);
         if Some(pid) == self.video_pid {
@@ -196,13 +189,12 @@ impl Captions {
     }
 }
 
-/// `a` が `b` より後の時刻か。PTS は 33 ビットで一周するので、差が半周未満なら後とみなす。
+/// PTS は 33 ビットで一周するので、差が半周未満なら後とみなす。
 const fn is_after(a: u64, b: u64) -> bool {
     let diff = a.wrapping_sub(b) & PTS_MASK;
     diff != 0 && diff < (1 << 32)
 }
 
-/// PRIV フレームを1つだけ持つ ID3v2.4 タグ。
 fn id3_priv(owner: &[u8], data: &[u8]) -> Vec<u8> {
     let body_len = owner.len() + 1 + data.len();
     let mut tag = b"ID3\x04\x00\x00".to_vec();
@@ -257,7 +249,6 @@ mod tests {
         packet(VIDEO_PID, true, 0, &ts::build_pes(0xe0, pts, &[0; 8]))
     }
 
-    /// 書き出された ID3 から (PTS, JSON) を取り出す。
     fn sent(out: &[u8]) -> Vec<(u64, serde_json::Value)> {
         let mut pes = PesAssembler::new();
         out.chunks(ts::PACKET_SIZE)

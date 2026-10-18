@@ -72,8 +72,7 @@ impl LiveSession {
         self.viewers.lock().unwrap().keys().cloned().collect()
     }
 
-    /// 視聴者が残っていなければ true を返す。
-    pub fn leave(&self, viewer: &str) -> bool {
+    pub fn leave_and_check_empty(&self, viewer: &str) -> bool {
         let mut viewers = self.viewers.lock().unwrap();
         viewers.remove(viewer);
         viewers.is_empty()
@@ -237,7 +236,7 @@ fn spawn_ffmpeg(session: &LiveSession, setup: &EncoderSetup) -> Result<Child> {
         .args(setup.encoder.video_args(session.key.codec, session.key.quality))
         // 放送の音声は番組の切り替わりでチャンネル数や途切れが生じるため、ステレオに揃えて隙間を埋める。
         .args(["-af", "aresample=async=1", "-c:a", "aac", "-ac", "2", "-ar", "48000"])
-        // 字幕の ID3 はそのまま通し、fMP4 では emsg に入れさせる。
+        // 字幕の ID3（データストリーム）を emsg に入れさせる。
         .args(["-c:d", "copy"])
         .args(["-b:a", &format!("{}k", spec.audio_kbps)])
         .args(["-max_muxing_queue_size", "1024"])

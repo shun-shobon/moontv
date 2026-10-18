@@ -4,14 +4,12 @@ import { SelectionIndicator, ToggleButton, ToggleButtonGroup } from "react-aria-
 type Props<T extends Key> = {
 	label: string;
 	options: readonly T[];
-	/** undefined のときはどれも選ばない。 */
 	value: T | undefined;
 	format: (value: T) => string;
 	onChange: (value: T) => void;
 	className?: string;
 };
 
-/** 矢印キーで項目を移り、選択中の背景が次の項目へ滑って移る。 */
 export function SegmentedControl<T extends Key>({
 	label,
 	options,

@@ -1,8 +1,3 @@
-"""libaribcaption の変換表から src/caption/tables/generated.rs を生成する。
-
-usage: python3 -I scripts/gen-caption-tables.py <libaribcaption のチェックアウト>
-"""
-
 import pathlib
 import re
 import subprocess
@@ -53,7 +48,7 @@ def main() -> None:
     kanji_half = u32_table(conv, "kKanjiSymbolsTable_Halfwidth", 188)
     additional = u32_table(gaiji, "kAdditionalSymbolsTable_Unicode", 940)
 
-    # 中型（MSZ）で使う半角の字形。libaribcaption が中型の文字に適用する置き換えをまとめる。
+    # libaribcaption が中型の文字に施す置き換えと同じ組。
     pairs: dict[int, int] = {0x3000: 0x20}
     candidates = [
         *zip(kanji[:188], kanji_half),

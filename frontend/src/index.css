@@ -1,11 +1,6 @@
 @import "tailwindcss";
 
-/*
- * 色と文字は2層で定義する。
- * - primitive（--palette-* は色、--scale-* は文字）: 値そのもの。ユーティリティを生成しないので、コンポーネントからは使えない。
- * - semantic（--color-*、--text-*）: 役割ごとの値。コンポーネントはこちらだけを使う。
- * Tailwind 既定の色・文字サイズ・太さ・行間・字間は primitive にあたるため、`initial` で無効にしている。
- */
+/* primitive（--palette-*・--scale-*）は、コンポーネントから使えないよう @theme でなく :root に置いてユーティリティを生成させない。 */
 :root {
 	--palette-black: oklch(0 0 0);
 
@@ -63,7 +58,6 @@
 
 	--color-*: initial;
 
-	/* 背景 */
 	--color-canvas: var(--palette-night-900);
 	--color-surface: var(--palette-night-850);
 	--color-surface-hover: var(--palette-night-800);
@@ -72,23 +66,19 @@
 	--color-scrim: var(--palette-night-950);
 	--color-video: var(--palette-black);
 
-	/* 境界線 */
 	--color-line: var(--palette-night-800);
 	--color-line-strong: var(--palette-night-700);
 
-	/* 文字 */
 	--color-fg: var(--palette-night-100);
 	--color-fg-secondary: var(--palette-night-300);
 	--color-fg-muted: var(--palette-night-400);
 	--color-fg-subtle: var(--palette-night-500);
 
-	/* 強調 */
 	--color-accent: var(--palette-moon-300);
 	--color-accent-hover: var(--palette-moon-200);
 	--color-accent-strong: var(--palette-moon-400);
 	--color-on-accent: var(--palette-night-950);
 
-	/* 番組ジャンル */
 	--color-genre-news: var(--palette-hue-blue);
 	--color-genre-sports: var(--palette-hue-green);
 	--color-genre-info: var(--palette-hue-cyan);
@@ -103,12 +93,9 @@
 	--color-genre-welfare: var(--palette-hue-teal);
 	--color-genre-other: var(--palette-night-500);
 
-	/*
-	 * 重なり順。Tailwind は数値の z-index を theme から消せないため、lint（scripts/check-z-index.ts）で禁じている。
-	 * 部品の中だけで重ねる値は、その部品の根に isolate を付けて画面全体の値と比べられないようにする。
-	 */
+	/* Tailwind は数値の z-index を theme から消せないため、scripts/check-z-index.ts で禁じている。 */
 	--z-index-nav: 10;
-	/* スマホ幅で上端に固定する。設定シートは全画面のためにプレイヤーの中に描くので、ナビより上に置く。 */
+	/* 設定シートは全画面のためにプレイヤーの中に描くので、ナビより上に置く。 */
 	--z-index-player: 20;
 	--z-index-modal: 30;
 	/* モーダルの中から開いても上に出す */
@@ -116,7 +103,6 @@
 	/* WebKit が上端のステータスバーの色を決めるときに、必ずこの要素を拾わせる（index.html） */
 	--z-index-status-bar: 2147483647;
 
-	/* 番組表の中 */
 	--z-index-guide-focus: 1;
 	--z-index-guide-time: 2;
 	--z-index-guide-now: 3;
@@ -127,7 +113,6 @@
 	--leading-*: initial;
 	--tracking-*: initial;
 
-	/* ロゴ */
 	--text-brand: var(--scale-size-md);
 	--text-brand--line-height: var(--scale-leading-normal);
 	--text-brand--font-weight: var(--scale-weight-semibold);
@@ -158,7 +143,6 @@
 	--text-label--line-height: var(--scale-leading-snug);
 	--text-label--font-weight: var(--scale-weight-regular);
 
-	/* ボタン */
 	--text-action: var(--scale-size-sm);
 	--text-action--line-height: var(--scale-leading-snug);
 	--text-action--font-weight: var(--scale-weight-medium);

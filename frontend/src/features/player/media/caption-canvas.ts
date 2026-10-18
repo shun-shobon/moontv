@@ -8,7 +8,6 @@ const PICTOGRAPHIC = /\p{Extended_Pictographic}/u;
 /** 同梱の記号フォントに無い絵記号も、端末の絵文字ではなく文字の字形で描かせる（VS15）。 */
 const asText = (glyph: string) => (PICTOGRAPHIC.test(glyph) ? `${glyph}\uFE0E` : glyph);
 
-/** DRCS のビットマップを文字色で塗った画像。色ごとに作り直さないよう覚えておく。 */
 export class BitmapCache {
 	#images = new Map<string, HTMLCanvasElement>();
 
@@ -119,7 +118,6 @@ const drawRun = (
 	});
 };
 
-/** 字幕プレーンの座標で描き、`rect`（映像の表示範囲）いっぱいに拡大する。 */
 export const drawSnapshot = (
 	context: CanvasRenderingContext2D,
 	snapshot: CaptionSnapshot,

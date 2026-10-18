@@ -84,7 +84,6 @@ export const CHANNELS: Channel[] = [
 	}),
 ];
 
-/** 1日分の番組を、各チャンネルにジャンルを巡回させながら敷き詰める。 */
 export const dayPrograms = (channels: readonly Channel[]): Program[] =>
 	channels.flatMap((c, column) => {
 		const programs: Program[] = [];

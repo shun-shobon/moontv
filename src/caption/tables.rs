@@ -1,5 +1,3 @@
-//! 図形集合の符号から文字への変換表。
-
 // 生成元の並び（1行8要素）のままにして、再生成したときの差分を追いやすくする。
 #[rustfmt::skip]
 mod generated;
@@ -12,7 +10,6 @@ fn defined(c: char) -> Option<char> {
     (c != UNDEFINED).then_some(c)
 }
 
-/// 漢字系集合（追加漢字・追加記号を含む）の区点。
 pub fn kanji(row: u8, cell: u8) -> Option<char> {
     let (row, cell) = (usize::from(row), usize::from(cell));
     if !(1..=94).contains(&cell) {
@@ -25,7 +22,6 @@ pub fn kanji(row: u8, cell: u8) -> Option<char> {
     }
 }
 
-/// 1バイト集合の符号（0x21〜0x7E）から表を引く。
 fn one_byte(table: &[char; 94], code: u8) -> Option<char> {
     code.checked_sub(0x21)
         .and_then(|i| table.get(usize::from(i)))
@@ -49,7 +45,6 @@ pub fn jis_x0201_katakana(code: u8) -> Option<char> {
     one_byte(&generated::JIS_X0201_KATAKANA, code)
 }
 
-/// 中型（MSZ）の文字に使う半角の字形。
 pub fn halfwidth(c: char) -> Option<char> {
     generated::HALFWIDTH
         .binary_search_by_key(&c, |&(full, _)| full)
@@ -63,7 +58,6 @@ mod tests {
 
     #[test]
     fn looks_up_kanji_and_additional_symbols() {
-        // 16区1点「亜」、90区54点「🈑」（[字]）。
         assert_eq!(kanji(16, 1), Some('亜'));
         assert_eq!(kanji(90, 54), Some('🈑'));
         assert_eq!(kanji(87, 1), None);

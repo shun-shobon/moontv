@@ -6,10 +6,7 @@ const PROBE_TYPES: Record<Codec, string> = {
 	h264: 'video/mp4; codecs="avc1.640028"',
 };
 
-/**
- * Safari はネイティブ HLS、それ以外は MSE で再生するため両方の経路で判定する。
- * iPhone の Safari は MSE を持たないがネイティブ HLS で HEVC を再生できる。
- */
+/** iPhone の Safari は MediaSource を持たない（hls.js は ManagedMediaSource を使う）ため、canPlayType でも判定する。 */
 export const browserSupports = (codec: Codec): boolean => {
 	const type = PROBE_TYPES[codec];
 	if (typeof MediaSource !== "undefined" && MediaSource.isTypeSupported(type)) {

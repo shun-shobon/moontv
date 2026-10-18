@@ -2,7 +2,6 @@ import { NavLink } from "./NavLink";
 
 export type Section = "live" | "guide";
 
-/** section が null のときは、どのナビゲーションも選択中にしない。404 ページなどで使う。 */
 type Props = { section: Section | null };
 
 const LIVE_ICON = (
@@ -19,7 +18,6 @@ const GUIDE_ICON = (
 	</svg>
 );
 
-/** 狭い画面では下端のボトムバー、md 以上では左端のサイドバーになる。 */
 export function AppNav({ section }: Props) {
 	return (
 		<nav className="fixed inset-x-0 bottom-0 z-nav flex h-(--nav-height) border-t border-line bg-canvas/90 px-[max(env(safe-area-inset-left),env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] backdrop-blur md:sticky md:top-0 md:h-dvh md:w-[calc(5rem+env(safe-area-inset-left))] md:shrink-0 md:flex-col md:items-center md:gap-2 md:border-t-0 md:border-r md:pt-[calc(env(safe-area-inset-top)+0.75rem)] md:pr-0 md:pb-0 md:pl-[env(safe-area-inset-left)] md:backdrop-blur-none">

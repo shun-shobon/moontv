@@ -8,12 +8,10 @@ type Props = {
 	/** DialogTrigger や MenuTrigger の中で使うときは省略し、開閉をそちらに任せる。 */
 	isOpen?: boolean;
 	onOpenChange?: (isOpen: boolean) => void;
-	/** 背後を見せたいもの（再生中の映像など）では false にする。 */
 	blurBackdrop: boolean;
 	children: ReactNode;
 };
 
-/** 狭い画面では下から出るシート、sm 以上では中央のダイアログになる。 */
 export function Sheet({ isOpen, onOpenChange, blurBackdrop, children }: Props) {
 	return (
 		<ModalOverlay

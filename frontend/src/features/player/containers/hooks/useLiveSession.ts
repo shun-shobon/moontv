@@ -10,10 +10,6 @@ import {
 	startFailurePhase,
 } from "../../services/live-session";
 
-/**
- * 配信の起動完了を待ってから再生に進む。起動失敗の理由を画面に出すため。
- * 視聴をやめたときとページを閉じたときは視聴終了を伝え、サーバーがセッションを早く止められるようにする。
- */
 export const useLiveSession = (target: LiveTarget, attempt: number) => {
 	const { serviceId, codec, quality, audio, viewerId } = target;
 	const key = sessionKey(target, attempt);
@@ -40,6 +36,7 @@ export const useLiveSession = (target: LiveTarget, attempt: number) => {
 				}
 			});
 
+		// 無視聴タイムアウトを待たずにセッションを止めさせるため、ページを閉じたときも視聴終了を伝える。
 		const onPageHide = () => {
 			leaveLive(current);
 		};

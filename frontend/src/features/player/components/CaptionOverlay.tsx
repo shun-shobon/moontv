@@ -6,10 +6,9 @@ import { containedRect, isFlashHidden } from "../services/caption-layout";
 import type { CaptionState, CaptionTimeline } from "../services/captions";
 
 type Props = {
-	/** 再生位置と映像の大きさだけを読む。 */
 	video: Pick<HTMLVideoElement, "currentTime" | "videoWidth" | "videoHeight"> | null;
 	timeline: CaptionTimeline;
-	/** 字幕を出すか。文字スーパー（速報など）は常に出す。 */
+	/** 文字スーパー（速報など）はこの値によらず出す。 */
 	showCaption: boolean;
 };
 
@@ -19,7 +18,6 @@ const textOf = (state: CaptionState) =>
 const hasFlash = (state: CaptionState | null) =>
 	state != null && [state.caption, state.superimpose].some((s) => s.runs.some((run) => run.flash));
 
-/** 再生位置の字幕と文字スーパーを、映像の表示範囲に重ねて描く。 */
 export function CaptionOverlay({ video, timeline, showCaption }: Props) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 

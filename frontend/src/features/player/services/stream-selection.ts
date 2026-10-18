@@ -4,7 +4,7 @@ import type { Preferences } from "../media/preferences";
 /** サーバーが提供する画質に保存済みの画質がなければ、どの環境でも重すぎない画質にする。 */
 const FALLBACK_QUALITY: Quality = "720p";
 
-/** 自動選択では圧縮効率の高い HEVC を優先し、ブラウザーが再生できなければ H.264 にする。 */
+/** `status.codecs` はサーバーが圧縮効率の高い HEVC から並べるので、自動選択では再生できる先頭を使う。 */
 export const resolveCodec = (
 	preference: Preferences["codec"],
 	status: Status,

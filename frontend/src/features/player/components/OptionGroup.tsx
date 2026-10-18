@@ -9,7 +9,7 @@ type Props<T extends string> = {
 	onSelect: (value: T) => void;
 };
 
-/** Menu の中で使う。矢印キーでは選ばずに項目を移るだけなので、画質を見比べる途中で配信が切り替わらない。 */
+/** RadioGroup でなく Menu にするのは、矢印キーで選ばずに移れるようにし、画質を見比べる途中で配信を切り替えないため。 */
 export function OptionGroup<T extends string>({
 	label,
 	options,

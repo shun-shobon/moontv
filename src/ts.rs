@@ -1,5 +1,3 @@
-//! MPEG-TS のパケットと PSI セクション（PAT・PMT）の読み書き。
-
 pub const PACKET_SIZE: usize = 188;
 pub const SYNC_BYTE: u8 = 0x47;
 pub const PAT_PID: u16 = 0x0000;
@@ -58,7 +56,6 @@ pub fn crc32(data: &[u8]) -> u32 {
     crc
 }
 
-/// 複数パケットにまたがる PSI セクションを組み立てる。
 pub struct SectionAssembler {
     buf: Vec<u8>,
     started: bool,
@@ -72,7 +69,6 @@ impl SectionAssembler {
         }
     }
 
-    /// パケットを1つ受け取り、組み立て終わったセクションを返す。
     pub fn push(&mut self, packet: &[u8]) -> Vec<Vec<u8>> {
         let mut sections = Vec::new();
         let Some(payload) = payload(packet) else {
@@ -131,7 +127,7 @@ fn is_valid_section(section: &[u8], table_id: u8) -> bool {
     section.len() >= 12 && section[0] == table_id && crc32(section) == 0
 }
 
-/// PAT から最初の番組の PMT の PID を返す。mirakc のサービス単位のストリームは番組を1つしか含まない。
+/// mirakc のサービス単位のストリームは番組を1つしか含まない。
 pub fn parse_pat(section: &[u8]) -> Option<u16> {
     if !is_valid_section(section, TABLE_ID_PAT) {
         return None;
@@ -161,7 +157,6 @@ pub struct ElementaryStream {
 }
 
 impl ElementaryStream {
-    /// ARIB はストリーム識別記述子の `component_tag` で各 ES の役割（主音声は 0x10 など）を表す。
     pub fn component_tag(&self) -> Option<u8> {
         let mut rest = self.descriptors.as_slice();
         while let [tag, len, body @ ..] = rest {
@@ -222,12 +217,10 @@ impl Pmt {
     }
 }
 
-/// 元の PMT が収まっていた以上、書き換えた PMT の長さも 12 ビットの長さフィールドに収まる。
 fn length_u16(len: usize) -> u16 {
     u16::try_from(len).expect("PSI lengths fit in 12 bits")
 }
 
-/// `section_length` を埋めて CRC を付ける。
 fn finish_section(section: &mut Vec<u8>) {
     let [high, low] = length_u16(section.len() - 3 + 4).to_be_bytes();
     section[1] = 0xb0 | high;
@@ -236,7 +229,6 @@ fn finish_section(section: &mut Vec<u8>) {
     section.extend_from_slice(&crc.to_be_bytes());
 }
 
-/// セクションをパケットに分けて書き出す。`counter` はこの PID の連続性カウンタで、書き出した分だけ進む。
 pub fn write_section(pid: u16, section: &[u8], counter: &mut u8, out: &mut Vec<u8>) {
     let mut data = Vec::with_capacity(section.len() + 1);
     data.push(0);
@@ -251,10 +243,8 @@ pub fn write_section(pid: u16, section: &[u8], counter: &mut u8, out: &mut Vec<u
     }
 }
 
-/// PTS は 33 ビットで一周する。
 pub const PTS_MASK: u64 = (1 << 33) - 1;
 
-/// PES ヘッダーの PTS を読む。PES の先頭を含むバイト列を渡す。
 pub fn pes_pts(pes: &[u8]) -> Option<u64> {
     let [0, 0, 1, _, _, _, _, flags, _, p0, p1, p2, p3, p4, ..] = *pes else {
         return None;
@@ -271,16 +261,13 @@ pub fn pes_pts(pes: &[u8]) -> Option<u64> {
     )
 }
 
-/// PES ヘッダーより後ろのデータ。
 pub fn pes_data(pes: &[u8]) -> Option<&[u8]> {
     let header_len = usize::from(*pes.get(8)?);
     pes.get(9 + header_len..)
 }
 
-/// PTS だけを持つ PES を作る。
 pub fn build_pes(stream_id: u8, pts: u64, data: &[u8]) -> Vec<u8> {
     let pts = pts & PTS_MASK;
-    // 33 ビットの PTS を、マーカービットを挟んで 5 バイトに分ける。各バイトには下位 8 ビットだけを使う。
     let low = |v: u64| v.to_le_bytes()[0];
     let pts_bytes = [
         0x21 | (low(pts >> 29) & 0x0e),
@@ -298,7 +285,7 @@ pub fn build_pes(stream_id: u8, pts: u64, data: &[u8]) -> Vec<u8> {
     pes
 }
 
-/// 複数パケットにまたがる PES を組み立てる。`PES_packet_length` が 0 の PES は次の PES の先頭で区切る。
+/// `PES_packet_length` が 0 の PES は次の PES の先頭で区切る。
 pub struct PesAssembler {
     buf: Vec<u8>,
     started: bool,
@@ -312,7 +299,6 @@ impl PesAssembler {
         }
     }
 
-    /// パケットを1つ受け取り、組み立て終わった PES を返す。
     pub fn push(&mut self, packet: &[u8]) -> Vec<Vec<u8>> {
         let mut done = Vec::new();
         let Some(payload) = payload(packet) else {
@@ -340,7 +326,7 @@ impl PesAssembler {
     }
 }
 
-/// PES をパケットに分けて書き出す。最後のパケットはアダプテーションフィールドで詰める。
+/// PSI と違い PES の後ろは 0xff で詰められないため、アダプテーションフィールドで詰める。
 pub fn write_pes(pid: u16, pes: &[u8], counter: &mut u8, out: &mut Vec<u8>) {
     let [high, low] = pid.to_be_bytes();
     let mut rest = pes;

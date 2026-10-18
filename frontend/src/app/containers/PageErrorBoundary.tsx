@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 type Props = { page: ReactNode; fallback: ReactNode };
 type State = { page: ReactNode; failed: boolean };
 
-/** 描画中の例外でアプリ全体が消えないよう、ページだけを差し替える。別のページへ移ったら戻す。 */
 export class PageErrorBoundary extends Component<Props, State> {
 	override state: State = { page: this.props.page, failed: false };
 

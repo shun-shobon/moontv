@@ -1,7 +1,6 @@
 import { shun_shobon } from "@shun-shobon/oxlint-config";
 import type { OxlintOverride } from "oxlint";
 
-/** API・storage・ブラウザー判定とつなぐのは containers だけにする。 */
 const CONNECTIONS = [
 	"**/api/client",
 	"**/api/queries",
@@ -11,7 +10,6 @@ const CONNECTIONS = [
 	"**/media/viewer-id",
 ];
 
-/** 共有部分は特定の feature を知らず、feature は互いを組み立てる app を知らない。 */
 const SCOPES: Record<string, string[]> = {
 	"src/app": [],
 	"src/features": ["**/app/**"],

@@ -2,23 +2,12 @@
 # requires-python = "==3.14.*"
 # dependencies = ["fonttools==4.66.1", "brotli==1.2.0"]
 # ///
-"""字幕用のフォント2つを生成する。
-
-usage: uv run --locked --script scripts/gen-caption-fonts.py <元フォントを置いたディレクトリ>
-
-元フォント（SOURCES のファイル名で置く）:
+"""元フォント（SOURCES のファイル名で置く）:
 - rounded-mgenplus-1c-regular.ttf: http://jikasei.me/font/rounded-mgenplus/ が配る
   https://ftp.iij.ad.jp/pub/osdn.jp/users/8/8598/rounded-mgenplus-20150602.7z
   （sha256 ecea6764973d93936238f1c06ed246310bec320f63f350c2bdb7e8d1feee25cc）に入っている。
 - NotoSansSymbols[wght].ttf: https://raw.githubusercontent.com/google/fonts/caa8c83707a5797d62fd02f14301391986f21d75/ofl/notosanssymbols/NotoSansSymbols%5Bwght%5D.ttf
 - NotoSansSymbols2-Regular.ttf: https://raw.githubusercontent.com/google/fonts/7b6724ac7ececc713e9ba93af309f7520c9a80a3/ofl/notosanssymbols2/NotoSansSymbols2-Regular.ttf
-
-生成するもの:
-- caption-symbols.woff2: ARIB の追加記号（90〜94区）のうち漢字でない字。書体の候補の先頭に置き、端末のフォントが
-  絵文字や別の字形で描くのを防ぐ。Rounded Mgen+ に無い字は、Noto Sans Symbols から写すか（NOTO）、
-  Rounded Mgen+ の字を組み合わせるか、図形を描いて足す（composed_glyphs）。
-- caption-text.woff2: JIS X 0208 の字、英数・仮名の表、追加漢字（85〜86区）。ヒラギノ丸ゴシックが無い端末で使う。
-- caption-symbols.svg: 90〜94区の字を、上の2つのフォントで区点の順に並べた一覧。字形を見て確かめるためのもの。
 """
 
 import hashlib
@@ -53,9 +42,8 @@ UNDEFINED = 0xFFFD
 ROW = 94
 # 3次ベジェ曲線で4分の1円を近似するときの、半径に対する制御点の距離。
 KAPPA = 0.5523
-# 足す字を置く枠の、全角の送り幅に対する大きさ。
-BOX = 0.88
-# Rounded Mgen+ の「⅓」で、数字を縮める割合、分子を持ち上げる高さ、分母の最大の幅。
+GLYPH_BOX_RATIO = 0.88
+# Rounded Mgen+ の「⅓」から測った値。
 FRACTION_SCALE = 0.6
 FRACTION_RAISE = 299
 FRACTION_MAX_WIDTH = 335
@@ -89,7 +77,6 @@ def circle(pen, cx: float, cy: float, r: float) -> None:
 
 
 def rect(pen, x0: float, y0: float, x1: float, y1: float) -> None:
-    """時計回りの長方形。"""
     pen.moveTo((x0, y0))
     pen.lineTo((x0, y1))
     pen.lineTo((x1, y1))
@@ -122,8 +109,6 @@ def transformed(recording: RecordingPen, sx: float, sy: float, dx: float, dy: fl
 
 
 class Canvas:
-    """Rounded Mgen+ の全角の字の枠（送り幅 width、縦の中心 cy）に、足す字を描く。"""
-
     def __init__(self, font: TTFont, noto: list[TTFont]) -> None:
         self.glyphs = font.getGlyphSet()
         self.cmap = font.getBestCmap()
@@ -135,7 +120,6 @@ class Canvas:
         self.noto = noto
 
     def record(self, text: str) -> RecordingPen:
-        """Rounded Mgen+ の字を送り幅どおりに並べる。"""
         pen = DecomposingRecordingPen(self.glyphs)
         x = 0
         for char in text:
@@ -148,7 +132,6 @@ class Canvas:
         return sum(self.hmtx[self.cmap[ord(char)]][0] for char in text)
 
     def fit(self, recording: RecordingPen, size: float, cx: float, cy: float) -> RecordingPen:
-        """縦横の比を保ったまま、size 四方に収めて (cx, cy) を中心に置く。"""
         x_min, y_min, x_max, y_max = bounds(recording)
         scale = size / max(x_max - x_min, y_max - y_min)
         return transformed(
@@ -166,12 +149,12 @@ class Canvas:
                 glyphs = font.getGlyphSet()
                 pen = DecomposingRecordingPen(glyphs)
                 glyphs[name].draw(pen)
-                return self.fit(pen, self.width * BOX, self.width / 2, self.cy)
+                return self.fit(pen, self.width * GLYPH_BOX_RATIO, self.width / 2, self.cy)
         return None
 
     def instrument(self, left: str, right: str | None) -> list[RecordingPen]:
-        """括弧書きの略号を横に詰めて置く。2区画に分けるものは、間を空けずに左右の区画に分ける。"""
-        margin = self.width * (1 - BOX) / 2
+        """2区画に分けるものは、1語に見えるよう境目に寄せる。"""
+        margin = self.width * (1 - GLYPH_BOX_RATIO) / 2
         if right is None:
             total = self.advance(left)
             scale = min(1, (self.width - 2 * margin) / total)
@@ -184,12 +167,11 @@ class Canvas:
         ]
 
     def fraction(self, numerator: str, denominator: str) -> RecordingPen:
-        """Rounded Mgen+ の「⅓」の斜線を使い、数字を同じ大きさ・位置に置く。"""
         # 「⅓」の輪郭は分子の「1」、分母の「3」、斜線の3つ。
         third = sorted(contours(self.record("\u2153")), key=lambda contour: bounds(contour)[0])
         numerator_left, denominator_right = bounds(third[0])[0], bounds(third[2])[2]
         slash = third[1]
-        # 「⅓」の送り幅は全角より狭い。全角の区画の中央に来るようにずらす。
+        # 「⅓」は送り幅が全角より狭い。
         shift = (self.width - self.hmtx[self.cmap[0x2153]][0]) / 2
         out = RecordingPen()
         transformed(slash, 1, 1, shift, 0).replay(out)
@@ -203,11 +185,10 @@ class Canvas:
         return out
 
     def scaled_up(self, char: str) -> RecordingPen:
-        """Rounded Mgen+ の字を、ほかの足す字と同じ枠いっぱいに広げる。"""
-        return self.fit(self.record(char), self.width * BOX, self.width / 2, self.cy)
+        return self.fit(self.record(char), self.width * GLYPH_BOX_RATIO, self.width / 2, self.cy)
 
     def squared_key(self) -> RecordingPen:
-        """90-71（鍵）。枠は Rounded Mgen+ の「🄿」の枠を使い、中に鍵を描く。"""
+        """枠は「🄿」から借りる。"""
         out = RecordingPen()
         for contour in contours(self.record("\U0001f13f"))[:2]:
             contour.replay(out)
@@ -232,7 +213,6 @@ class Canvas:
 
 
 def composed_glyphs(canvas: Canvas, additional: list[int], wanted: set[int]) -> dict[int, RecordingPen]:
-    """Rounded Mgen+ に無い追加記号の字形。"""
     glyphs: dict[int, RecordingPen] = {
         0x27D0: canvas.diamond_with_dot(),
         # 90-64・65・71 は Noto Sans Symbols にもあるが、並びの囲み文字に合わせて Mgen+ から作る。
@@ -335,7 +315,7 @@ def build(
 
 
 def write_sheet(fonts: list[TTFont], additional: list[int], out: pathlib.Path) -> None:
-    """90〜94区の字を区点の順に並べた SVG。字は canvas と同じく、送り幅の中央、□ の縦の中央に置く。"""
+    """字は Canvas と同じく □ の縦の中央にそろえる。"""
     columns, cell, size = 16, 72, 48
     scale = size / fonts[0]["head"].unitsPerEm
     text = next(font for font in fonts if 0x25A1 in font.getBestCmap())
@@ -380,7 +360,7 @@ def main() -> None:
         assert digest == expected, f"{name} が違う: {digest}"
 
     def mgen() -> TTFont:
-        # 保存のたびに更新日時が変わると、中身が同じでも生成物が差分になる。元フォントの日時のまま残す。
+        # 保存のたびに更新日時が変わると、中身が同じでも生成物が差分になる。
         return TTFont(directory / MGEN, recalcTimestamp=False)
 
     tables = TABLES.read_text(encoding="utf-8")

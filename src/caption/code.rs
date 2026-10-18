@@ -16,7 +16,6 @@ enum CodeSet {
     JisKanji2,
     Symbol,
     Macro,
-    /// DRCS-0〜15。
     Drcs(u8),
     Unknown {
         two_bytes: bool,
@@ -72,11 +71,10 @@ pub enum CharSize {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Op {
-    /// 文字1つ。英数も全角の字形で返す。
+    /// 英数も全角の字形で返す。
     Char(char),
-    /// DRCS の文字。`code` は DRCS データユニットの `CharacterCode` と同じ形（1バイト DRCS は上位バイトが 0x41〜0x4F）。
+    /// `code` は DRCS データユニットの `CharacterCode` と同じ形。
     Drcs(u16),
-    /// SP。文字区画を背景色で塗る。
     Space,
     /// DEL。文字区画を前景色で塗る。
     Del,
@@ -97,14 +95,10 @@ pub enum Op {
     HalfBackground(u8),
     Palette(u8),
     Size(CharSize),
-    /// FLC の P1。
     Flash(u8),
-    /// HLC の P1 の下位 4 ビット。
     Highlight(u8),
     Underline(bool),
-    /// RPC。0 は行末まで。
     Repeat(u8),
-    /// TIME による処理待ち（0.1 秒単位）。
     Wait(u8),
     Csi {
         final_byte: u8,
@@ -141,7 +135,6 @@ impl Decoder {
         self.gr = 2;
     }
 
-    /// 字幕文のデータグループごとに、定義されたマクロを既定に戻す。
     pub fn reset_macros(&mut self) {
         self.macros.fill(None);
     }
@@ -304,7 +297,6 @@ impl Decoder {
         }
     }
 
-    /// MACRO 04/0 または 04/1 で始まる定義を、MACRO 04/15 まで読む。
     fn macro_definition(&mut self, r: &mut Bytes<'_>) {
         let Some(mode) = r.next() else {
             return;
@@ -362,7 +354,7 @@ impl Decoder {
     }
 }
 
-/// CSI の後のパラメーターと終端を読む。パラメーターと中間文字はどれも 0x40 未満なので、0x40 以上を終端とする。
+/// パラメーターと中間文字はどれも 0x40 未満なので、0x40 以上を終端とする。
 fn csi(r: &mut Bytes<'_>) -> Option<Op> {
     let mut params = Vec::new();
     let mut current: Option<u32> = None;
@@ -425,7 +417,6 @@ mod tests {
 
     #[test]
     fn decodes_hiragana_in_gr_by_default() {
-        // 初期状態では GR に平仮名が呼び出されている。
         assert_eq!(text(&decode(&[0xa2, 0xf3])), "あん");
     }
 
@@ -449,7 +440,7 @@ mod tests {
 
     #[test]
     fn designates_drcs_with_an_intermediate_space() {
-        // F=0x41 は 0x20 付きなら DRCS-1、無ければ英数とは別の集合になる。
+        // 0x20 付きの F=0x41 は DRCS-1。
         let ops = decode(&[0x1b, 0x29, 0x20, 0x41, 0x0e, 0x21]);
         assert_eq!(ops, vec![Op::Drcs(0x4121)]);
     }

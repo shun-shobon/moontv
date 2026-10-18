@@ -13,7 +13,6 @@ import { genreStyle } from "../domain/genre";
 type Props = {
 	program: Program;
 	channel: Channel | undefined;
-	/** 詳細を取得するまでは undefined。 */
 	extended: ProgramDetail["extended"] | undefined;
 	now: number;
 	isOpen: boolean;

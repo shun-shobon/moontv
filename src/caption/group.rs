@@ -1,6 +1,6 @@
 //! 字幕 PES のデータグループ（STD-B24 第1分冊第3部 9章）。
 
-/// 本文。管理データの中では表示領域の設定に使う。
+/// 管理データの中では表示領域の設定に使う。
 pub const UNIT_TEXT: u8 = 0x20;
 pub const UNIT_DRCS_1BYTE: u8 = 0x30;
 pub const UNIT_DRCS_2BYTE: u8 = 0x31;
@@ -11,7 +11,7 @@ const DATA_IDENTIFIER_ASYNC: u8 = 0x81;
 #[derive(Debug, PartialEq, Eq)]
 pub enum DataGroup<'a> {
     Management(Management<'a>),
-    /// 第 `language` 言語（1 始まり）の字幕文。
+    /// `language` は 1 始まり（`Language::tag` は 0 始まり）。
     Statement {
         set: u8,
         language: u8,
@@ -29,12 +29,9 @@ pub struct Management<'a> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Language {
-    /// 0 が第1言語。
     pub tag: u8,
     pub iso_639: [u8; 3],
-    /// 表示書式（STD-B24 表 9-7 の値。SWF の値とは異なる）。
     pub format: u8,
-    /// 0 が8単位符号、1 が UCS。
     pub tcs: u8,
     pub rollup: bool,
 }
@@ -45,7 +42,6 @@ pub struct DataUnit<'a> {
     pub data: &'a [u8],
 }
 
-/// 字幕 PES の PES ヘッダーより後ろを読む。
 pub fn parse(pes_data: &[u8]) -> Option<DataGroup<'_>> {
     let [identifier, 0xff, header, rest @ ..] = pes_data else {
         return None;
@@ -194,7 +190,6 @@ pub mod tests {
         out
     }
 
-    /// データグループを包んだ字幕 PES のデータを作る。
     pub fn pes_data(group_id: u8, data: &[u8]) -> Vec<u8> {
         let mut group = vec![group_id << 2, 0, 0];
         group.extend_from_slice(&u16::try_from(data.len()).unwrap().to_be_bytes());

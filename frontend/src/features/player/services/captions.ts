@@ -1,6 +1,6 @@
 import * as v from "valibot";
 
-/** サーバーが字幕の ID3 の PRIV フレームに付ける所有者。 */
+/** src/transcode/captions.rs の ID3_OWNER と揃える。 */
 const OWNER = "moontv";
 
 const RunSchema = v.object({
@@ -63,7 +63,6 @@ const syncsafe = (bytes: Uint8Array, offset: number) =>
 
 const decoder = new TextDecoder();
 
-/** ID3 タグから moontv の字幕の状態を取り出す。別の用途の ID3 なら null。 */
 export const parseCaptionTag = (tag: Uint8Array): CaptionState | null => {
 	if (decoder.decode(tag.subarray(0, 3)) !== "ID3") {
 		return null;
@@ -96,7 +95,6 @@ export const parseCaptionTag = (tag: Uint8Array): CaptionState | null => {
 /** 再生位置からこれより前の状態は、巻き戻しても使わないので捨てる。 */
 const RETENTION_SECONDS = 120;
 
-/** 受け取った字幕の状態を時刻順に持ち、再生位置での状態を返す。 */
 export class CaptionTimeline {
 	#entries: { time: number; state: CaptionState }[] = [];
 

@@ -6,7 +6,7 @@ const TEXT = "moontv Caption Text";
 
 /**
  * 運用規定は丸ゴシックを推奨している（TR-B14 第3巻 4.4.2）。ARIB の追加記号は、端末のフォントに任せると
- * 絵文字や別の書体で描かれるので先頭に置く。本文は端末のヒラギノ丸ゴシックを優先し、無ければ同梱のものを読む。
+ * 絵文字や別の書体で描かれるので先頭に置く。
  */
 export const CAPTION_FONT_FAMILY = `"${SYMBOLS}", "${TEXT}", sans-serif`;
 
@@ -27,10 +27,7 @@ const register = () => {
 	);
 };
 
-/**
- * canvas は Web フォントを読み終えるのを待たずに代わりの書体で描く。`text` に要るフォントが揃っていなければ
- * 読み込み、読み終えたら解決する Promise を返す。揃っていれば null。
- */
+/** canvas は Web フォントを読み終えるのを待たずに代わりの書体で描く。 */
 export const loadCaptionFonts = (text: string): Promise<unknown> | null => {
 	register();
 	const font = `36px ${CAPTION_FONT_FAMILY}`;

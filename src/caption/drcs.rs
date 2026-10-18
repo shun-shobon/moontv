@@ -8,16 +8,12 @@ use super::{md5, tables};
 pub struct Pattern {
     pub width: u8,
     pub height: u8,
-    /// 階調数（2 以上）。
     pub levels: u8,
-    /// 画素ごとの階調（0 が背景、`levels - 1` が前景）を行優先で並べたもの。
     pub pixels: Vec<u8>,
-    /// パターンデータの MD5。置き換え表とビットマップの識別に使う。
     pub digest: [u8; 16],
 }
 
 impl Pattern {
-    /// 置き換え表にあれば、その文字として描ける。
     pub fn replacement(&self) -> Option<char> {
         tables::DRCS_REPLACEMENTS
             .binary_search_by_key(&self.digest, |&(key, _)| key)
@@ -26,12 +22,12 @@ impl Pattern {
     }
 }
 
-/// 文字符号ごとのパターン。1つの符号に文字の大きさごとのパターンが付くことがある。
+/// 1つの符号に文字の大きさごとのパターンが付くことがある。
 #[derive(Default, Clone)]
 pub struct DrcsSet(HashMap<u16, Vec<Pattern>>);
 
 impl DrcsSet {
-    /// DRCS データユニットを読み込む。1 バイト DRCS の `CharacterCode` は上位バイトが集合の終端符号（0x41〜0x4F）。
+    /// 1 バイト DRCS の `CharacterCode` は上位バイトが集合の終端符号（0x41〜0x4F）。
     pub fn load(&mut self, data: &[u8]) -> Option<()> {
         let mut r = data;
         let codes = take(&mut r, 1)?[0];
@@ -67,7 +63,6 @@ impl DrcsSet {
         Some(())
     }
 
-    /// 文字の大きさに合うパターンを選ぶ。合うものがなければ最初のものを使う。
     pub fn get(&self, code: u16, width: u32, height: u32) -> Option<&Pattern> {
         let patterns = self.0.get(&code)?;
         patterns
@@ -83,7 +78,6 @@ fn take<'a>(r: &mut &'a [u8], n: usize) -> Option<&'a [u8]> {
     Some(head)
 }
 
-/// 階調数を表すのに要るビット数。
 const fn bits_per_pixel(levels: u8) -> usize {
     (levels - 1).bit_width() as usize
 }

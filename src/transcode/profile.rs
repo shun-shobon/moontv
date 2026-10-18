@@ -21,7 +21,6 @@ pub enum Quality {
 
 pub const QUALITIES: [Quality; 4] = [Quality::P1080, Quality::P720, Quality::P540, Quality::P360];
 
-/// 二か国語放送や解説放送の2本目の音声が副音声。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AudioTrack {
@@ -43,7 +42,7 @@ pub struct Spec {
     pub height: u32,
     pub video_kbps: u32,
     pub audio_kbps: u32,
-    /// HLS の CODECS 属性。Safari はこれを見て再生可否を判断する。
+    /// Safari はこの値で再生可否を判断する。
     pub codecs: &'static str,
 }
 

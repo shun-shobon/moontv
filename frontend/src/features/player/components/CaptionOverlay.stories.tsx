@@ -23,7 +23,6 @@ const run = (overrides: Partial<CaptionRun>): CaptionRun => ({
 	...overrides,
 });
 
-/** 右向きの矢印を 4 階調で描いた外字。 */
 const arrow = Array.from({ length: 36 * 36 }, (_, i) => {
 	const [x, y] = [i % 36, Math.floor(i / 36)];
 	const shaft = y >= 15 && y < 21 && x >= 4 && x < 24;
@@ -57,7 +56,6 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** 半透明の背景、話者ごとの色、中型（半角）の英数を並べた、放送でよく見る形。 */
 export const Caption: Story = {
 	args: {
 		timeline: timelineOf(
@@ -73,7 +71,6 @@ export const Caption: Story = {
 	},
 };
 
-/** 縁取り（ORN）と透明な背景、外字のビットマップ。 */
 export const OutlineAndBitmap: Story = {
 	args: {
 		timeline: timelineOf(
@@ -88,7 +85,6 @@ export const OutlineAndBitmap: Story = {
 	},
 };
 
-/** 下線と囲み（HLC）。 */
 export const UnderlineAndHighlight: Story = {
 	args: {
 		timeline: timelineOf(
@@ -100,7 +96,6 @@ export const UnderlineAndHighlight: Story = {
 	},
 };
 
-/** ARIB の追加記号。端末によっては絵文字になる字も、同梱のフォントで文字として描く。 */
 export const AdditionalSymbols: Story = {
 	args: {
 		timeline: timelineOf(
@@ -114,7 +109,6 @@ export const AdditionalSymbols: Story = {
 	},
 };
 
-/** 字幕を消しても文字スーパーは出す。 */
 export const SuperimposeOnly: Story = {
 	args: {
 		showCaption: false,

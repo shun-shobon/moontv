@@ -45,7 +45,6 @@ impl Encoder {
         }
     }
 
-    /// 入力より前に置く ffmpeg 引数（ハードウェアデバイスの初期化）。
     pub fn global_args(&self) -> Vec<String> {
         match self {
             Self::Vaapi { device } => args(&[
@@ -66,7 +65,6 @@ impl Encoder {
         }
     }
 
-    /// 映像フィルタとエンコーダの引数。
     /// デコードは常にソフトウェアで行う。MPEG-2 のハードウェアデコードは非対応の GPU があり、
     /// 失敗時に ffmpeg がソフトウェアへ落ちるとフィルタのフレーム形式が合わなくなるため。
     pub fn video_args(&self, codec: Codec, quality: Quality) -> Vec<String> {
@@ -196,8 +194,7 @@ fn candidates(choice: EncoderChoice, vaapi_device: &Path) -> Vec<Encoder> {
     }
 }
 
-/// 候補のエンコーダで実際に短い映像をエンコードし、使えるものを選ぶ。
-/// ffmpeg のビルド構成とドライバの組み合わせは `-encoders` の一覧だけでは判断できないため。
+/// ffmpeg のビルド構成とドライバの組み合わせは `-encoders` の一覧だけでは判断できないため、実際に短くエンコードして確かめる。
 pub async fn detect(ffmpeg: &Path, choice: EncoderChoice, vaapi_device: &Path) -> Result<EncoderSetup> {
     for encoder in candidates(choice, vaapi_device) {
         let mut codecs = Vec::new();

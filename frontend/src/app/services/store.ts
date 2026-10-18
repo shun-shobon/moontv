@@ -4,7 +4,6 @@ export type Store<T> = {
 	subscribe: (onChange: () => void) => () => void;
 };
 
-/** useSyncExternalStore にそのまま渡せる最小の値の入れ物。 */
 export const createStore = <T>(initial: T): Store<T> => {
 	let value = initial;
 	const listeners = new Set<() => void>();

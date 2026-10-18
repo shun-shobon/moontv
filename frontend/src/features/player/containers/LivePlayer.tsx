@@ -21,7 +21,6 @@ type Props = {
 	audios: readonly Audio[];
 };
 
-/** 再読み込みはプレイヤーごと作り直し、壊れた再生状態を持ち越さない。 */
 export function LivePlayer({ serviceId, status, nowPlaying, audios }: Props) {
 	const [preferences, updatePreferences] = usePreferences();
 	const codec = resolveCodec(preferences.codec, status, browserSupports);
@@ -37,6 +36,7 @@ export function LivePlayer({ serviceId, status, nowPlaying, audios }: Props) {
 
 	return (
 		<I18nProvider locale="ja">
+			{/* 再読み込みはプレイヤーごと作り直し、壊れた再生状態を持ち越さない。 */}
 			<LiveVideoPlayer key={attempt}>
 				<LivePlayerView
 					phase={session.phase}

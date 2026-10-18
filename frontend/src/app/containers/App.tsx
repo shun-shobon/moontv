@@ -10,7 +10,6 @@ export function App({ screens }: { screens: Store<Screen> }) {
 	const { section, page } = useSyncExternalStore(screens.subscribe, screens.get);
 
 	return (
-		// --page-height は、ナビゲーションを除いた画面の高さ。画面にぴったり収めるページが使う。
 		<div className="flex min-h-dvh flex-col bg-canvas text-fg [--nav-height:calc(3.5rem+env(safe-area-inset-bottom))] [--page-height:calc(100dvh-env(safe-area-inset-top)-var(--nav-height))] md:flex-row md:[--nav-height:0px]">
 			<AppNav section={section} />
 			<main className="flex min-w-0 flex-1 flex-col pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-(--nav-height) max-md:pl-[env(safe-area-inset-left)]">

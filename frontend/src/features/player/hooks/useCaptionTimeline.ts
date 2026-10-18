@@ -6,7 +6,6 @@ import { CaptionTimeline, parseCaptionTag } from "../services/captions";
 
 type MetadataSamples = { samples: { pts: number; data: Uint8Array }[] };
 
-/** 字幕は ID3 として映像のセグメントに入っているので、hls.js が読み出したものを時刻順に貯める。 */
 export const useCaptionTimeline = (media: HlsJsAdapter | null) => {
 	const [timeline] = useState(() => new CaptionTimeline());
 

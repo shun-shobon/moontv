@@ -7,7 +7,7 @@ type Props = {
 	onToggle: (checked: boolean) => void;
 };
 
-/** Menu の中で使う。切り替えても Menu を閉じず、スイッチが動く様子を見せる。 */
+/** onAction の MenuItem だと Menu が閉じるため、選択式の MenuSection にしてスイッチが動く様子を見せる。 */
 export function ToggleOption({ label, checked, onToggle }: Props) {
 	// 項目の ID は Menu 全体で一意である必要があるので、トグルを並べても重ならないラベルを使う。
 	const itemId = label;

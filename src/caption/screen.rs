@@ -28,7 +28,6 @@ impl Rect {
     }
 }
 
-/// 表示書式と、それに伴う表示領域・文字の大きさ・字間・行間。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Layout {
     pub plane: (i32, i32),
@@ -75,7 +74,6 @@ impl Layout {
         })
     }
 
-    /// 字幕管理データの本文で書式や表示領域を変える。
     pub fn apply(&mut self, op: &Op) {
         let Op::Csi { final_byte, params } = op else {
             return;
@@ -130,7 +128,7 @@ enum Glyph {
     Bitmap([u8; 16]),
 }
 
-/// 表示区画1つ。`x` と `top` は区画の左上。
+/// `x` と `top` は区画の左上（動作位置は左下）。
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Cell {
     x: i32,
@@ -140,7 +138,6 @@ struct Cell {
     style: Style,
 }
 
-/// 表示区画と文字の大きさ。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Metrics {
     cell_width: i32,
@@ -175,7 +172,7 @@ impl Screen {
         }
     }
 
-    /// 本文データユニットの先頭、CS、SWF での初期化。表示している文字は残す。
+    /// 表示している文字は残す。
     pub const fn reset_state(&mut self) {
         self.layout = self.defaults;
         self.pen = INITIAL_PEN;
@@ -379,7 +376,6 @@ impl Screen {
         for _ in 0..count {
             let (mut x, mut y) = self.position();
             let area = self.layout.area;
-            // 区画が表示領域の右端を越えるなら、改行してから置く。
             if x + m.cell_width > area.right() {
                 x = area.x;
                 y = if y + m.cell_height > area.bottom() {
@@ -473,7 +469,7 @@ struct Run {
     style: Style,
 }
 
-/// 画面全体の状態。字幕文を処理するたびにこれを丸ごと送り、途中から見始めても今の字幕を出せるようにする。
+/// 字幕文を処理するたびに丸ごと送り、途中から見始めても今の字幕を出せるようにする。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Snapshot {
     /// 座標の基準になる字幕プレーンの大きさ。映像の表示領域いっぱいに拡大して重ねる。
@@ -589,7 +585,6 @@ fn rgba(index: u8) -> String {
     format!("#{r:02x}{g:02x}{b:02x}{a:02x}")
 }
 
-/// 0〜7 は原色、8 は透明、9〜15 は半輝度、16〜64 は残りの {0,85,170,255} の組み合わせ、65〜127 はそれらの半透明。
 const CLUT: [[u8; 4]; 128] = clut();
 
 const fn clut() -> [[u8; 4]; 128] {

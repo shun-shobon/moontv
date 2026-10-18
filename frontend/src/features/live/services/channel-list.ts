@@ -12,7 +12,6 @@ export const channelTypes = (channels: readonly Channel[]) => [
 	...new Set(channels.map((c) => c.channelType)),
 ];
 
-/** 利用者が選んだ種別を優先し、未選択なら視聴中のチャンネルの種別、それもなければ先頭の種別を開く。 */
 export const currentChannelType = (
 	channels: readonly Channel[],
 	selectedType: string | null,

@@ -13,10 +13,8 @@ use crate::mirakc::{ChannelInfo, MirakcClient, OpenStreamError};
 
 /// プレイヤーはセグメント長(1秒)ごとにプレイリストを取りに来るので、これだけ途絶えたら視聴終了とみなす。
 const VIEWER_TIMEOUT: Duration = Duration::from_secs(20);
-/// 他チャンネルのセッションを止めた後、mirakc がチューナーを解放するまで待つ上限。
 const TUNER_RELEASE_WAIT: Duration = Duration::from_secs(8);
 const TUNER_RETRY_INTERVAL: Duration = Duration::from_millis(50);
-/// チューナーを譲らされた視聴者のプレイヤーが、再生の中断を検知して理由を問い合わせるまでの猶予。
 const EVICTION_NOTICE_TTL: Duration = Duration::from_secs(60);
 
 pub struct SessionManager {
@@ -130,7 +128,7 @@ impl SessionManager {
     pub fn leave(&self, key: LiveKey, viewer: &str) {
         let sessions = self.sessions.lock().unwrap();
         if let Some(session) = sessions.get(&key)
-            && session.leave(viewer)
+            && session.leave_and_check_empty(viewer)
         {
             session.stop();
         }
@@ -167,9 +165,7 @@ impl SessionManager {
         }
     }
 
-    /// 解放を待つべきセッションを返す。
-    /// 終了処理中のものがあればそれを待つ。チャンネルを切り替えた直後に、切り替え前の配信を理由に別の視聴を止めないため。
-    /// 無ければ、最後に選ばれたのが一番古いチャンネルの配信を止めて、要求したチャンネルに譲る。
+    /// 終了処理中の配信があれば、止めずにその終了を待つ。チャンネルを切り替えた直後に、切り替え前の配信を理由に別の視聴を止めないため。
     async fn release_tuner(&self, current: &LiveSession) -> Result<Vec<Arc<LiveSession>>> {
         let types = self.shared_channel_types(&current.channel.channel_type).await?;
         let sessions = self.sessions.lock().unwrap();
@@ -212,7 +208,7 @@ impl SessionManager {
         Ok(victims)
     }
 
-    /// 要求したチャンネルを受信できるチューナーで受けている種類を返す。それ以外の配信を止めてもチューナーは空かない。
+    /// 要求したチャンネルを受信できないチューナーの配信を止めても、チューナーは空かない。
     async fn shared_channel_types(&self, channel_type: &str) -> Result<HashSet<String>> {
         let tuners = self.mirakc.tuners().await?;
         Ok(tuners
@@ -222,7 +218,6 @@ impl SessionManager {
             .collect())
     }
 
-    /// チューナーを譲ったために止めた配信の視聴者なら true を返す。
     pub fn was_evicted(&self, key: LiveKey, viewer: &str) -> bool {
         self.evictions
             .lock()
