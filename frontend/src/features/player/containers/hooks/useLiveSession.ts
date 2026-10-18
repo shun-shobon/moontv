@@ -3,12 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchLiveEnd, leaveLive, startLive } from "../../api/client";
 import type { LiveTarget } from "../../api/urls";
 import type { LivePhase } from "../../services/live-session";
-import {
-	EVICTED_PHASE,
-	MEDIA_ERROR_PHASE,
-	sessionKey,
-	startFailurePhase,
-} from "../../services/live-session";
+import { interruptedPhase, sessionKey, startFailurePhase } from "../../services/live-session";
+
+/** 問い合わせに失敗しても、理由を添えずに中断を伝えれば足りる。 */
+const fetchEndReason = async (target: LiveTarget) =>
+	await fetchLiveEnd(target).then(
+		({ reason }) => reason,
+		() => null,
+	);
 
 export const useLiveSession = (target: LiveTarget, attempt: number) => {
 	const { serviceId, codec, quality, audio, viewerId } = target;
@@ -30,9 +32,10 @@ export const useLiveSession = (target: LiveTarget, attempt: number) => {
 					setState({ key, phase: { kind: "playing" } });
 				}
 			})
-			.catch((error: unknown) => {
+			.catch(async (error: unknown) => {
+				const reason = await fetchEndReason(current);
 				if (!controller.signal.aborted) {
-					setState({ key, phase: startFailurePhase(error) });
+					setState({ key, phase: startFailurePhase(error, reason) });
 				}
 			});
 
@@ -57,13 +60,9 @@ export const useLiveSession = (target: LiveTarget, attempt: number) => {
 				setState({ key: errorKey, phase: next });
 			}
 		};
-		fetchLiveEnd(targetRef.current)
-			.then(({ evicted }) => {
-				report(evicted ? EVICTED_PHASE : MEDIA_ERROR_PHASE);
-			})
-			.catch(() => {
-				report(MEDIA_ERROR_PHASE);
-			});
+		void fetchEndReason(targetRef.current).then((reason) => {
+			report(interruptedPhase(reason));
+		});
 	}, []);
 
 	return { key, phase, reportMediaError };

@@ -1,3 +1,4 @@
+import type { EndReason } from "../api/schemas";
 import type { LiveTarget } from "../api/urls";
 
 export type LivePhase =
@@ -5,12 +6,15 @@ export type LivePhase =
 	| { kind: "playing" }
 	| { kind: "error"; message: string };
 
-export const MEDIA_ERROR_PHASE: LivePhase = { kind: "error", message: "再生が中断されました" };
-
-export const EVICTED_PHASE: LivePhase = {
-	kind: "error",
-	message: "チューナーが足りないため、別のチャンネルの視聴に譲りました",
+const INTERRUPTED_MESSAGES: Record<EndReason, string> = {
+	evicted: "チューナーが足りないため、別のチャンネルの視聴に譲りました",
+	recording: "録画が始まったため、視聴を止めました",
 };
+
+export const interruptedPhase = (reason: EndReason | null): LivePhase => ({
+	kind: "error",
+	message: reason == null ? "再生が中断されました" : INTERRUPTED_MESSAGES[reason],
+});
 
 /** 再試行で同じ配信を作り直したとき、前回の状態を持ち越さないよう試行回数も含める。 */
 export const sessionKey = (
@@ -18,7 +22,10 @@ export const sessionKey = (
 	attempt: number,
 ) => `${serviceId}/${codec}/${quality}/${audio}/${attempt}`;
 
-export const startFailurePhase = (error: unknown): LivePhase => {
-	const reason = error instanceof Error ? `（${error.message}）` : "";
-	return { kind: "error", message: `配信を開始できませんでした${reason}` };
+export const startFailurePhase = (error: unknown, reason: EndReason | null): LivePhase => {
+	if (reason === "recording") {
+		return { kind: "error", message: "録画中のため、チューナーが空いていません" };
+	}
+	const detail = error instanceof Error ? `（${error.message}）` : "";
+	return { kind: "error", message: `配信を開始できませんでした${detail}` };
 };

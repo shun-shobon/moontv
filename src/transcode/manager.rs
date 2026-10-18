@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, anyhow};
+use serde::Serialize;
 
 use super::encoder::EncoderSetup;
 use super::session::{self, LiveKey, LiveSession};
@@ -15,7 +16,8 @@ use crate::mirakc::{ChannelInfo, MirakcClient, OpenStreamError};
 const VIEWER_TIMEOUT: Duration = Duration::from_secs(20);
 const TUNER_RELEASE_WAIT: Duration = Duration::from_secs(8);
 const TUNER_RETRY_INTERVAL: Duration = Duration::from_millis(50);
-const EVICTION_NOTICE_TTL: Duration = Duration::from_secs(60);
+/// 視聴を止められた視聴者のプレイヤーが、再生の中断を検知して理由を問い合わせるまでの猶予。
+const END_NOTICE_TTL: Duration = Duration::from_secs(60);
 
 pub struct SessionManager {
     sessions: Mutex<HashMap<LiveKey, Arc<LiveSession>>>,
@@ -24,7 +26,17 @@ pub struct SessionManager {
     mirakc: MirakcClient,
     catalog: Arc<Catalog>,
     next_id: AtomicU64,
-    evictions: Mutex<HashMap<String, (LiveKey, Instant)>>,
+    endings: Mutex<HashMap<String, (LiveKey, EndReason, Instant)>>,
+}
+
+/// 視聴者が自分で止めたのではない視聴の終わり方。プレイヤーに理由を出すために控える。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum EndReason {
+    /// チューナーが足りず、後から来た別チャンネルの視聴に譲った。
+    Evicted,
+    /// 録画がチューナーを使っている。
+    Recording,
 }
 
 pub enum AcquireError {
@@ -46,7 +58,7 @@ impl SessionManager {
                     .duration_since(UNIX_EPOCH)
                     .map_or(0, |d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX)),
             ),
-            evictions: Mutex::new(HashMap::new()),
+            endings: Mutex::new(HashMap::new()),
         }
     }
 
@@ -55,7 +67,7 @@ impl SessionManager {
     }
 
     pub async fn acquire(self: &Arc<Self>, key: LiveKey, viewer: &str) -> Result<Arc<LiveSession>, AcquireError> {
-        self.evictions.lock().unwrap().remove(viewer);
+        self.endings.lock().unwrap().remove(viewer);
         if let Some(session) = self.get(key, viewer) {
             return Ok(session);
         }
@@ -93,9 +105,17 @@ impl SessionManager {
         let task_session = session.clone();
         tokio::spawn(async move {
             match manager.open_stream(&task_session).await {
-                Ok(stream) => session::run(task_session.clone(), manager.setup.clone(), stream).await,
+                Ok(stream) => {
+                    session::run(task_session.clone(), manager.setup.clone(), stream).await;
+                    // mirakc は優先度の高い録画が来ると、ライブ視聴からチューナーを奪って配信を切る。
+                    if !task_session.is_cancelled() {
+                        manager.note_recording(&task_session).await;
+                    }
+                }
                 Err(e) => {
                     tracing::warn!(?key, "failed to open stream: {e:#}");
+                    // プレイヤーは起動の失敗を受けてすぐに理由を問い合わせるので、失敗を伝える前に控える。
+                    manager.note_recording(&task_session).await;
                     task_session.finish(format!("{e:#}"));
                 }
             }
@@ -198,11 +218,7 @@ impl SessionManager {
         let victims: Vec<_> = candidates.into_iter().filter(|s| s.channel == channel).collect();
         for session in &victims {
             tracing::info!(key = ?session.key, "stopping session to free a tuner");
-            let now = Instant::now();
-            self.evictions
-                .lock()
-                .unwrap()
-                .extend(session.viewers().into_iter().map(|v| (v, (session.key, now))));
+            self.note_end(session, EndReason::Evicted);
             session.stop();
         }
         Ok(victims)
@@ -218,12 +234,29 @@ impl SessionManager {
             .collect())
     }
 
-    pub fn was_evicted(&self, key: LiveKey, viewer: &str) -> bool {
-        self.evictions
+    pub fn end_reason(&self, key: LiveKey, viewer: &str) -> Option<EndReason> {
+        self.endings
             .lock()
             .unwrap()
             .get(viewer)
-            .is_some_and(|(evicted, _)| *evicted == key)
+            .filter(|(ended, _, _)| *ended == key)
+            .map(|&(_, reason, _)| reason)
+    }
+
+    fn note_end(&self, session: &LiveSession, reason: EndReason) {
+        let now = Instant::now();
+        self.endings
+            .lock()
+            .unwrap()
+            .extend(session.viewers().into_iter().map(|v| (v, (session.key, reason, now))));
+    }
+
+    async fn note_recording(&self, session: &LiveSession) {
+        match self.mirakc.is_recording().await {
+            Ok(true) => self.note_end(session, EndReason::Recording),
+            Ok(false) => {}
+            Err(e) => tracing::warn!("failed to check recordings: {e:#}"),
+        }
     }
 
     fn remove(&self, session: &Arc<LiveSession>) {
@@ -241,10 +274,10 @@ impl SessionManager {
                 interval.tick().await;
                 let Some(manager) = manager.upgrade() else { return };
                 manager
-                    .evictions
+                    .endings
                     .lock()
                     .unwrap()
-                    .retain(|_, (_, at)| at.elapsed() < EVICTION_NOTICE_TTL);
+                    .retain(|_, (_, _, at)| at.elapsed() < END_NOTICE_TTL);
                 let sessions = manager.sessions.lock().unwrap();
                 for session in sessions.values().filter(|s| s.expire_viewers(VIEWER_TIMEOUT)) {
                     tracing::info!(key = ?session.key, "stopping idle session");

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use crate::catalog::Catalog;
 use crate::recording::Recorder;
 use crate::recording::library::{DeleteError, Library};
-use crate::transcode::manager::{AcquireError, SessionManager};
+use crate::transcode::manager::{AcquireError, EndReason, SessionManager};
 use crate::transcode::profile::{AudioTrack, Codec, QUALITIES, Quality};
 use crate::transcode::session::{LiveKey, LiveSession, MEDIA_PLAYLIST};
 
@@ -251,14 +251,14 @@ async fn start_live(State(state): State<AppState>, Path(path): Path<LivePath>) -
 
 #[derive(Serialize)]
 struct LiveEndDto {
-    evicted: bool,
+    reason: Option<EndReason>,
 }
 
-/// プレイヤーが再生の中断を検知したときに呼び、チューナーを譲らされたのかを画面に出す。
+/// プレイヤーが再生の中断や起動の失敗を受けて呼び、チューナーを譲ったのか、録画に使われているのかを画面に出す。
 async fn live_end(State(state): State<AppState>, Path(path): Path<LivePath>) -> ApiResult<Json<LiveEndDto>> {
     let key = live_key(&state, &path)?;
     Ok(Json(LiveEndDto {
-        evicted: state.sessions.was_evicted(key, &path.4),
+        reason: state.sessions.end_reason(key, &path.4),
     }))
 }
 

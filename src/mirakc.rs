@@ -210,6 +210,25 @@ impl MirakcClient {
         ))
     }
 
+    /// 録画が無効なら mirakc は録画の API を持たず 404 を返すので、録画中ではないとみなす。
+    pub async fn is_recording(&self) -> Result<bool> {
+        let res = self
+            .http
+            .get(self.url("/api/recording/recorders"))
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await
+            .context("failed to request mirakc recorders")?;
+        if res.status() == StatusCode::NOT_FOUND {
+            return Ok(false);
+        }
+        if !res.status().is_success() {
+            bail!("mirakc recorders returned {}", res.status());
+        }
+        let recorders: Vec<serde_json::Value> = res.json().await.context("failed to decode mirakc recorders")?;
+        Ok(!recorders.is_empty())
+    }
+
     /// Server-Sent Events の本文を返す。接続を張りっぱなしにするので、タイムアウトを付けない。
     pub async fn events(&self) -> Result<reqwest::Response> {
         let res = self
