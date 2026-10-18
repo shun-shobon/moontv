@@ -46,8 +46,12 @@ export function RecordingControls({ captions, onCaptionsChange }: Props) {
 						<TimeSlider.Fill className="absolute inset-y-0 left-0 w-(--media-slider-fill) rounded-full bg-accent group-data-dragging/time:w-(--media-slider-pointer)" />
 					</TimeSlider.Track>
 					<TimeSlider.Thumb className="absolute left-(--media-slider-fill) size-3 -translate-x-1/2 rounded-full bg-fg shadow transition-transform duration-150 group-hover/time:scale-125 group-data-dragging/time:left-(--media-slider-pointer) group-data-dragging/time:scale-125" />
-					<TimeSlider.Preview className="pointer-events-none absolute bottom-full left-(--media-slider-pointer) mb-2 -translate-x-1/2 rounded-md bg-overlay px-2 py-0.5 text-caption-strong tabular-nums opacity-0 transition-opacity group-hover/time:opacity-100 group-data-dragging/time:opacity-100">
-						<TimeSlider.Value type="pointer" />
+					{/* Preview は自身の幅の半分ずらして指の真上に置く。その幅に自身の余白は入らないので、余白と背景は内側に付ける。 */}
+					<TimeSlider.Preview className="bottom-full mb-2 opacity-0 transition-opacity group-hover/time:opacity-100 group-data-dragging/time:opacity-100">
+						<TimeSlider.Value
+							type="pointer"
+							className="block rounded-md bg-overlay px-2 py-0.5 text-caption-strong tabular-nums"
+						/>
 					</TimeSlider.Preview>
 				</TimeSlider.Root>
 				<Controls.Group aria-label="再生コントロール" className="-mx-2 flex h-12 items-center">
