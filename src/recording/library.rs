@@ -98,18 +98,25 @@ impl Library {
 
     pub fn list(&self) -> Vec<RecordingDto> {
         let entries = self.entries.lock().unwrap();
-        let mut list: Vec<_> = entries
-            .values()
-            .map(|m| RecordingDto {
-                program: catalog::to_dto(&m.program),
-                state: m.state,
-                error: m.error.clone(),
-                duration_ms: m.duration_ms,
-            })
-            .collect();
+        let mut list: Vec<_> = entries.values().map(to_dto).collect();
         drop(entries);
         list.sort_by_key(|r| std::cmp::Reverse(r.program.start_at));
         list
+    }
+
+    pub fn get(&self, id: u64) -> Option<RecordingDto> {
+        self.entries.lock().unwrap().get(&id).map(to_dto)
+    }
+
+    /// 変換を終えた録画の HLS を置いたディレクトリを返す。
+    pub fn media_dir(&self, id: u64) -> Option<PathBuf> {
+        let ready = self
+            .entries
+            .lock()
+            .unwrap()
+            .get(&id)
+            .is_some_and(|m| m.state == RecordingState::Ready);
+        ready.then(|| self.dir.join(id.to_string()).join(MEDIA_DIR))
     }
 
     pub async fn record_started(&self, schedule: RecordingSchedule) {
@@ -288,6 +295,15 @@ impl Library {
         if let Err(e) = write_meta(&self.dir.join(id.to_string()), meta).await {
             tracing::warn!(program_id = id, "failed to save recording metadata: {e:#}");
         }
+    }
+}
+
+fn to_dto(meta: &Meta) -> RecordingDto {
+    RecordingDto {
+        program: catalog::to_dto(&meta.program),
+        state: meta.state,
+        error: meta.error.clone(),
+        duration_ms: meta.duration_ms,
     }
 }
 

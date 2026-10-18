@@ -36,7 +36,8 @@ pub fn router(state: AppState) -> Router {
         .route("/api/programs/{id}", get(program))
         .route("/api/recording/schedules", get(schedules))
         .route("/api/recordings", get(recordings))
-        .route("/api/recordings/{program_id}", axum::routing::delete(delete_recording))
+        .route("/api/recordings/{program_id}", get(recording).delete(delete_recording))
+        .route("/api/recordings/{program_id}/media/{file}", get(recording_file))
         .route(
             "/api/recording/schedules/{program_id}",
             axum::routing::put(add_schedule).delete(remove_schedule),
@@ -169,6 +170,35 @@ async fn recordings(State(state): State<AppState>) -> ApiResult<impl IntoRespons
     Ok(Json(library(&state)?.list()))
 }
 
+async fn recording(State(state): State<AppState>, Path(program_id): Path<u64>) -> ApiResult<impl IntoResponse> {
+    library(&state)?
+        .get(program_id)
+        .map(Json)
+        .ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "recording not found".into()))
+}
+
+async fn recording_file(
+    State(state): State<AppState>,
+    Path((program_id, file)): Path<(u64, String)>,
+) -> ApiResult<Response> {
+    let content_type = hls_content_type(&file)?;
+    let dir = library(&state)?
+        .media_dir(program_id)
+        .ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "recording not found".into()))?;
+    let bytes = tokio::fs::read(dir.join(&file))
+        .await
+        .map_err(|_| ApiError(StatusCode::NOT_FOUND, "not found".into()))?;
+    let mut res = bytes.into_response();
+    let headers = res.headers_mut();
+    headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(content_type));
+    // 変換を終えた録画のファイルは変わらない。やり直すのは失敗したときだけで、そのときは配信していない。
+    headers.insert(
+        header::CACHE_CONTROL,
+        HeaderValue::from_static("private, max-age=31536000, immutable"),
+    );
+    Ok(res)
+}
+
 async fn delete_recording(State(state): State<AppState>, Path(program_id): Path<u64>) -> ApiResult<StatusCode> {
     library(&state)?.delete(program_id).await.map_err(|e| match e {
         DeleteError::NotFound => ApiError(StatusCode::NOT_FOUND, "recording not found".into()),
@@ -263,19 +293,7 @@ async fn live_file(
     )>,
 ) -> ApiResult<Response> {
     let key = live_key(&state, &(service, codec, quality, audio, viewer.clone()))?;
-    let content_type = match file.rsplit_once('.').map(|(_, ext)| ext) {
-        Some("m3u8") => "application/vnd.apple.mpegurl",
-        Some("m4s") => "video/iso.segment",
-        Some("mp4") => "video/mp4",
-        _ => return Err(ApiError(StatusCode::NOT_FOUND, "not found".into())),
-    };
-    if !file
-        .bytes()
-        .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'.')
-        || file.starts_with('.')
-    {
-        return Err(ApiError(StatusCode::NOT_FOUND, "not found".into()));
-    }
+    let content_type = hls_content_type(&file)?;
     let session = state
         .sessions
         .get_by_id(key, session_id, &viewer)
@@ -285,6 +303,24 @@ async fn live_file(
         .map_err(|_| ApiError(StatusCode::NOT_FOUND, "not found".into()))?;
 
     Ok(live_response(content_type, bytes))
+}
+
+/// HLS のファイル名だけを受け付け、ディレクトリの外を読ませない。
+fn hls_content_type(file: &str) -> ApiResult<&'static str> {
+    let content_type = match file.rsplit_once('.').map(|(_, ext)| ext) {
+        Some("m3u8") => "application/vnd.apple.mpegurl",
+        Some("m4s") => "video/iso.segment",
+        Some("mp4") => "video/mp4",
+        _ => return Err(ApiError(StatusCode::NOT_FOUND, "not found".into())),
+    };
+    let safe = file
+        .bytes()
+        .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'.')
+        && !file.starts_with('.');
+    if !safe {
+        return Err(ApiError(StatusCode::NOT_FOUND, "not found".into()));
+    }
+    Ok(content_type)
 }
 
 fn playlist_response(body: Vec<u8>) -> Response {
