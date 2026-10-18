@@ -141,7 +141,8 @@ def is_ideograph(code: int) -> bool:
 
 
 def build(source: pathlib.Path, codes: set[int], family: str, out: pathlib.Path, drawn: bool = False) -> None:
-    font = TTFont(source)
+    # 保存のたびに更新日時が変わると、中身が同じでも生成物が差分になる。元フォントの日時のまま残す。
+    font = TTFont(source, recalcTimestamp=False)
     if drawn:
         add_drawn_glyphs(font)
         codes = codes | DRAWN.keys()
