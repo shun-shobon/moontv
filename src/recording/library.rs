@@ -272,7 +272,7 @@ impl Library {
         let job = Job {
             setup: &self.setup,
             codec: recording_codec(&self.setup),
-            quality: Quality::P720,
+            quality: Quality::P1080,
             audio: AudioTrack::Main,
             dir: &media,
             hls: Hls::Recording,
