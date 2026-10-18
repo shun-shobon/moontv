@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use anyhow::{Context, Result, bail};
 use reqwest::{StatusCode, Url};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const STREAM_OPEN_TIMEOUT: Duration = Duration::from_secs(15);
 
@@ -34,7 +34,8 @@ pub struct ChannelInfo {
     pub channel: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+/// 録画一覧に番組情報を控えるため、mirakc から受け取った形のまま書き戻せるようにする。
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Program {
     pub id: u64,
@@ -52,7 +53,7 @@ pub struct Program {
 }
 
 /// mirakc は音声を `component_tag` をキーにした連想配列から返すため、並び順に意味はない。
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Audio {
     #[serde(default)]
@@ -61,7 +62,7 @@ pub struct Audio {
     pub langs: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Genre {
     pub lv1: u8,
 }
@@ -78,6 +79,20 @@ impl Program {
 pub struct RecordingSchedule {
     pub state: ScheduleState,
     pub program: Program,
+    pub options: RecordingOptions,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordingOptions {
+    /// mirakc の `recording.basedir` からの相対パス。
+    pub content_path: std::path::PathBuf,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordingEvent {
+    pub program_id: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -174,6 +189,39 @@ impl MirakcClient {
                 .await
                 .context("failed to decode mirakc recording schedules")?,
         ))
+    }
+
+    pub async fn recording_schedule(&self, program_id: u64) -> Result<Option<RecordingSchedule>> {
+        let res = self
+            .http
+            .get(self.url(&format!("/api/recording/schedules/{program_id}")))
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await
+            .context("failed to request mirakc recording schedule")?;
+        if res.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        if !res.status().is_success() {
+            bail!("mirakc recording schedule returned {}", res.status());
+        }
+        Ok(Some(
+            res.json().await.context("failed to decode mirakc recording schedule")?,
+        ))
+    }
+
+    /// Server-Sent Events の本文を返す。接続を張りっぱなしにするので、タイムアウトを付けない。
+    pub async fn events(&self) -> Result<reqwest::Response> {
+        let res = self
+            .http
+            .get(self.url("/events"))
+            .send()
+            .await
+            .context("failed to request mirakc events")?;
+        if !res.status().is_success() {
+            bail!("mirakc events returned {}", res.status());
+        }
+        Ok(res)
     }
 
     pub async fn add_recording_schedule(&self, program_id: u64, content_path: &str, priority: i32) -> Result<()> {

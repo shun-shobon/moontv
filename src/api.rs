@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::catalog::Catalog;
 use crate::recording::Recorder;
+use crate::recording::library::{DeleteError, Library};
 use crate::transcode::manager::{AcquireError, SessionManager};
 use crate::transcode::profile::{AudioTrack, Codec, QUALITIES, Quality};
 use crate::transcode::session::{LiveKey, LiveSession, MEDIA_PLAYLIST};
@@ -23,6 +24,7 @@ pub struct AppState {
     pub catalog: Arc<Catalog>,
     pub sessions: Arc<SessionManager>,
     pub recorder: Arc<Recorder>,
+    pub library: Option<Arc<Library>>,
 }
 
 pub fn router(state: AppState) -> Router {
@@ -33,6 +35,8 @@ pub fn router(state: AppState) -> Router {
         .route("/api/programs", get(programs))
         .route("/api/programs/{id}", get(program))
         .route("/api/recording/schedules", get(schedules))
+        .route("/api/recordings", get(recordings))
+        .route("/api/recordings/{program_id}", axum::routing::delete(delete_recording))
         .route(
             "/api/recording/schedules/{program_id}",
             axum::routing::put(add_schedule).delete(remove_schedule),
@@ -81,6 +85,8 @@ struct StatusDto {
     codecs: Vec<Codec>,
     qualities: Vec<Quality>,
     recording: bool,
+    /// 録画を変換して一覧にする設定があるか。
+    library: bool,
 }
 
 async fn status(State(state): State<AppState>) -> ApiResult<Json<StatusDto>> {
@@ -91,6 +97,7 @@ async fn status(State(state): State<AppState>) -> ApiResult<Json<StatusDto>> {
         codecs: setup.codecs.clone(),
         qualities: QUALITIES.to_vec(),
         recording: state.recorder.is_enabled().await?,
+        library: state.library.is_some(),
     }))
 }
 
@@ -148,6 +155,26 @@ async fn add_schedule(State(state): State<AppState>, Path(program_id): Path<u64>
 
 async fn remove_schedule(State(state): State<AppState>, Path(program_id): Path<u64>) -> ApiResult<StatusCode> {
     state.recorder.remove(program_id).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+fn library(state: &AppState) -> ApiResult<&Library> {
+    state
+        .library
+        .as_deref()
+        .ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "the recording library is not configured".into()))
+}
+
+async fn recordings(State(state): State<AppState>) -> ApiResult<impl IntoResponse> {
+    Ok(Json(library(&state)?.list()))
+}
+
+async fn delete_recording(State(state): State<AppState>, Path(program_id): Path<u64>) -> ApiResult<StatusCode> {
+    library(&state)?.delete(program_id).await.map_err(|e| match e {
+        DeleteError::NotFound => ApiError(StatusCode::NOT_FOUND, "recording not found".into()),
+        DeleteError::Busy => ApiError(StatusCode::CONFLICT, "the recording is still being written".into()),
+        DeleteError::Other(e) => e.into(),
+    })?;
     Ok(StatusCode::NO_CONTENT)
 }
 

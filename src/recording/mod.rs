@@ -1,3 +1,6 @@
+pub mod events;
+pub mod library;
+
 use anyhow::Result;
 use serde::Serialize;
 

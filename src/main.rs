@@ -19,6 +19,7 @@ use tracing_subscriber::EnvFilter;
 use crate::catalog::Catalog;
 use crate::mirakc::MirakcClient;
 use crate::recording::Recorder;
+use crate::recording::library::Library;
 use crate::transcode::encoder::{self, EncoderChoice};
 use crate::transcode::manager::SessionManager;
 
@@ -40,6 +41,12 @@ struct Args {
     /// DRM render node used by the vaapi and qsv encoders.
     #[arg(long, env = "MOONTV_VAAPI_DEVICE", default_value = "/dev/dri/renderD128")]
     vaapi_device: PathBuf,
+    /// Directory to keep converted recordings in.
+    #[arg(long, env = "MOONTV_RECORDINGS_DIR", requires = "mirakc_recording_dir")]
+    recordings_dir: Option<PathBuf>,
+    /// mirakc's `recording.basedir`, where moontv reads recorded files from and deletes them after conversion.
+    #[arg(long, env = "MOONTV_MIRAKC_RECORDING_DIR", requires = "recordings_dir")]
+    mirakc_recording_dir: Option<PathBuf>,
 }
 
 #[tokio::main]
@@ -60,6 +67,14 @@ async fn main() -> Result<()> {
     let mirakc = MirakcClient::new(args.mirakc_url)?;
     let catalog = Arc::new(Catalog::new(mirakc.clone()));
     let recorder = Arc::new(Recorder::new(mirakc.clone()));
+    let library = match (args.recordings_dir, args.mirakc_recording_dir) {
+        (Some(dir), Some(source_dir)) => {
+            let library = Library::open(dir, source_dir, setup.clone()).await?;
+            tokio::spawn(recording::events::follow(mirakc.clone(), library.clone()));
+            Some(library)
+        }
+        _ => None,
+    };
     let sessions = Arc::new(SessionManager::new(work_dir.clone(), setup, mirakc, catalog.clone()));
     sessions.spawn_reaper();
 
@@ -67,6 +82,7 @@ async fn main() -> Result<()> {
         catalog,
         sessions: sessions.clone(),
         recorder,
+        library,
     })
     .fallback(assets::serve);
     let listener = tokio::net::TcpListener::bind(args.listen)
