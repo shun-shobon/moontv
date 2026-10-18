@@ -25,8 +25,12 @@ export const useDeleteRecording = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: deleteRecording,
+		onSuccess: (_data, programId) => {
+			// 消した録画を開いている画面が、取り直して 404 を表示しないようにする。
+			queryClient.removeQueries({ queryKey: recordingQuery(programId).queryKey });
+		},
 		onSettled: async () => {
-			await queryClient.invalidateQueries({ queryKey: recordingsQuery.queryKey });
+			await queryClient.invalidateQueries({ queryKey: recordingsQuery.queryKey, exact: true });
 		},
 	});
 };

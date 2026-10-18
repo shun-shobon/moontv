@@ -6,10 +6,38 @@ import {
 	useSchedules,
 	useStatus,
 } from "../../../shared/api/queries";
+import type { ScheduleState } from "../../../shared/api/schemas";
+import { Button } from "../../../shared/components/Button";
+import { SegmentedControl } from "../../../shared/components/SegmentedControl";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
+import { SCHEDULE_LABELS } from "../../../shared/domain/schedule";
+import { recordingPath } from "../../../shared/services/routes";
 import { useDeleteRecording, useRecordings } from "../api/queries";
-import { RecordingList } from "../components/RecordingList";
-import { ScheduleList } from "../components/ScheduleList";
+import type { RecordingState } from "../api/schemas";
+import { DeleteRecordingButton } from "../components/DeleteRecordingButton";
+import type { CardStatus } from "../components/ProgramCard";
+import { ProgramCard } from "../components/ProgramCard";
+
+type Tab = "recordings" | "schedules";
+const TABS: readonly Tab[] = ["recordings", "schedules"];
+const TAB_LABELS: Record<Tab, string> = { recordings: "録画", schedules: "予約" };
+
+const recordingStatus = (state: RecordingState): CardStatus | null => {
+	if (state === "converting") {
+		return { label: "変換中", tone: "accent" };
+	}
+	return state === "failed" ? { label: "変換に失敗しました", tone: "muted" } : null;
+};
+
+const scheduleStatus = (state: ScheduleState, changeFailed: boolean): CardStatus | null => {
+	if (changeFailed) {
+		return { label: "予約を変更できませんでした", tone: "muted" };
+	}
+	if (state === "recording") {
+		return { label: SCHEDULE_LABELS.recording, tone: "accent" };
+	}
+	return state === "failed" ? { label: SCHEDULE_LABELS.failed, tone: "muted" } : null;
+};
 
 export function RecordingsPage() {
 	const status = useStatus();
@@ -20,11 +48,8 @@ export function RecordingsPage() {
 	const recordings = useRecordings(library);
 	const scheduleMutation = useScheduleMutation();
 	const deletion = useDeleteRecording();
-	const [confirmingId, setConfirmingId] = useState<number | null>(null);
-	const channelNames = useMemo(
-		() => new Map(channels.data?.map((c) => [c.id, c.name])),
-		[channels.data],
-	);
+	const [tab, setTab] = useState<Tab>("recordings");
+	const channelById = useMemo(() => new Map(channels.data?.map((c) => [c.id, c])), [channels.data]);
 
 	if (status.isError || schedules.isError || recordings.isError) {
 		return <StatusMessage>録画の情報を取得できませんでした。</StatusMessage>;
@@ -43,46 +68,95 @@ export function RecordingsPage() {
 		return <StatusMessage>読み込み中…</StatusMessage>;
 	}
 
+	// 録画一覧がなければ、録画は mirakc に任せたままなので予約だけを出す。
+	const shown: Tab = library ? tab : "schedules";
 	const scheduleTarget = scheduleMutation.variables?.programId ?? null;
-	// 終わった予約は録画の欄に載るので、予約の欄には出さない。録画中のものは止める操作がある予約の欄に出す。
-	const pendingSchedules = library
+	// 録画中のものは止める操作がある予約の側に出し、終わった予約は録画の側に出す。
+	const listedRecordings = (recordings.data ?? []).filter((r) => r.state !== "recording");
+	const listedSchedules = library
 		? schedules.data.filter((s) => s.state !== "finished")
 		: schedules.data;
 
+	const recordingCards =
+		listedRecordings.length === 0 ? (
+			<StatusMessage>録画はまだありません。録画が終わると変換してここに並びます。</StatusMessage>
+		) : (
+			<ul className="flex flex-col gap-2">
+				{listedRecordings.map(({ program, state, durationMs }) => (
+					<li key={program.id}>
+						<ProgramCard
+							program={program}
+							channel={channelById.get(program.serviceId)}
+							durationMs={durationMs}
+							status={recordingStatus(state)}
+							href={state === "ready" ? recordingPath(program.id) : null}
+							active={false}
+							action={
+								state === "failed" && (
+									<DeleteRecordingButton
+										isPending={deletion.isPending && deletion.variables === program.id}
+										failed={deletion.isError && deletion.variables === program.id}
+										onDelete={() => {
+											deletion.mutate(program.id);
+										}}
+									/>
+								)
+							}
+						/>
+					</li>
+				))}
+			</ul>
+		);
+
+	const scheduleCards =
+		listedSchedules.length === 0 ? (
+			<StatusMessage>録画予約はありません。番組表で番組を選ぶと予約できます。</StatusMessage>
+		) : (
+			<ul className="flex flex-col gap-2">
+				{listedSchedules.map(({ program, state }) => {
+					const targeted = scheduleTarget === program.id;
+					return (
+						<li key={program.id}>
+							<ProgramCard
+								program={program}
+								channel={channelById.get(program.serviceId)}
+								durationMs={null}
+								status={scheduleStatus(state, targeted && scheduleMutation.isError)}
+								href={null}
+								active={false}
+								action={
+									(state === "scheduled" || state === "recording") && (
+										<Button
+											variant="quiet"
+											isPending={targeted && scheduleMutation.isPending}
+											onPress={() => {
+												scheduleMutation.mutate({ programId: program.id, scheduled: false });
+											}}
+										>
+											{state === "scheduled" ? "取り消す" : "録画を止める"}
+										</Button>
+									)
+								}
+							/>
+						</li>
+					);
+				})}
+			</ul>
+		);
+
 	return (
-		<div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4">
+		<div className="mx-auto flex w-full max-w-3xl flex-col gap-3 p-4">
 			{library && (
-				<section className="flex flex-col gap-2">
-					<h2 className="text-title">録画</h2>
-					<RecordingList
-						recordings={(recordings.data ?? []).filter((r) => r.state !== "recording")}
-						channelNames={channelNames}
-						confirmingId={confirmingId}
-						deletingId={deletion.isPending ? deletion.variables : null}
-						failedId={deletion.isError ? deletion.variables : null}
-						onDeleteRequest={setConfirmingId}
-						onDelete={(programId) => {
-							deletion.mutate(programId, {
-								onSuccess: () => {
-									setConfirmingId(null);
-								},
-							});
-						}}
-					/>
-				</section>
-			)}
-			<section className="flex flex-col gap-2">
-				<h2 className="text-title">録画予約</h2>
-				<ScheduleList
-					schedules={pendingSchedules}
-					channelNames={channelNames}
-					pendingId={scheduleMutation.isPending ? scheduleTarget : null}
-					failedId={scheduleMutation.isError ? scheduleTarget : null}
-					onCancel={(programId) => {
-						scheduleMutation.mutate({ programId, scheduled: false });
-					}}
+				<SegmentedControl
+					label="録画の表示"
+					options={TABS}
+					value={shown}
+					format={(t) => TAB_LABELS[t]}
+					onChange={setTab}
+					className="flex gap-1"
 				/>
-			</section>
+			)}
+			{shown === "recordings" ? recordingCards : scheduleCards}
 		</div>
 	);
 }
