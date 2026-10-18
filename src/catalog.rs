@@ -49,6 +49,8 @@ pub struct ProgramDto {
     pub start_at: i64,
     pub duration: Option<i64>,
     pub name: String,
+    /// 番組名から取り出した [字] [再] などの番組の属性（「字幕」「再放送」）。番組名に現れた順。
+    pub marks: Vec<&'static str>,
     pub description: String,
     pub genres: Vec<u8>,
     pub is_free: bool,
@@ -211,12 +213,14 @@ fn end_at(program: &Program) -> i64 {
 }
 
 fn to_dto(program: &Program) -> ProgramDto {
+    let (name, marks) = split_marks(&normalize(program.name.as_deref().unwrap_or_default()));
     ProgramDto {
         id: program.id,
         service_id: program.service_key(),
         start_at: program.start_at,
         duration: program.duration,
-        name: normalize(program.name.as_deref().unwrap_or_default()),
+        name,
+        marks,
         description: normalize(program.description.as_deref().unwrap_or_default()),
         genres: program.genres.iter().flatten().map(|g| g.lv1).collect(),
         is_free: program.is_free,
@@ -253,6 +257,72 @@ pub fn normalize(text: &str) -> String {
         }
     }
     out.nfkc().collect()
+}
+
+/// 番組名に [字] のような括弧書きで入る番組の属性（STD-B24 の追加記号 90〜92区）と、画面に出す名前。
+/// 番組名そのものに使われうる [Re] などと取り違えないよう、決まった表記だけを取り出す。
+const MARKS: [(&str, &str); 30] = [
+    ("字", "字幕"),
+    ("解", "解説"),
+    ("再", "再放送"),
+    ("デ", "データ放送"),
+    ("二", "二か国語"),
+    ("手", "手話"),
+    ("多", "音声多重"),
+    ("新", "新番組"),
+    ("生", "生放送"),
+    ("終", "最終回"),
+    ("初", "初回"),
+    ("前", "前編"),
+    ("後", "後編"),
+    ("映", "映画"),
+    ("双", "双方向"),
+    ("吹", "吹き替え"),
+    ("声", "声の出演"),
+    ("無", "無料"),
+    ("料", "有料"),
+    ("販", "通信販売"),
+    ("天", "天気予報"),
+    ("交", "交通情報"),
+    ("S", "ステレオ"),
+    ("SS", "サラウンド"),
+    ("B", "Bモードステレオ"),
+    ("HV", "ハイビジョン"),
+    ("SD", "標準画質"),
+    ("W", "ワイド"),
+    ("MV", "マルチビュー"),
+    ("PPV", "ペイ・パー・ビュー"),
+];
+
+/// 正規化した番組名から [字] などを取り除き、属性の名前を現れた順に返す。
+fn split_marks(name: &str) -> (String, Vec<&'static str>) {
+    let mut rest = name;
+    let mut cleaned = String::with_capacity(name.len());
+    let mut marks = Vec::new();
+    while let Some(open) = rest.find('[') {
+        let found = rest[open + 1..].find(']').and_then(|close| {
+            let key = &rest[open + 1..open + 1 + close];
+            MARKS
+                .iter()
+                .find(|(k, _)| *k == key)
+                .map(|&(_, label)| (label, open + close + 2))
+        });
+        if let Some((label, end)) = found {
+            cleaned.push_str(&rest[..open]);
+            cleaned.push(' ');
+            if !marks.contains(&label) {
+                marks.push(label);
+            }
+            rest = &rest[end..];
+        } else {
+            cleaned.push_str(&rest[..=open]);
+            rest = &rest[open + 1..];
+        }
+    }
+    cleaned.push_str(rest);
+    // 取り除いた所に空白が重ならないよう詰める。
+    let name = cleaned.split_whitespace().collect::<Vec<_>>().join(" ");
+    (name, marks)
 }
 
 const fn enclosed_symbol(c: char) -> Option<&'static str> {
@@ -308,6 +378,20 @@ mod tests {
     fn normalize_converts_fullwidth_and_enclosed_symbols() {
         assert_eq!(normalize("ＴＯＫＹＯ　ＭＸ１"), "TOKYO MX1");
         assert_eq!(normalize("ニュース🈑🈞"), "ニュース[字][再]");
+    }
+
+    #[test]
+    fn split_marks_removes_known_marks_in_order() {
+        let (name, marks) = split_marks(&normalize("[生]ニュース　特集[字][再]"));
+        assert_eq!(name, "ニュース 特集");
+        assert_eq!(marks, ["生放送", "字幕", "再放送"]);
+    }
+
+    #[test]
+    fn split_marks_keeps_brackets_that_are_part_of_the_name() {
+        let (name, marks) = split_marks("Battle Spirits [Re] 絶界の空 [字]");
+        assert_eq!(name, "Battle Spirits [Re] 絶界の空");
+        assert_eq!(marks, ["字幕"]);
     }
 
     fn program_with_audios(audios: &serde_json::Value) -> Program {
