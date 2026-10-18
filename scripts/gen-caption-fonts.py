@@ -18,6 +18,7 @@ usage: uv run --locked --script scripts/gen-caption-fonts.py <元フォントを
   絵文字や別の字形で描くのを防ぐ。Rounded Mgen+ に無い字は、Noto Sans Symbols から写すか（NOTO）、
   Rounded Mgen+ の字を組み合わせるか、図形を描いて足す（composed_glyphs）。
 - caption-text.woff2: JIS X 0208 の字、英数・仮名の表、追加漢字（85〜86区）。ヒラギノ丸ゴシックが無い端末で使う。
+- caption-symbols.svg: 90〜94区の字を、上の2つのフォントで区点の順に並べた一覧。字形を見て確かめるためのもの。
 """
 
 import hashlib
@@ -32,6 +33,7 @@ from fontTools.pens.boundsPen import BoundsPen
 from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.pens.recordingPen import DecomposingRecordingPen, RecordingPen
 from fontTools.pens.reverseContourPen import ReverseContourPen
+from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import TTFont
@@ -332,6 +334,45 @@ def build(
     print(f"{out.relative_to(ROOT)}: {len(codes)} 字, {out.stat().st_size} bytes")
 
 
+def write_sheet(fonts: list[TTFont], additional: list[int], out: pathlib.Path) -> None:
+    """90〜94区の字を区点の順に並べた SVG。字は canvas と同じく、送り幅の中央、□ の縦の中央に置く。"""
+    columns, cell, size = 16, 72, 48
+    scale = size / fonts[0]["head"].unitsPerEm
+    text = next(font for font in fonts if 0x25A1 in font.getBestCmap())
+    square = text.getGlyphSet()[text.getBestCmap()[0x25A1]]
+    pen = BoundsPen(None)
+    square.draw(pen)
+    assert pen.bounds is not None
+    middle = (pen.bounds[1] + pen.bounds[3]) / 2
+    body: list[str] = []
+    y = 0
+    for ku in range(90, 95):
+        body.append(f'<text x="8" y="{y + 28}" font-size="18" font-weight="bold">{ku}区</text>')
+        y += 40
+        cells = [(ten, additional[(ku - 85) * ROW + ten - 1]) for ten in range(1, ROW + 1)]
+        cells = [(ten, code) for ten, code in cells if code != UNDEFINED]
+        for i, (ten, code) in enumerate(cells):
+            x, top = (i % columns) * cell, y + (i // columns) * cell
+            font = next(font for font in fonts if code in font.getBestCmap())
+            name = font.getBestCmap()[code]
+            path = SVGPathPen(font.getGlyphSet())
+            font.getGlyphSet()[name].draw(path)
+            dx = x + (cell - font["hmtx"][name][0] * scale) / 2
+            dy = top + 4 + size / 2 + middle * scale
+            body.append(f'<rect x="{x + 4}" y="{top + 4}" width="{cell - 8}" height="{size}" fill="#f2f2f2"/>')
+            body.append(f'<path transform="translate({dx:.1f} {dy:.1f}) scale({scale} -{scale})" d="{path.getCommands()}"/>')
+            body.append(f'<text x="{x + cell / 2}" y="{top + size + 18}" font-size="11" text-anchor="middle">{ku}-{ten:02d}</text>')
+        y += (len(cells) + columns - 1) // columns * cell + 8
+    width = columns * cell
+    out.write_text(
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{y}" viewBox="0 0 {width} {y}"'
+        ' font-family="sans-serif">'
+        f'<rect width="{width}" height="{y}" fill="#fff"/>' + "".join(body) + "</svg>\n",
+        encoding="utf-8",
+    )
+    print(f"{out.relative_to(ROOT)}: {out.stat().st_size} bytes")
+
+
 def main() -> None:
     directory = pathlib.Path(sys.argv[1])
     for name, expected in SOURCES.items():
@@ -362,6 +403,8 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     build(mgen(), symbols, "moontv Caption Symbols", OUT / "caption-symbols.woff2", add_symbols)
     build(mgen(), basic | kanji | printable_ascii, "moontv Caption Text", OUT / "caption-text.woff2")
+    fonts = [TTFont(OUT / "caption-symbols.woff2"), TTFont(OUT / "caption-text.woff2")]
+    write_sheet(fonts, additional, OUT / "caption-symbols.svg")
 
 
 if __name__ == "__main__":
