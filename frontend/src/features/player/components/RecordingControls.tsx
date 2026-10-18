@@ -1,6 +1,8 @@
 import {
 	Controls,
 	FullscreenButton,
+	Gesture,
+	Hotkey,
 	PiPButton,
 	PlayButton,
 	SeekButton,
@@ -23,9 +25,7 @@ import { ToggleButton } from "react-aria-components";
 import { CONTROL_BUTTON } from "../services/control-style";
 import { VolumeControl } from "./VolumeControl";
 
-/** 録画のコマーシャルや聞き逃しを想定し、戻すのは短く、送るのは長くする。 */
-const BACK_SECONDS = 10;
-const FORWARD_SECONDS = 30;
+const SKIP_SECONDS = 10;
 
 type Props = {
 	captions: boolean;
@@ -38,10 +38,30 @@ const CENTER_BUTTON =
 export function RecordingControls({ captions, onCaptionsChange }: Props) {
 	return (
 		<Controls.Root>
-			{/* 操作バーと一緒に出し入れする。一時停止中は操作バーが出たままなので、ここも出たままになる。 */}
-			<Controls.Content className="pointer-events-none absolute inset-0 flex items-center justify-center gap-8 transition-[opacity,visibility] duration-200 not-data-visible:invisible not-data-visible:opacity-0">
+			{/* ホバーできる端末はどこをクリックしても再生・停止でき、ホバーできない端末はタップで操作を出し入れする。 */}
+			<Gesture type="tap" action="togglePaused" pointer="mouse" />
+			<Gesture type="tap" action="toggleControls" pointer="touch" />
+			<Gesture
+				type="doubletap"
+				action="seekStep"
+				value={-SKIP_SECONDS}
+				pointer="touch"
+				region="left"
+			/>
+			<Gesture
+				type="doubletap"
+				action="seekStep"
+				value={SKIP_SECONDS}
+				pointer="touch"
+				region="right"
+			/>
+			<Hotkey keys="Space" action="togglePaused" target="document" />
+			<Hotkey keys="ArrowLeft" action="seekStep" value={-SKIP_SECONDS} target="document" />
+			<Hotkey keys="ArrowRight" action="seekStep" value={SKIP_SECONDS} target="document" />
+			{/* ホバーできる端末はクリックで再生・停止できるので、中央の操作はタッチの端末にだけ出す。 */}
+			<Controls.Content className="pointer-events-none absolute inset-0 flex items-center justify-center gap-8 transition-[opacity,visibility] duration-200 not-data-visible:invisible not-data-visible:opacity-0 [@media(hover:hover)]:hidden">
 				<SeekButton
-					seconds={-BACK_SECONDS}
+					seconds={-SKIP_SECONDS}
 					className={`${CENTER_BUTTON} size-12`}
 					render={(props) => (
 						<button {...props}>
@@ -58,7 +78,7 @@ export function RecordingControls({ captions, onCaptionsChange }: Props) {
 					)}
 				/>
 				<SeekButton
-					seconds={FORWARD_SECONDS}
+					seconds={SKIP_SECONDS}
 					className={`${CENTER_BUTTON} size-12`}
 					render={(props) => (
 						<button {...props}>
@@ -87,29 +107,10 @@ export function RecordingControls({ captions, onCaptionsChange }: Props) {
 					</TimeSlider.Preview>
 				</TimeSlider.Root>
 				<Controls.Group aria-label="再生コントロール" className="-mx-2 flex h-12 items-center">
-					{/* スマホでは中央に同じ操作があるので、横幅を空けるために下には出さない。 */}
 					<PlayButton
-						className={`${CONTROL_BUTTON} max-sm:hidden`}
+						className={CONTROL_BUTTON}
 						render={(props, state) => (
 							<button {...props}>{state.paused ? <PlayIcon /> : <PauseIcon />}</button>
-						)}
-					/>
-					<SeekButton
-						seconds={-BACK_SECONDS}
-						className={`${CONTROL_BUTTON} max-sm:hidden`}
-						render={(props) => (
-							<button {...props}>
-								<SeekIcon className="-scale-x-100" />
-							</button>
-						)}
-					/>
-					<SeekButton
-						seconds={FORWARD_SECONDS}
-						className={`${CONTROL_BUTTON} max-sm:hidden`}
-						render={(props) => (
-							<button {...props}>
-								<SeekIcon />
-							</button>
 						)}
 					/>
 					<VolumeControl hideSliderOnPhone />

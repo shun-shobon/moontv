@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { AmbientGlow } from "./AmbientGlow";
 import { MediaErrorWatcher } from "./MediaErrorWatcher";
+import { PlaybackIndicators } from "./PlaybackIndicators";
 import { PlayerErrorOverlay } from "./PlayerErrorOverlay";
 import { RecordingControls } from "./RecordingControls";
 import { RecordingMedia } from "./RecordingMedia";
@@ -32,7 +33,8 @@ export function RecordingPlayerView({
 	return (
 		<div className="relative">
 			{ambient && <AmbientGlow video={video} />}
-			<Container className="relative aspect-video w-full overflow-hidden bg-video lg:rounded-xl">
+			{/* クリックで再生・停止するとプレイヤー自体にフォーカスが移り、矢印キーを押すと枠が出てしまう。 */}
+			<Container className="relative aspect-video w-full overflow-hidden bg-video outline-none lg:rounded-xl">
 				{!failed && <RecordingMedia src={src} showCaption={captions} onVideoChange={setVideo} />}
 				<MediaErrorWatcher onError={onMediaError} />
 				<BufferingIndicator
@@ -43,6 +45,7 @@ export function RecordingPlayerView({
 						</div>
 					)}
 				/>
+				<PlaybackIndicators />
 				<RecordingControls captions={captions} onCaptionsChange={onCaptionsChange} />
 				{failed && <PlayerErrorOverlay message="再生できませんでした" onRetry={onRetry} />}
 			</Container>
