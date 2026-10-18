@@ -298,7 +298,6 @@ def build(
     # 字幕は1字ずつマスに置くので、組版の機能も縦書きの字形も使わない。
     options.layout_features = []
     options.hinting = False
-    options.flavor = "woff2"
     subsetter = subset.Subsetter(options)
     subsetter.populate(unicodes=codes)
     subsetter.subset(font)
@@ -310,6 +309,8 @@ def build(
     names.setName(family, 1, 3, 1, 0x409)
     names.setName(family, 4, 3, 1, 0x409)
     names.setName(family.replace(" ", ""), 6, 3, 1, 0x409)
+    # subset.Options の flavor は保存に効かないので、フォントに直接指定する。
+    font.flavor = "woff2"
     font.save(out)
     print(f"{out.relative_to(ROOT)}: {len(codes)} 字, {out.stat().st_size} bytes")
 
