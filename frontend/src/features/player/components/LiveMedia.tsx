@@ -4,6 +4,7 @@ import { HlsJsVideo } from "@videojs/react/media/hlsjs-video";
 import { useEffect, useRef, useState } from "react";
 
 import { useCaptionTimeline } from "../hooks/useCaptionTimeline";
+import { useResumeBufferingOnSeek } from "../hooks/useResumeBufferingOnSeek";
 import { autoplay, resume } from "../media/autoplay";
 import { isCausedByFullscreenExit, liveEdgeSeekTarget } from "../services/playback";
 import { CaptionOverlay } from "./CaptionOverlay";
@@ -19,6 +20,7 @@ export function LiveMedia({ src, showCaption, onVideoChange }: Props) {
 	const [element, setElement] = useState<HTMLVideoElement | null>(null);
 	const [media, setMedia] = useState<HlsJsAdapter | null>(null);
 	const timeline = useCaptionTimeline(media);
+	useResumeBufferingOnSeek(media);
 	const isFullscreen = usePlayer((state) => state.isFullscreen);
 	const wasFullscreenRef = useRef(false);
 	const fullscreenExitedAtRef = useRef(Number.NEGATIVE_INFINITY);

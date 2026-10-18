@@ -3,6 +3,7 @@ import { HlsJsVideo } from "@videojs/react/media/hlsjs-video";
 import { useEffect, useRef, useState } from "react";
 
 import { useCaptionTimeline } from "../hooks/useCaptionTimeline";
+import { useResumeBufferingOnSeek } from "../hooks/useResumeBufferingOnSeek";
 import { autoplay } from "../media/autoplay";
 import { CaptionOverlay } from "./CaptionOverlay";
 
@@ -17,6 +18,7 @@ export function RecordingMedia({ src, showCaption, onVideoChange }: Props) {
 	const [element, setElement] = useState<HTMLVideoElement | null>(null);
 	const [media, setMedia] = useState<HlsJsAdapter | null>(null);
 	const timeline = useCaptionTimeline(media);
+	useResumeBufferingOnSeek(media);
 
 	useEffect(() => {
 		setElement(videoRef.current);
