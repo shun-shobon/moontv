@@ -149,3 +149,11 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
+
+## Noto Sans Symbols
+
+字幕用の記号のフォントのうち、Rounded Mgen+ に無い絵記号（道路標識・地図記号・天気など）は、[Noto Sans Symbols と Noto Sans Symbols 2](https://github.com/notofonts/symbols) の字形を大きさをそろえて写しています。許諾は上と同じ SIL Open Font License 1.1 です。
+
+```
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/symbols)
+```

@@ -107,6 +107,8 @@ export const AdditionalSymbols: Story = {
 			snapshot([
 				run({ x: 138, y: 329, text: "🈑🈓🈞🈡⛔⚡☔♨❗⭕", bg: "#00000000", edge: "#000000ff" }),
 				run({ x: 138, y: 389, text: "㊙🅿㉑⑴Ⅻ㍻㎡⅓（亂價圖）" }),
+				// 92区56〜60点の楽器の略号 (vn) (ob) (cb) (ce|mb)。Unicode の私用領域に割り当てている。
+				run({ x: 138, y: 449, text: "⛩⛽⛅⅒⟐\uE2A5\uE2A6\uE2A7\uE2A8\uE2A9" }),
 			]),
 		),
 	},
