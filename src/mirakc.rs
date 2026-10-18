@@ -74,6 +74,24 @@ impl Program {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordingSchedule {
+    pub state: ScheduleState,
+    pub program: Program,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ScheduleState {
+    Scheduled,
+    Tracking,
+    Recording,
+    Rescheduling,
+    Finished,
+    Failed,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Tuner {
     pub types: Vec<String>,
 }
@@ -134,6 +152,63 @@ impl MirakcClient {
 
     pub async fn programs(&self) -> Result<Vec<Program>> {
         self.get_json("/api/programs").await
+    }
+
+    /// mirakc は `recording.basedir` を設定していないと録画の API を持たず、404 を返す。そのときは None を返す。
+    pub async fn recording_schedules(&self) -> Result<Option<Vec<RecordingSchedule>>> {
+        let res = self
+            .http
+            .get(self.url("/api/recording/schedules"))
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await
+            .context("failed to request mirakc recording schedules")?;
+        if res.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        if !res.status().is_success() {
+            bail!("mirakc recording schedules returned {}", res.status());
+        }
+        Ok(Some(
+            res.json()
+                .await
+                .context("failed to decode mirakc recording schedules")?,
+        ))
+    }
+
+    pub async fn add_recording_schedule(&self, program_id: u64, content_path: &str, priority: i32) -> Result<()> {
+        let body = serde_json::json!({
+            "programId": program_id,
+            "options": { "contentPath": content_path, "priority": priority },
+        });
+        let res = self
+            .http
+            .post(self.url("/api/recording/schedules"))
+            .timeout(Duration::from_secs(10))
+            .json(&body)
+            .send()
+            .await
+            .context("failed to request mirakc to add a recording schedule")?;
+        match res.status() {
+            s if s.is_success() => Ok(()),
+            // 予約済みと放送終了済みのどちらも 400 で返り、区別できない。
+            StatusCode::BAD_REQUEST => bail!("the program is already scheduled or has ended"),
+            s => bail!("mirakc returned {s} when adding a recording schedule"),
+        }
+    }
+
+    pub async fn remove_recording_schedule(&self, program_id: u64) -> Result<()> {
+        let res = self
+            .http
+            .delete(self.url(&format!("/api/recording/schedules/{program_id}")))
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await
+            .context("failed to request mirakc to remove a recording schedule")?;
+        match res.status() {
+            s if s.is_success() || s == StatusCode::NOT_FOUND => Ok(()),
+            s => bail!("mirakc returned {s} when removing a recording schedule"),
+        }
     }
 
     pub async fn tuners(&self) -> Result<Vec<Tuner>> {

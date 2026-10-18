@@ -3,6 +3,7 @@ mod assets;
 mod caption;
 mod catalog;
 mod mirakc;
+mod recording;
 mod transcode;
 mod ts;
 
@@ -17,6 +18,7 @@ use tracing_subscriber::EnvFilter;
 
 use crate::catalog::Catalog;
 use crate::mirakc::MirakcClient;
+use crate::recording::Recorder;
 use crate::transcode::encoder::{self, EncoderChoice};
 use crate::transcode::manager::SessionManager;
 
@@ -57,12 +59,14 @@ async fn main() -> Result<()> {
 
     let mirakc = MirakcClient::new(args.mirakc_url)?;
     let catalog = Arc::new(Catalog::new(mirakc.clone()));
+    let recorder = Arc::new(Recorder::new(mirakc.clone()));
     let sessions = Arc::new(SessionManager::new(work_dir.clone(), setup, mirakc, catalog.clone()));
     sessions.spawn_reaper();
 
     let app = api::router(api::AppState {
         catalog,
         sessions: sessions.clone(),
+        recorder,
     })
     .fallback(assets::serve);
     let listener = tokio::net::TcpListener::bind(args.listen)

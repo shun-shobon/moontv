@@ -211,7 +211,7 @@ fn end_at(program: &Program) -> i64 {
     program.start_at + program.duration.unwrap_or(i64::MAX / 4)
 }
 
-fn to_dto(program: &Program) -> ProgramDto {
+pub fn to_dto(program: &Program) -> ProgramDto {
     let (name, marks) = split_marks(&normalize(program.name.as_deref().unwrap_or_default()));
     ProgramDto {
         id: program.id,

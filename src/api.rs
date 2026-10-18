@@ -10,6 +10,7 @@ use axum::routing::get;
 use serde::{Deserialize, Serialize};
 
 use crate::catalog::Catalog;
+use crate::recording::Recorder;
 use crate::transcode::manager::{AcquireError, SessionManager};
 use crate::transcode::profile::{AudioTrack, Codec, QUALITIES, Quality};
 use crate::transcode::session::{LiveKey, LiveSession, MEDIA_PLAYLIST};
@@ -21,6 +22,7 @@ const READY_TIMEOUT: Duration = Duration::from_secs(30);
 pub struct AppState {
     pub catalog: Arc<Catalog>,
     pub sessions: Arc<SessionManager>,
+    pub recorder: Arc<Recorder>,
 }
 
 pub fn router(state: AppState) -> Router {
@@ -30,6 +32,11 @@ pub fn router(state: AppState) -> Router {
         .route("/api/channels/{id}/logo", get(logo))
         .route("/api/programs", get(programs))
         .route("/api/programs/{id}", get(program))
+        .route("/api/recording/schedules", get(schedules))
+        .route(
+            "/api/recording/schedules/{program_id}",
+            axum::routing::put(add_schedule).delete(remove_schedule),
+        )
         .route(
             "/api/live/{service}/{codec}/{quality}/{audio}/{viewer}",
             get(live_end).put(start_live).delete(leave_live),
@@ -73,16 +80,18 @@ struct StatusDto {
     encoder: &'static str,
     codecs: Vec<Codec>,
     qualities: Vec<Quality>,
+    recording: bool,
 }
 
-async fn status(State(state): State<AppState>) -> Json<StatusDto> {
+async fn status(State(state): State<AppState>) -> ApiResult<Json<StatusDto>> {
     let setup = state.sessions.setup();
-    Json(StatusDto {
+    Ok(Json(StatusDto {
         version: env!("CARGO_PKG_VERSION"),
         encoder: setup.encoder.name(),
         codecs: setup.codecs.clone(),
         qualities: QUALITIES.to_vec(),
-    })
+        recording: state.recorder.is_enabled().await?,
+    }))
 }
 
 fn now_ms() -> i64 {
@@ -123,6 +132,23 @@ async fn logo(State(state): State<AppState>, Path(id): Path<u64>) -> ApiResult<R
         bytes,
     )
         .into_response())
+}
+
+async fn schedules(State(state): State<AppState>) -> ApiResult<impl IntoResponse> {
+    let schedules = state.recorder.schedules().await?;
+    schedules
+        .map(Json)
+        .ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "recording is disabled in mirakc".into()))
+}
+
+async fn add_schedule(State(state): State<AppState>, Path(program_id): Path<u64>) -> ApiResult<StatusCode> {
+    state.recorder.add(program_id).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn remove_schedule(State(state): State<AppState>, Path(program_id): Path<u64>) -> ApiResult<StatusCode> {
+    state.recorder.remove(program_id).await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 type LivePath = (u64, Codec, Quality, AudioTrack, String);
