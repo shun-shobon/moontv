@@ -24,7 +24,7 @@
 | `src/caption/` | ARIB 字幕（STD-B24）の解読（`group` データグループ、`code` 8単位符号、`screen` 画面の状態と中間表現、`drcs` 外字、`tables` 変換表） |
 | `src/catalog.rs` | サービス・番組情報のキャッシュと API 向けの整形 |
 | `src/recording/` | 録画（`mod` 予約の中継、`library` 録画一覧と HLS への変換、`events` mirakc の録画の開始・終了の購読） |
-| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質・音声の定義、`encoder` エンコーダ別の引数と自動検出、`input` ffmpeg に渡す前の TS の書き換え、`captions` 字幕を ID3 にして差し込む、`pipeline` TS から HLS への変換、`session` 1本の配信、`manager` セッションの共有と停止） |
+| `src/transcode/` | ffmpeg によるライブ配信セッション（`profile` 画質・音声の定義、`encoder` エンコーダ別の引数と自動検出、`input` ffmpeg に渡す前の TS の書き換え、`captions` 字幕を ID3 にして差し込む、`pipeline` TS から HLS への変換、`session` 1本の配信、`manager` セッションの共有と停止、チューナーの使用状況） |
 | `src/api.rs` | HTTP API |
 | `src/assets.rs` | 埋め込んだフロントエンドの配信 |
 | `frontend/src/app` | 画面の枠組みとルーティング |
@@ -32,6 +32,7 @@
 | `frontend/src/features/player` | ライブと録画のプレイヤー、字幕の描画、視聴設定の保存、ブラウザーのコーデック判定、配信セッションの開始・終了 |
 | `frontend/src/features/guide` | 番組表と番組詳細（録画予約の操作を含む） |
 | `frontend/src/features/recording` | 録画と録画予約の一覧、録画の再生画面 |
+| `frontend/src/features/settings` | 設定ページ（再生の設定、チューナーの使用状況、ブラウザーとサーバーの情報） |
 | `frontend/src/shared` | 複数の feature で使う API クライアント・スキーマ、時刻の規則、ルート定義、部品 |
 | `frontend/.storybook` | Storybook の設定と、story が共有する fixture・デコレーター |
 

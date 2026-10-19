@@ -1,6 +1,6 @@
 import { NavLink } from "./NavLink";
 
-export type Section = "live" | "guide" | "recording";
+export type Section = "live" | "guide" | "recording" | "settings";
 
 type Props = { section: Section | null };
 
@@ -25,6 +25,14 @@ const RECORDING_ICON = (
 	</svg>
 );
 
+const SETTINGS_ICON = (
+	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+		<path d="M4 7h9M17 7h3M4 17h3M11 17h9" strokeLinecap="round" />
+		<circle cx="15" cy="7" r="2.5" />
+		<circle cx="9" cy="17" r="2.5" />
+	</svg>
+);
+
 export function AppNav({ section }: Props) {
 	return (
 		<nav className="fixed inset-x-0 bottom-0 z-nav flex h-(--nav-height) border-t border-line bg-canvas/90 px-[max(env(safe-area-inset-left),env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] backdrop-blur md:sticky md:top-0 md:h-dvh md:w-[calc(5rem+env(safe-area-inset-left))] md:shrink-0 md:flex-col md:items-center md:gap-2 md:border-t-0 md:border-r md:pt-[calc(env(safe-area-inset-top)+0.75rem)] md:pr-0 md:pb-0 md:pl-[env(safe-area-inset-left)] md:backdrop-blur-none">
@@ -40,6 +48,12 @@ export function AppNav({ section }: Props) {
 			<NavLink href="/recordings" active={section === "recording"} icon={RECORDING_ICON}>
 				録画
 			</NavLink>
+			{/* 日々使う画面と分けるため、PC では下端に置く。 */}
+			<div className="flex flex-1 md:mt-auto md:mb-3 md:w-full md:flex-none">
+				<NavLink href="/settings" active={section === "settings"} icon={SETTINGS_ICON}>
+					設定
+				</NavLink>
+			</div>
 		</nav>
 	);
 }

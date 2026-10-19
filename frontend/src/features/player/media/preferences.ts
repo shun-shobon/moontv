@@ -14,12 +14,19 @@ const PreferencesSchema = v.object({
 export type Preferences = v.InferOutput<typeof PreferencesSchema>;
 
 /** 字幕は既定で出さない（TR-B14 第2巻 6.4）。 */
-const DEFAULT_PREFERENCES: Preferences = {
+export const DEFAULT_PREFERENCES: Preferences = {
 	quality: "1080p",
 	codec: "auto",
 	ambient: true,
 	captions: false,
 };
+
+/** 項目を足したときに比べ忘れないよう、既定値の隣に置く。 */
+export const isDefaultPreferences = ({ quality, codec, ambient, captions }: Preferences) =>
+	quality === DEFAULT_PREFERENCES.quality &&
+	codec === DEFAULT_PREFERENCES.codec &&
+	ambient === DEFAULT_PREFERENCES.ambient &&
+	captions === DEFAULT_PREFERENCES.captions;
 
 export const loadPreferences = (): Preferences => {
 	try {

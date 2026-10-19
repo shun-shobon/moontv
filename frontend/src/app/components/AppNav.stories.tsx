@@ -14,4 +14,6 @@ export const Live: Story = { args: { section: "live" } };
 
 export const Guide: Story = { args: { section: "guide" } };
 
+export const Settings: Story = { args: { section: "settings" } };
+
 export const NoSection: Story = { args: { section: null } };

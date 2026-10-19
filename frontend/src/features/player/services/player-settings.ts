@@ -7,6 +7,8 @@ const CODEC_LABELS: Record<Preferences["codec"], string> = {
 	h264: "H.264",
 };
 
+export const codecLabel = (codec: Codec) => CODEC_LABELS[codec];
+
 export const codecOptions = (codecs: readonly Codec[]): Preferences["codec"][] => [
 	"auto",
 	...codecs,

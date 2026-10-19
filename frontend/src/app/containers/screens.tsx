@@ -6,6 +6,7 @@ import type { Routes } from "universal-router";
 import { programsQuery } from "../../features/guide/api/queries";
 import { resolveGuideDay } from "../../features/guide/services/guide-layout";
 import { recordingQuery, recordingsQuery } from "../../features/recording/api/queries";
+import { tunersQuery } from "../../features/settings/api/queries";
 import { channelsQuery, schedulesQuery, statusQuery } from "../../shared/api/queries";
 import { StatusMessage } from "../../shared/components/StatusMessage";
 import { DAY_MS, startOfBroadcastDay } from "../../shared/domain/time";
@@ -134,6 +135,19 @@ const routes: Routes<Screen | Redirect> = [
 				return null;
 			}
 			return { section: "recording", page: <RecordingPlayerPage programId={programId} /> };
+		},
+	},
+	{
+		path: "/settings",
+		action: async ({ queryClient }) => {
+			const [{ SettingsPage }] = await Promise.all([
+				import("../../features/settings/containers/SettingsPage"),
+				queryClient.query({ ...statusQuery, staleTime: "static" }),
+				queryClient.query({ ...channelsQuery, staleTime: "static" }),
+				// チューナーの情報が取れなくても、再生の設定は変えられるようにする。
+				queryClient.query({ ...tunersQuery, staleTime: "static" }).catch(() => null),
+			]);
+			return { section: "settings", page: <SettingsPage /> };
 		},
 	},
 ];
