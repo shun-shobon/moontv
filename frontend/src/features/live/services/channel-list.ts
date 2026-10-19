@@ -1,9 +1,5 @@
 import type { Channel } from "../../../shared/api/schemas";
 
-const TYPE_LABELS: Record<string, string> = { GR: "地デジ", BS: "BS", CS: "CS", SKY: "スカパー" };
-
-export const channelTypeLabel = (type: string) => TYPE_LABELS[type] ?? type;
-
 /** サブチャンネルは臨時編成のときしか放送しないので、放送中の番組がなければ出さない。 */
 export const listedChannels = (channels: readonly Channel[], activeId: number | null) =>
 	channels.filter((c) => !c.isSubchannel || c.present != null || c.id === activeId);

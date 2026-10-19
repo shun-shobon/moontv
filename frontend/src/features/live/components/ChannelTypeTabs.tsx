@@ -1,5 +1,5 @@
 import { SegmentedControl } from "../../../shared/components/SegmentedControl";
-import { channelTypeLabel } from "../services/channel-list";
+import { channelTypeLabel } from "../../../shared/domain/channel-type";
 
 type Props = {
 	types: readonly string[];
