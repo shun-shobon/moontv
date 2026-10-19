@@ -5,6 +5,9 @@ use reqwest::{StatusCode, Url};
 use serde::{Deserialize, Serialize};
 
 const STREAM_OPEN_TIMEOUT: Duration = Duration::from_secs(15);
+const USER_AGENT: &str = concat!("moontv/", env!("CARGO_PKG_VERSION"));
+/// mirakc はチューナーの利用者を接続元と User-Agent でしか示さないので、どの配信かを User-Agent に入れて見分ける。
+const SESSION_AGENT_PREFIX: &str = concat!("moontv/", env!("CARGO_PKG_VERSION"), " session/");
 
 #[derive(Clone)]
 pub struct MirakcClient {
@@ -108,7 +111,46 @@ pub enum ScheduleState {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Tuner {
+    pub index: usize,
+    pub name: String,
     pub types: Vec<String>,
+    pub users: Vec<TunerUser>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct TunerUser {
+    /// `recorder:program#<番組 ID>` や `job:<名前>` など。外部からの視聴では接続元のアドレス。
+    pub id: String,
+    pub agent: Option<String>,
+}
+
+pub enum TunerUserKind<'a> {
+    /// moontv の配信。値はセッション ID。
+    Session(u64),
+    /// 値は番組 ID。
+    Recording(u64),
+    /// mirakc が番組情報を取るための受信。
+    Epg,
+    Other(&'a str),
+}
+
+impl TunerUser {
+    pub fn kind(&self) -> TunerUserKind<'_> {
+        if let Some(id) = self.agent.as_deref().and_then(|a| a.strip_prefix(SESSION_AGENT_PREFIX))
+            && let Ok(id) = id.parse()
+        {
+            return TunerUserKind::Session(id);
+        }
+        if let Some(id) = self.id.strip_prefix("recorder:program#")
+            && let Ok(id) = id.parse()
+        {
+            return TunerUserKind::Recording(id);
+        }
+        if self.id.starts_with("job:") || self.id.starts_with("onair-program-tracker:") {
+            return TunerUserKind::Epg;
+        }
+        TunerUserKind::Other(self.agent.as_deref().unwrap_or(&self.id))
+    }
 }
 
 #[derive(Debug)]
@@ -132,7 +174,7 @@ impl MirakcClient {
     pub fn new(base: Url) -> Result<Self> {
         let http = reqwest::Client::builder()
             .connect_timeout(Duration::from_secs(5))
-            .user_agent(concat!("moontv/", env!("CARGO_PKG_VERSION")))
+            .user_agent(USER_AGENT)
             .build()
             .context("failed to build HTTP client")?;
         Ok(Self { http, base })
@@ -313,10 +355,14 @@ impl MirakcClient {
         Ok(Some(res.bytes().await.context("failed to read mirakc logo")?))
     }
 
-    pub async fn open_stream(&self, service_id: u64) -> Result<reqwest::Response, OpenStreamError> {
+    pub async fn open_stream(&self, service_id: u64, session_id: u64) -> Result<reqwest::Response, OpenStreamError> {
         let req = self
             .http
             .get(self.url(&format!("/api/services/{service_id}/stream")))
+            .header(
+                reqwest::header::USER_AGENT,
+                format!("{SESSION_AGENT_PREFIX}{session_id}"),
+            )
             .send();
         let res = tokio::time::timeout(STREAM_OPEN_TIMEOUT, req)
             .await

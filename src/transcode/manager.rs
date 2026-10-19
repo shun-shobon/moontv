@@ -8,9 +8,10 @@ use anyhow::{Result, anyhow};
 use serde::Serialize;
 
 use super::encoder::EncoderSetup;
+use super::profile::{AudioTrack, Codec, Quality};
 use super::session::{self, LiveKey, LiveSession};
-use crate::catalog::Catalog;
-use crate::mirakc::{ChannelInfo, MirakcClient, OpenStreamError};
+use crate::catalog::{Catalog, ProgramDto};
+use crate::mirakc::{ChannelInfo, MirakcClient, OpenStreamError, TunerUser, TunerUserKind};
 
 /// プレイヤーはセグメント長(1秒)ごとにプレイリストを取りに来るので、これだけ途絶えたら視聴終了とみなす。
 const VIEWER_TIMEOUT: Duration = Duration::from_secs(20);
@@ -37,6 +38,43 @@ pub enum EndReason {
     Evicted,
     /// 録画がチューナーを使っている。
     Recording,
+}
+
+#[derive(Serialize)]
+pub struct TunerDto {
+    index: usize,
+    name: String,
+    types: Vec<String>,
+    users: Vec<TunerUserDto>,
+}
+
+#[derive(Serialize)]
+pub struct TunerUserDto {
+    /// mirakc が振る利用者の ID。チューナーの中で一意。
+    id: String,
+    #[serde(flatten)]
+    usage: TunerUsageDto,
+}
+
+#[derive(Serialize)]
+#[serde(tag = "kind", rename_all = "camelCase", rename_all_fields = "camelCase")]
+pub enum TunerUsageDto {
+    Live {
+        service_id: u64,
+        codec: Codec,
+        quality: Quality,
+        audio: AudioTrack,
+        viewers: usize,
+    },
+    /// 番組情報のキャッシュに無い番組は None。
+    Recording {
+        program: Option<ProgramDto>,
+    },
+    Epg,
+    /// moontv 以外のクライアントや、再起動前の moontv の配信。
+    Other {
+        name: String,
+    },
 }
 
 pub enum AcquireError {
@@ -158,7 +196,7 @@ impl SessionManager {
         let deadline = tokio::time::Instant::now() + TUNER_RELEASE_WAIT;
         let mut waited = false;
         loop {
-            match self.mirakc.open_stream(session.key.service_id).await {
+            match self.mirakc.open_stream(session.key.service_id, session.id).await {
                 Ok(stream) => return Ok(stream),
                 Err(OpenStreamError::Other(e)) => return Err(e),
                 Err(OpenStreamError::TunerUnavailable) => {
@@ -232,6 +270,58 @@ impl SessionManager {
             .filter(|t| t.types.iter().any(|ty| ty == channel_type))
             .flat_map(|t| t.types)
             .collect())
+    }
+
+    pub async fn tuners(&self) -> Result<Vec<TunerDto>> {
+        let tuners = self.mirakc.tuners().await?;
+        let mut dtos = Vec::with_capacity(tuners.len());
+        for tuner in tuners {
+            let mut users = Vec::with_capacity(tuner.users.len());
+            for user in &tuner.users {
+                users.push(self.describe_tuner_user(user).await?);
+            }
+            dtos.push(TunerDto {
+                index: tuner.index,
+                name: tuner.name,
+                types: tuner.types,
+                users,
+            });
+        }
+        Ok(dtos)
+    }
+
+    async fn describe_tuner_user(&self, user: &TunerUser) -> Result<TunerUserDto> {
+        let usage = match user.kind() {
+            TunerUserKind::Session(id) => self.live_usage(id).unwrap_or_else(|| TunerUsageDto::Other {
+                name: user.agent.clone().unwrap_or_default(),
+            }),
+            TunerUserKind::Recording(program_id) => TunerUsageDto::Recording {
+                program: self.catalog.cached_program(program_id).await?,
+            },
+            TunerUserKind::Epg => TunerUsageDto::Epg,
+            TunerUserKind::Other(name) => TunerUsageDto::Other { name: name.to_owned() },
+        };
+        Ok(TunerUserDto {
+            id: user.id.clone(),
+            usage,
+        })
+    }
+
+    fn live_usage(&self, session_id: u64) -> Option<TunerUsageDto> {
+        let session = self
+            .sessions
+            .lock()
+            .unwrap()
+            .values()
+            .find(|s| s.id == session_id)
+            .cloned()?;
+        Some(TunerUsageDto::Live {
+            service_id: session.key.service_id,
+            codec: session.key.codec,
+            quality: session.key.quality,
+            audio: session.key.audio,
+            viewers: session.viewers().len(),
+        })
     }
 
     pub fn end_reason(&self, key: LiveKey, viewer: &str) -> Option<EndReason> {

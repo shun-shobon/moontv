@@ -193,6 +193,12 @@ impl Catalog {
         }))
     }
 
+    /// 放送中の番組はキャッシュにあるので、mirakc に1件ずつ問い合わせない。
+    pub async fn cached_program(&self, id: u64) -> Result<Option<ProgramDto>> {
+        let snapshot = self.snapshot().await?;
+        Ok(snapshot.programs.iter().find(|p| p.id == id).map(to_dto))
+    }
+
     pub async fn logo(&self, service_id: u64) -> Result<Option<bytes::Bytes>> {
         self.mirakc.logo(service_id).await
     }

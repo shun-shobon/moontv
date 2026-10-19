@@ -30,6 +30,7 @@ pub struct AppState {
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/api/status", get(status))
+        .route("/api/tuners", get(tuners))
         .route("/api/channels", get(channels))
         .route("/api/channels/{id}/logo", get(logo))
         .route("/api/programs", get(programs))
@@ -100,6 +101,10 @@ async fn status(State(state): State<AppState>) -> ApiResult<Json<StatusDto>> {
         recording: state.recorder.is_enabled().await?,
         library: state.library.is_some(),
     }))
+}
+
+async fn tuners(State(state): State<AppState>) -> ApiResult<impl IntoResponse> {
+    Ok(Json(state.sessions.tuners().await?))
 }
 
 fn now_ms() -> i64 {
