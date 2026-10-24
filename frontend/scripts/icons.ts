@@ -20,6 +20,8 @@ const rounded = icon(`<rect width="32" height="32" rx="8" fill="${night}"/>`, 1)
 const apple = icon(`<rect width="32" height="32" fill="${night}"/>`, 1);
 // マスカブルは中心から半径 40% の円に収める。
 const maskable = icon(`<rect width="32" height="32" fill="${night}"/>`, 0.84);
+// Android TV のホーム画面はアプリを 16:9 のバナーで並べる。
+const banner = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 36"><rect width="64" height="36" fill="${night}"/><g transform="translate(32 18) scale(0.9) translate(-16 -15.6)">${glyph}</g></svg>\n`;
 
 const png = (svg: string, size: number) =>
 	new Resvg(svg, { fitTo: { mode: "width", value: size } }).render().asPng();
@@ -44,3 +46,5 @@ writeFileSync("public/icon-192.png", png(rounded, 192));
 writeFileSync("public/icon-512.png", png(rounded, 512));
 writeFileSync("public/apple-touch-icon.png", png(apple, 180));
 writeFileSync("public/icon-mask.png", png(maskable, 512));
+writeFileSync("../tv/assets/icon.png", png(apple, 1024));
+writeFileSync("../tv/assets/tv-banner.png", png(banner, 320));

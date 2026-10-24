@@ -1,0 +1,9 @@
+{
+	"extends": ["expo/tsconfig.base.json", "@tsconfig/strictest/tsconfig.json"],
+	"compilerOptions": {
+		"lib": ["ESNext"],
+		"exactOptionalPropertyTypes": false,
+		"verbatimModuleSyntax": true
+	},
+	"include": ["index.ts", "src", "modules", "*.config.ts"]
+}

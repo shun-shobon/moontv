@@ -1,0 +1,6 @@
+{
+	"platforms": ["android"],
+	"android": {
+		"modules": ["tech.s2n.moontv.player.PlayerModule"]
+	}
+}

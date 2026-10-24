@@ -1,0 +1,4 @@
+# expo prebuild が app.json から生成する。
+/android/
+/.expo/
+/modules/*/android/build/

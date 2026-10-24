@@ -3,6 +3,8 @@ node = "24.21.0"
 pnpm = "12.11.0"
 rust = { version = "1.99.0", components = "clippy,rustfmt" }
 uv = "0.12.24"
+# TV アプリ（tv/）の Android ビルドに使う。
+java = "temurin-17.0.19+10"
 
 [settings]
 lockfile = true
@@ -30,4 +32,19 @@ run = [
   "pnpm -C frontend typecheck",
   "pnpm -C frontend test",
   "pnpm -C frontend knip",
+  "pnpm -C tv format:check",
+  "pnpm -C tv lint",
+  "pnpm -C tv typecheck",
+  "pnpm -C tv test",
+]
+
+[tasks."tv:install"]
+description = "Build the Google TV app and install it on the device connected with adb"
+dir = "tv"
+env = { ANDROID_HOME = "{{ get_env(name='ANDROID_HOME', default=env.HOME ~ '/Library/Android/sdk') }}" }
+run = [
+  "pnpm install --frozen-lockfile",
+  "pnpm prebuild",
+  "cd android && ./gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a",
+  "adb install -r android/app/build/outputs/apk/release/app-release.apk",
 ]

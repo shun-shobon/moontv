@@ -9,9 +9,10 @@
 | Storybook | `pnpm -C frontend storybook`（`http://localhost:6006`） |
 | 字幕の変換表の生成 | `python3 -I scripts/gen-caption-tables.py <libaribcaption のチェックアウト>`（`src/caption/tables/generated.rs` を書き出す。出典のコミットはファイルの先頭にある） |
 | 字幕のフォントの生成 | `uv run --locked --script scripts/gen-caption-fonts.py <元フォントを置いたディレクトリ>`（`frontend/src/features/player/media/fonts` にフォント2つと、追加記号の字形を並べた `caption-symbols.svg` を書き出す。元フォントのファイル名と入手先はスクリプトの先頭にある） |
-| アイコンの生成 | `pnpm -C frontend icons`（`frontend/scripts/icons.ts` の図形から `frontend/public` のアイコン一式を書き出す） |
+| アイコンの生成 | `pnpm -C frontend icons`（`frontend/scripts/icons.ts` の図形から `frontend/public` のアイコン一式と、TV アプリのアイコン・バナー（`tv/assets`）を書き出す） |
 | 全検査 | `mise run check`（story の描画テストに Chromium を使う。初回は `pnpm -C frontend exec playwright install chromium-headless-shell`） |
 | リリースビルド | `mise run build` |
+| TV アプリのビルドと導入 | `mise run tv:install`（`adb connect <TV のアドレス>:5555` で接続しておく。Android SDK は `ANDROID_HOME`、無ければ `~/Library/Android/sdk` を使う） |
 
 `cargo build` は `frontend/dist` を埋め込むため、リリースビルドの前に `pnpm -C frontend build` が必要です。デバッグビルドは実行時に `frontend/dist` を読みます。
 
@@ -35,7 +36,9 @@
 | `frontend/src/features/settings` | 設定ページ（再生の設定、チューナーの使用状況、ブラウザーとサーバーの情報） |
 | `frontend/src/shared` | 複数の feature で使う Web 専用の部品、ルート定義、URL |
 | `frontend/.storybook` | Storybook の設定と、story が共有する fixture・デコレーター |
-| `packages/core` | Web と TV アプリで共有する、画面に依存しない部分（`api` 通信とスキーマ・react-query のクエリ、`domain` 時刻や表示名などの規則と視聴設定の形、`services` 配信の選び方・状態の文言など）。DOM と React Native のどちらの API も使わない |
+| `tv/src` | Google TV アプリ（React Native・Expo）の画面。層の分け方は `frontend/src` と同じ |
+| `tv/modules/player` | TV アプリの再生部品とコーデック判定（Kotlin・Media3 の Expo モジュール） |
+| `packages/core` | Web と TV アプリで共有する、画面に依存しない部分（`api` 通信とスキーマ・react-query のクエリ、`domain` 時刻や表示名などの規則と視聴設定の形、`services` 配信の選び方・状態の文言など、`hooks` 配信セッションの開始・終了）。DOM と React Native のどちらの API も使わない |
 
 `app`・各 feature・`shared` の中は次の層に分ける。依存方向は `frontend/oxlint.config.ts` の `no-restricted-imports` で強制し、`shared` は feature と `app` を、feature は `app` を参照しない。
 
@@ -67,4 +70,7 @@ TV アプリでも使うロジックは `packages/core` に置き、`@moontv/cor
 - 色と文字は `frontend/src/index.css` の semantic token（`--color-*`、`--text-*`）だけを使う。文字のサイズ・太さ・行間は `text-title` などの役割名1つで指定する。Tailwind 既定の値は無効にしてあり、`bg-zinc-900` や `text-sm`、`font-semibold` などは書いても生成されない。
 - 重なり順も `frontend/src/index.css` の `--z-index-*` の役割名（`z-nav` など）で指定する。数値の `z-10` や `z-[999]` は Tailwind が生成してしまうため、`pnpm -C frontend lint` で弾く。部品の中だけで重ねる値は、部品の根に `isolate` を付けて閉じる。
 - 押す・選ぶ・開く部品は `react-aria-components` で組み、状態は `data-hovered`・`data-pressed`・`data-selected` などで装飾する。キーボードフォーカスの表示は `focus-ring` ユーティリティを使う。
+- TV アプリは `react-native-tvos`（React Native の TV 対応フォーク）と Expo で作り、`tv/android` は `expo prebuild` で `tv/app.json` から生成する（git 管理外）。再生は Media3 を直接使う自前のモジュールにしている。既製の再生ライブラリは字幕の ID3 PRIV の中身を JS に渡さないため。
+- TV アプリは armeabi-v7a だけをビルドする。手元の TV（Xiaomi・Android 14・RAM 1.8GB）が 32bit の ARM しか動かせないため。画面は 960×540dp として組む。
+- TV アプリのリモコンのキーは離したとき（`remoteKeyUp`）だけ扱う。押しっぱなしでチャンネルを次々に切り替え、配信を立ち上げ続けないようにするため。
 - 実機確認は `mirakc` に接続できる環境で行う。チューナーを占有するので、検証後はセッションを止める。

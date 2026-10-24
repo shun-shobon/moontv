@@ -1,0 +1,22 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'tech.s2n.moontv'
+version = '0.1.0'
+
+android {
+  namespace "tech.s2n.moontv.player"
+  defaultConfig {
+    versionCode 1
+    versionName "0.1.0"
+  }
+}
+
+dependencies {
+  def media3Version = "1.9.1"
+  implementation "androidx.media3:media3-exoplayer:${media3Version}"
+  implementation "androidx.media3:media3-exoplayer-hls:${media3Version}"
+  implementation "androidx.media3:media3-ui:${media3Version}"
+}

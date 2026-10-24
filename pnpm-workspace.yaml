@@ -1,5 +1,6 @@
 packages:
   - frontend
+  - tv
   - packages/*
 minimumReleaseAge: 4320
 saveExact: true
