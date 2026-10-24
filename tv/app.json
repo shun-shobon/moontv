@@ -1,0 +1,21 @@
+{
+	"expo": {
+		"name": "moontv",
+		"slug": "moontv",
+		"version": "0.1.0",
+		"orientation": "landscape",
+		"userInterfaceStyle": "dark",
+		"backgroundColor": "#0b0b0e",
+		"icon": "./assets/icon.png",
+		"android": {
+			"package": "tech.s2n.moontv"
+		},
+		"plugins": [
+			[
+				"@react-native-tvos/config-tv",
+				{ "isTV": true, "androidTVBanner": "./assets/tv-banner.png" }
+			],
+			["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+		]
+	}
+}

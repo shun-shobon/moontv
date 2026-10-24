@@ -1,6 +1,7 @@
 import "@videojs/react/i18n/locales/ja/register";
 import type { Audio, AudioTrack, Status } from "@moontv/core/api/schemas";
 import { masterPlaylistUrl } from "@moontv/core/api/urls";
+import { useLiveSession } from "@moontv/core/hooks/useLiveSession";
 import { resolveCodec, resolveQuality } from "@moontv/core/services/stream-selection";
 import { I18nProvider } from "@videojs/react/i18n";
 import { LiveVideoPlayer } from "@videojs/react/live-video";
@@ -10,7 +11,7 @@ import { LivePlayerView } from "../components/LivePlayerView";
 import { browserSupports } from "../media/codec-support";
 import type { NowPlaying } from "../media/media-session";
 import { createViewerId } from "../media/viewer-id";
-import { useLiveSession } from "./hooks/useLiveSession";
+import { useLeaveOnPageHide } from "./hooks/useLeaveOnPageHide";
 import { useMediaSession } from "./hooks/useMediaSession";
 import { usePreferences } from "./hooks/usePreferences";
 
@@ -32,6 +33,7 @@ export function LivePlayer({ serviceId, status, nowPlaying, audios }: Props) {
 	const audio = audioChoice?.serviceId === serviceId ? audioChoice.audio : "main";
 	const target = { serviceId, codec, quality, audio, viewerId };
 	const session = useLiveSession(target, attempt);
+	useLeaveOnPageHide(target);
 	useMediaSession(nowPlaying);
 
 	return (

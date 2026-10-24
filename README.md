@@ -56,6 +56,19 @@ moontv --mirakc-url http://<mirakc のホスト>:40772
 
 ログの詳細度は `RUST_LOG` で変えられます（例: `RUST_LOG=debug` で ffmpeg の出力も表示）。
 
+## Google TV アプリ
+
+`tv/` に Google TV（Android TV）向けのアプリがあります。今はライブ視聴（チャンネル一覧、チャンネルの上下キーでの切り替え）と接続先の設定ができます。
+
+TV の開発者向けオプションで USB デバッグ（ネットワーク経由）を有効にしてから、次のようにビルドして入れます。Android SDK（Android Studio に付属）が要ります。
+
+```sh
+adb connect <TV のアドレス>:5555
+mise run tv:install
+```
+
+初回起動時に moontv サーバーのアドレスを入力します。ポートを省くと 40780 を使います。
+
 ## チューナーの使い方
 
 - 同じチャンネル・同じ画質を見ている人同士は1つのエンコードを共有します。
