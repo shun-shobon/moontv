@@ -1,8 +1,9 @@
-import type { Codec, Quality } from "../../../shared/api/schemas";
+import type { Codec, Quality } from "@moontv/core/api/schemas";
+import { codecOptionLabel, codecOptions } from "@moontv/core/services/player-settings";
+
 import { Button } from "../../../shared/components/Button";
 import { SegmentedControl } from "../../../shared/components/SegmentedControl";
 import type { Preferences } from "../../player/media/preferences";
-import { codecOptionLabel, codecOptions } from "../../player/services/player-settings";
 import { SettingRow } from "./SettingRow";
 import { SwitchRow } from "./SwitchRow";
 

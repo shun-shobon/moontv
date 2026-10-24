@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Channel, Program } from "../../../shared/api/schemas";
+import type { Channel, Program } from "../api/schemas";
 import { describeTunerUser, tunerTypesLabel } from "./tuner-usage";
 
 const channels = new Map([[1024, channel(1024, "テレビ総合")]]);

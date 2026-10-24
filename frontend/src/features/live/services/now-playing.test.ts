@@ -1,6 +1,6 @@
+import type { Channel, Program } from "@moontv/core/api/schemas";
 import { describe, expect, it } from "vitest";
 
-import type { Channel, Program } from "../../../shared/api/schemas";
 import { nowPlayingOf } from "./now-playing";
 
 describe("nowPlayingOf", () => {

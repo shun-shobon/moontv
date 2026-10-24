@@ -1,8 +1,8 @@
+import { HOUR_MS, MINUTE_MS } from "@moontv/core/domain/time";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn } from "storybook/test";
 
 import { DAY_END, DAY_START, NOW, program } from "../../../../.storybook/fixtures";
-import { HOUR_MS, MINUTE_MS } from "../../../shared/domain/time";
 import { COLUMN_WIDTH_PX, toPx } from "../services/guide-layout";
 import { ProgramCell } from "./ProgramCell";
 

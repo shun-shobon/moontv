@@ -1,4 +1,4 @@
-import { HOUR_MS, MINUTE_MS } from "../../../shared/domain/time";
+import { HOUR_MS, MINUTE_MS } from "./time";
 
 /** 録画の長さを「1時間5分」のように分単位で表す。放送の前後にずれる数秒で番組の長さと食い違わないよう、四捨五入する。 */
 export const formatDuration = (ms: number) => {

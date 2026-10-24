@@ -1,8 +1,6 @@
+import type { Channel, Tuner } from "@moontv/core/api/schemas";
+import { describeTunerUser, tunerTypesLabel } from "@moontv/core/services/tuner-usage";
 import { clsx } from "clsx";
-
-import type { Channel } from "../../../shared/api/schemas";
-import type { Tuner } from "../api/schemas";
-import { describeTunerUser, tunerTypesLabel } from "../services/tuner-usage";
 
 type Props = {
 	tuners: readonly Tuner[];

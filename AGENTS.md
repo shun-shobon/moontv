@@ -33,8 +33,9 @@
 | `frontend/src/features/guide` | 番組表と番組詳細（録画予約の操作を含む） |
 | `frontend/src/features/recording` | 録画と録画予約の一覧、録画の再生画面 |
 | `frontend/src/features/settings` | 設定ページ（再生の設定、チューナーの使用状況、ブラウザーとサーバーの情報） |
-| `frontend/src/shared` | 複数の feature で使う API クライアント・スキーマ、時刻の規則、ルート定義、部品 |
+| `frontend/src/shared` | 複数の feature で使う Web 専用の部品、ルート定義、URL |
 | `frontend/.storybook` | Storybook の設定と、story が共有する fixture・デコレーター |
+| `packages/core` | Web と TV アプリで共有する、画面に依存しない部分（`api` 通信とスキーマ・react-query のクエリ、`domain` 時刻や表示名などの規則と視聴設定の形、`services` 配信の選び方・状態の文言など）。DOM と React Native のどちらの API も使わない |
 
 `app`・各 feature・`shared` の中は次の層に分ける。依存方向は `frontend/oxlint.config.ts` の `no-restricted-imports` で強制し、`shared` は feature と `app` を、feature は `app` を参照しない。
 
@@ -45,6 +46,8 @@
 | `hooks/` | 外部とつながない UI 用のフック |
 | `services/` | UI に紐づくロジック。React に依存させず、`*.test.ts` で検証する |
 | `api/`・`domain/`・`media/` | API の通信とスキーマ、UI に依存しない規則、ブラウザーの機能と storage |
+
+TV アプリでも使うロジックは `packages/core` に置き、`@moontv/core/<層>/<ファイル>` で import する。
 
 ## 設計上の前提
 

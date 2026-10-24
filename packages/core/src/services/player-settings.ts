@@ -1,7 +1,7 @@
-import type { Audio, AudioTrack, Codec } from "../../../shared/api/schemas";
-import type { Preferences } from "../media/preferences";
+import type { Audio, AudioTrack, Codec } from "../api/schemas";
+import type { CodecPreference } from "../domain/preferences";
 
-const CODEC_LABELS: Record<Preferences["codec"], string> = {
+const CODEC_LABELS: Record<CodecPreference, string> = {
 	auto: "自動",
 	hevc: "HEVC",
 	h264: "H.264",
@@ -9,13 +9,10 @@ const CODEC_LABELS: Record<Preferences["codec"], string> = {
 
 export const codecLabel = (codec: Codec) => CODEC_LABELS[codec];
 
-export const codecOptions = (codecs: readonly Codec[]): Preferences["codec"][] => [
-	"auto",
-	...codecs,
-];
+export const codecOptions = (codecs: readonly Codec[]): CodecPreference[] => ["auto", ...codecs];
 
 /** 自動選択の結果を利用者が確かめられるよう、実際に使っているコーデックを添える。 */
-export const codecOptionLabel = (option: Preferences["codec"], activeCodec: Codec) =>
+export const codecOptionLabel = (option: CodecPreference, activeCodec: Codec) =>
 	option === "auto" ? `自動 (${CODEC_LABELS[activeCodec]})` : CODEC_LABELS[option];
 
 const TRACK_LABELS: Record<AudioTrack, string> = {

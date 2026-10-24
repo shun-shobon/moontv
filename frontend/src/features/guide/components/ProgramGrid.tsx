@@ -1,4 +1,5 @@
-import type { Channel, Program, ScheduleState } from "../../../shared/api/schemas";
+import type { Channel, Program, ScheduleState } from "@moontv/core/api/schemas";
+
 import {
 	COLUMN_WIDTH_PX,
 	DAY_HEIGHT_PX,

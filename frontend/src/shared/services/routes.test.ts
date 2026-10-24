@@ -1,6 +1,6 @@
+import { startOfBroadcastDay } from "@moontv/core/domain/time";
 import { describe, expect, it } from "vitest";
 
-import { startOfBroadcastDay } from "../domain/time";
 import { guidePath, parseGuideDate, parseServiceId, watchPath } from "./routes";
 
 describe("parseServiceId", () => {

@@ -1,5 +1,6 @@
+import { channelTypeLabel } from "@moontv/core/domain/channel-type";
+
 import { SegmentedControl } from "../../../shared/components/SegmentedControl";
-import { channelTypeLabel } from "../../../shared/domain/channel-type";
 
 type Props = {
 	types: readonly string[];

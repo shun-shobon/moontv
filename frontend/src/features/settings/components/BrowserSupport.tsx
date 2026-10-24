@@ -1,5 +1,6 @@
-import type { Codec } from "../../../shared/api/schemas";
-import { codecLabel } from "../../player/services/player-settings";
+import type { Codec } from "@moontv/core/api/schemas";
+import { codecLabel } from "@moontv/core/services/player-settings";
+
 import { InfoList } from "./InfoList";
 
 type Props = { support: readonly { codec: Codec; playable: boolean }[] };

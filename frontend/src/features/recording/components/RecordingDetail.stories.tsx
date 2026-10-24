@@ -1,7 +1,7 @@
+import { HOUR_MS } from "@moontv/core/domain/time";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { program } from "../../../../.storybook/fixtures";
-import { HOUR_MS } from "../../../shared/domain/time";
 import { RecordingDetail } from "./RecordingDetail";
 
 const meta = {

@@ -1,7 +1,7 @@
-import { formatMarks } from "../../../shared/domain/program-marks";
-import { formatDate, formatRange } from "../../../shared/domain/time";
-import type { Recording } from "../api/schemas";
-import { formatDuration } from "../domain/duration";
+import type { Recording } from "@moontv/core/api/schemas";
+import { formatDuration } from "@moontv/core/domain/duration";
+import { formatMarks } from "@moontv/core/domain/program-marks";
+import { formatDate, formatRange } from "@moontv/core/domain/time";
 
 type Props = { recording: Recording; channelName: string | undefined };
 

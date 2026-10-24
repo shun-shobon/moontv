@@ -1,4 +1,4 @@
-import type { Channel } from "../../../shared/api/schemas";
+import type { Channel } from "../api/schemas";
 
 /** サブチャンネルは臨時編成のときしか放送しないので、放送中の番組がなければ出さない。 */
 export const listedChannels = (channels: readonly Channel[], activeId: number | null) =>

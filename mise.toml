@@ -10,7 +10,7 @@ lockfile = true
 [tasks.build]
 description = "Build the frontend and embed it into the release binary"
 run = [
-  "pnpm -C frontend install --frozen-lockfile",
+  "pnpm install --frozen-lockfile",
   "pnpm -C frontend build",
   "cargo build --release",
 ]
@@ -21,6 +21,10 @@ run = [
   "cargo fmt --check",
   "cargo clippy --all-targets -- -D warnings",
   "cargo test",
+  "pnpm -C packages/core format:check",
+  "pnpm -C packages/core lint",
+  "pnpm -C packages/core typecheck",
+  "pnpm -C packages/core test",
   "pnpm -C frontend format:check",
   "pnpm -C frontend lint",
   "pnpm -C frontend typecheck",

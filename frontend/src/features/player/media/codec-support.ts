@@ -1,4 +1,4 @@
-import type { Codec } from "../../../shared/api/schemas";
+import type { Codec } from "@moontv/core/api/schemas";
 
 /** 1080p まで再生できるかを見るため、配信で最も高いレベルの文字列で判定する。 */
 const PROBE_TYPES: Record<Codec, string> = {

@@ -1,9 +1,9 @@
+import { HOUR_MS } from "@moontv/core/domain/time";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
 import { channel, program } from "../../../../.storybook/fixtures";
 import { Button } from "../../../shared/components/Button";
-import { HOUR_MS } from "../../../shared/domain/time";
 import { ProgramCard } from "./ProgramCard";
 
 const meta = {

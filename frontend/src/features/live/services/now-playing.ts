@@ -1,4 +1,5 @@
-import type { Channel } from "../../../shared/api/schemas";
+import type { Channel } from "@moontv/core/api/schemas";
+
 import { channelArtworkUrl } from "../../../shared/api/urls";
 import type { NowPlaying } from "../../player/media/media-session";
 

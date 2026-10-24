@@ -1,12 +1,12 @@
-import type { Codec, Quality, Status } from "../../../shared/api/schemas";
-import type { Preferences } from "../media/preferences";
+import type { Codec, Quality, Status } from "../api/schemas";
+import type { CodecPreference } from "../domain/preferences";
 
 /** サーバーが提供する画質に保存済みの画質がなければ、どの環境でも重すぎない画質にする。 */
 const FALLBACK_QUALITY: Quality = "720p";
 
 /** `status.codecs` はサーバーが圧縮効率の高い HEVC から並べるので、自動選択では再生できる先頭を使う。 */
 export const resolveCodec = (
-	preference: Preferences["codec"],
+	preference: CodecPreference,
 	status: Status,
 	isPlayable: (codec: Codec) => boolean,
 ): Codec => {

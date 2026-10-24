@@ -1,7 +1,6 @@
-import type { Channel } from "../../../shared/api/schemas";
-import { channelTypeLabel } from "../../../shared/domain/channel-type";
-import { codecLabel } from "../../player/services/player-settings";
-import type { Tuner, TunerUser } from "../api/schemas";
+import type { Channel, Tuner, TunerUser } from "../api/schemas";
+import { channelTypeLabel } from "../domain/channel-type";
+import { codecLabel } from "./player-settings";
 
 export type TunerUsage = {
 	/** 何のための受信か。 */

@@ -1,4 +1,4 @@
-import type { ScheduleState } from "../../../shared/api/schemas";
+import type { ScheduleState } from "../api/schemas";
 
 export type ReservationAction = { label: string; scheduled: boolean };
 

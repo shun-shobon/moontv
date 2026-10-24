@@ -1,10 +1,10 @@
+import type { Program, ScheduleState } from "@moontv/core/api/schemas";
+import { formatMarks } from "@moontv/core/domain/program-marks";
+import { SCHEDULE_SHORT_LABELS } from "@moontv/core/domain/schedule";
+import { formatTime } from "@moontv/core/domain/time";
 import { clsx } from "clsx";
 import { Button } from "react-aria-components";
 
-import type { Program, ScheduleState } from "../../../shared/api/schemas";
-import { formatMarks } from "../../../shared/domain/program-marks";
-import { SCHEDULE_SHORT_LABELS } from "../../../shared/domain/schedule";
-import { formatTime } from "../../../shared/domain/time";
 import { genreStyle } from "../domain/genre";
 import { programBox, programEnd } from "../services/guide-layout";
 

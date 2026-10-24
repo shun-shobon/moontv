@@ -1,6 +1,6 @@
-import type { Channel } from "../../../shared/api/schemas";
-import { formatMarks } from "../../../shared/domain/program-marks";
-import { formatRange } from "../../../shared/domain/time";
+import type { Channel } from "@moontv/core/api/schemas";
+import { formatMarks } from "@moontv/core/domain/program-marks";
+import { formatRange } from "@moontv/core/domain/time";
 
 export function NowPlaying({ channel }: { channel: Channel | undefined }) {
 	const present = channel?.present;
