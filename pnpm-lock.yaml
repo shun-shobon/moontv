@@ -350,6 +350,9 @@ importers:
       react-native:
         specifier: npm:react-native-tvos@0.88.0-0
         version: react-native-tvos@0.88.0-0(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.3.0)(react-native-tvos@0.88.0-0)(react@19.3.0)(supports-color@8.1.1)
+      valibot:
+        specifier: 1.5.0
+        version: 1.5.0(typescript@7.0.2)
     devDependencies:
       '@shun-shobon/oxfmt-config':
         specifier: 7.1.0

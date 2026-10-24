@@ -11,6 +11,8 @@ type NativeModule = {
 
 export type PlayerViewProps = ViewProps & {
 	source: string | null;
+	/** 文字スーパー（速報など）はこの値によらず出す。 */
+	showCaption: boolean;
 	onPlaybackState?: (event: NativeSyntheticEvent<{ state: PlaybackState }>) => void;
 	onPlaybackError?: (event: NativeSyntheticEvent<{ message: string }>) => void;
 };

@@ -16,6 +16,10 @@ class PlayerModule : Module() {
         view.setSource(source)
       }
 
+      Prop("showCaption") { view: MoontvPlayerView, show: Boolean ->
+        view.showCaption = show
+      }
+
       OnViewDestroys { view -> view.release() }
     }
   }

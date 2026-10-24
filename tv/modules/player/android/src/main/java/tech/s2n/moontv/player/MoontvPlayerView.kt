@@ -1,11 +1,14 @@
 package tech.s2n.moontv.player
 
 import android.content.Context
+import android.util.Log
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.extractor.metadata.id3.PrivFrame
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import expo.modules.kotlin.AppContext
@@ -32,6 +35,8 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
   }
 
+  private val captionView = CaptionView(context)
+
   private val player = ExoPlayer.Builder(context).build().apply {
     playWhenReady = true
     addListener(object : Player.Listener {
@@ -43,6 +48,16 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
         playerView.keepScreenOn = isPlaying
       }
 
+      // Media3 は emsg の ID3 を、再生位置がその時刻に達したときに渡す。
+      override fun onMetadata(metadata: Metadata) {
+        for (i in 0 until metadata.length()) {
+          val frame = metadata.get(i)
+          if (frame is PrivFrame && frame.owner == CaptionState.OWNER) {
+            showCaptionPayload(String(frame.privateData, Charsets.UTF_8))
+          }
+        }
+      }
+
       override fun onPlayerError(error: PlaybackException) {
         onPlaybackError(mapOf("message" to (error.message ?: error.errorCodeName)))
       }
@@ -50,9 +65,20 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
   }
 
   private var source: String? = null
+  /** サーバーは字幕が変わらなくても毎秒送り直すので、同じ内容は解析し直さない。 */
+  private var captionPayload: String? = null
+
+  var showCaption: Boolean
+    get() = captionView.showCaption
+    set(value) {
+      captionView.showCaption = value
+    }
 
   init {
     playerView.player = player
+    // 映像の比率に合わせて大きさが決まる枠に重ね、字幕プレーンを映像の表示領域いっぱいに広げる。
+    playerView.findViewById<AspectRatioFrameLayout>(androidx.media3.ui.R.id.exo_content_frame)
+      .addView(captionView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
     addView(playerView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
   }
 
@@ -70,6 +96,8 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
       return
     }
     source = next
+    captionPayload = null
+    captionView.state = null
     if (next == null) {
       player.stop()
       player.clearMediaItems()
@@ -79,8 +107,25 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
     player.prepare()
   }
 
+  private fun showCaptionPayload(payload: String) {
+    if (payload == captionPayload) {
+      return
+    }
+    captionPayload = payload
+    captionView.state = try {
+      CaptionState.parse(payload)
+    } catch (e: org.json.JSONException) {
+      Log.w(TAG, "invalid caption payload", e)
+      null
+    }
+  }
+
   fun release() {
     player.release()
+  }
+
+  private companion object {
+    const val TAG = "MoontvPlayer"
   }
 
   private fun stateName(state: Int) = when (state) {

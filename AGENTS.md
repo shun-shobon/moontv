@@ -8,7 +8,7 @@
 | フロントエンドの開発サーバー | `pnpm -C frontend dev`（`/api` を `127.0.0.1:40780` へプロキシ） |
 | Storybook | `pnpm -C frontend storybook`（`http://localhost:6006`） |
 | 字幕の変換表の生成 | `python3 -I scripts/gen-caption-tables.py <libaribcaption のチェックアウト>`（`src/caption/tables/generated.rs` を書き出す。出典のコミットはファイルの先頭にある） |
-| 字幕のフォントの生成 | `uv run --locked --script scripts/gen-caption-fonts.py <元フォントを置いたディレクトリ>`（`frontend/src/features/player/media/fonts` にフォント2つと、追加記号の字形を並べた `caption-symbols.svg` を書き出す。元フォントのファイル名と入手先はスクリプトの先頭にある） |
+| 字幕のフォントの生成 | `uv run --locked --script scripts/gen-caption-fonts.py <元フォントを置いたディレクトリ>`（`frontend/src/features/player/media/fonts` に Web 用のフォント2つと、追加記号の字形を並べた `caption-symbols.svg` を、`tv/modules/player/android/src/main/assets/fonts` に TV 用の同じフォントを書き出す。元フォントのファイル名と入手先はスクリプトの先頭にある） |
 | アイコンの生成 | `pnpm -C frontend icons`（`frontend/scripts/icons.ts` の図形から `frontend/public` のアイコン一式と、TV アプリのアイコン・バナー（`tv/assets`）を書き出す） |
 | 全検査 | `mise run check`（story の描画テストに Chromium を使う。初回は `pnpm -C frontend exec playwright install chromium-headless-shell`） |
 | リリースビルド | `mise run build` |
@@ -71,6 +71,7 @@ TV アプリでも使うロジックは `packages/core` に置き、`@moontv/cor
 - 重なり順も `frontend/src/index.css` の `--z-index-*` の役割名（`z-nav` など）で指定する。数値の `z-10` や `z-[999]` は Tailwind が生成してしまうため、`pnpm -C frontend lint` で弾く。部品の中だけで重ねる値は、部品の根に `isolate` を付けて閉じる。
 - 押す・選ぶ・開く部品は `react-aria-components` で組み、状態は `data-hovered`・`data-pressed`・`data-selected` などで装飾する。キーボードフォーカスの表示は `focus-ring` ユーティリティを使う。
 - TV アプリは `react-native-tvos`（React Native の TV 対応フォーク）と Expo で作り、`tv/android` は `expo prebuild` で `tv/app.json` から生成する（git 管理外）。再生は Media3 を直接使う自前のモジュールにしている。既製の再生ライブラリは字幕の ID3 PRIV の中身を JS に渡さないため。
+- TV アプリの字幕は Kotlin（`tv/modules/player` の `CaptionView`、`caption-canvas.ts` の移植）で描く。RN の Text は縁取りを描けないため。Media3 は ID3 を表示時刻に達したときに渡すので、hls.js 版のような時刻の突き合わせは要らない。描き方を変えるときは Web と TV を揃える。
 - TV アプリは armeabi-v7a だけをビルドする。手元の TV（Xiaomi・Android 14・RAM 1.8GB）が 32bit の ARM しか動かせないため。画面は 960×540dp として組む。
 - TV アプリのリモコンのキーは離したとき（`remoteKeyUp`）だけ扱う。押しっぱなしでチャンネルを次々に切り替え、配信を立ち上げ続けないようにするため。
 - 実機確認は `mirakc` に接続できる環境で行う。チューナーを占有するので、検証後はセッションを止める。
