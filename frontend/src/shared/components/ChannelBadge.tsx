@@ -1,5 +1,5 @@
-import type { Channel } from "../api/schemas";
-import { logoUrl } from "../api/urls";
+import type { Channel } from "@moontv/core/api/schemas";
+import { logoUrl } from "@moontv/core/api/urls";
 
 export function ChannelBadge({ channel }: { channel: Channel }) {
 	if (channel.hasLogo) {

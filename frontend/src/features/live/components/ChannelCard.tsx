@@ -1,10 +1,10 @@
+import type { Channel } from "@moontv/core/api/schemas";
+import { formatMarks } from "@moontv/core/domain/program-marks";
+import { formatRange } from "@moontv/core/domain/time";
 import { clsx } from "clsx";
 import { Link } from "react-aria-components";
 
-import type { Channel } from "../../../shared/api/schemas";
 import { ChannelBadge } from "../../../shared/components/ChannelBadge";
-import { formatMarks } from "../../../shared/domain/program-marks";
-import { formatRange } from "../../../shared/domain/time";
 import { cardClassName } from "../../../shared/services/card-style";
 import { watchPath } from "../../../shared/services/routes";
 

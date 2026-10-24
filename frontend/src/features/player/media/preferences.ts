@@ -1,24 +1,20 @@
+import {
+	DEFAULT_PLAYBACK_PREFERENCES,
+	PlaybackPreferencesSchema,
+} from "@moontv/core/domain/preferences";
 import * as v from "valibot";
-
-import { CodecSchema, QualitySchema } from "../../../shared/api/schemas";
 
 const STORAGE_KEY = "moontv.preferences";
 
 const PreferencesSchema = v.object({
-	quality: QualitySchema,
-	codec: v.union([v.literal("auto"), CodecSchema]),
+	...PlaybackPreferencesSchema.entries,
 	ambient: v.boolean(),
-	// 後から足した項目なので、保存済みの設定に無くても他の項目を捨てずに読めるようにする。
-	captions: v.optional(v.boolean(), false),
 });
 export type Preferences = v.InferOutput<typeof PreferencesSchema>;
 
-/** 字幕は既定で出さない（TR-B14 第2巻 6.4）。 */
 export const DEFAULT_PREFERENCES: Preferences = {
-	quality: "1080p",
-	codec: "auto",
+	...DEFAULT_PLAYBACK_PREFERENCES,
 	ambient: true,
-	captions: false,
 };
 
 /** 項目を足したときに比べ忘れないよう、既定値の隣に置く。 */

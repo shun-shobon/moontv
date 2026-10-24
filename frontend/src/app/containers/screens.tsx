@@ -1,15 +1,20 @@
+import {
+	programsQuery,
+	recordingQuery,
+	recordingsQuery,
+	tunersQuery,
+	channelsQuery,
+	schedulesQuery,
+	statusQuery,
+} from "@moontv/core/api/queries";
+import { DAY_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
 import type { QueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import UniversalRouter from "universal-router";
 import type { Routes } from "universal-router";
 
-import { programsQuery } from "../../features/guide/api/queries";
 import { resolveGuideDay } from "../../features/guide/services/guide-layout";
-import { recordingQuery, recordingsQuery } from "../../features/recording/api/queries";
-import { tunersQuery } from "../../features/settings/api/queries";
-import { channelsQuery, schedulesQuery, statusQuery } from "../../shared/api/queries";
 import { StatusMessage } from "../../shared/components/StatusMessage";
-import { DAY_MS, startOfBroadcastDay } from "../../shared/domain/time";
 import {
 	guidePath,
 	parseGuideDate,

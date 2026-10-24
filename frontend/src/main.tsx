@@ -1,4 +1,5 @@
 import "./index.css";
+import { setServerUrl } from "@moontv/core/api/urls";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { flushSync } from "react-dom";
@@ -9,6 +10,8 @@ import type { Redirect, Screen } from "./app/containers/screens";
 import { LOADING_SCREEN, loadScreen } from "./app/containers/screens";
 import { interceptNavigations } from "./app/services/navigation";
 import { createStore } from "./app/services/store";
+
+setServerUrl(window.location.origin);
 
 const queryClient = new QueryClient({
 	defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: true } },

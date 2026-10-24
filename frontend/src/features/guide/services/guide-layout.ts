@@ -1,5 +1,5 @@
-import type { Channel, Program } from "../../../shared/api/schemas";
-import { DAY_MS, HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "../../../shared/domain/time";
+import type { Channel, Program } from "@moontv/core/api/schemas";
+import { DAY_MS, HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
 
 const PX_PER_MINUTE = 3;
 export const COLUMN_WIDTH_PX = 176;

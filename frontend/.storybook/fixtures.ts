@@ -1,5 +1,5 @@
-import type { Channel, Program } from "../src/shared/api/schemas";
-import { HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "../src/shared/domain/time";
+import type { Channel, Program } from "@moontv/core/api/schemas";
+import { HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
 
 /** 実行日によって表示が変わらないよう、時刻を固定する。 */
 export const NOW = new Date(2026, 9, 14, 20, 15).getTime();

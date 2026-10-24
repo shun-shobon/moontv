@@ -1,5 +1,6 @@
-import type { Status } from "../../../shared/api/schemas";
-import { codecLabel } from "../../player/services/player-settings";
+import type { Status } from "@moontv/core/api/schemas";
+import { codecLabel } from "@moontv/core/services/player-settings";
+
 import { InfoList } from "./InfoList";
 
 const ENCODER_LABELS: Record<string, string> = {

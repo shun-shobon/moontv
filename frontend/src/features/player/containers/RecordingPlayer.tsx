@@ -1,9 +1,9 @@
 import "@videojs/react/i18n/locales/ja/register";
+import { recordingPlaylistUrl } from "@moontv/core/api/urls";
 import { I18nProvider } from "@videojs/react/i18n";
 import { VideoPlayer } from "@videojs/react/video";
 import { useState } from "react";
 
-import { recordingPlaylistUrl } from "../api/urls";
 import { RecordingPlayerView } from "../components/RecordingPlayerView";
 import type { NowPlaying } from "../media/media-session";
 import { useMediaSession } from "./hooks/useMediaSession";

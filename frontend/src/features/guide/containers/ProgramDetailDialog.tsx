@@ -1,6 +1,6 @@
-import { useScheduleMutation, useSchedules, useStatus } from "../../../shared/api/queries";
-import type { Channel, Program } from "../../../shared/api/schemas";
-import { useProgram } from "../api/queries";
+import { useScheduleMutation, useSchedules, useStatus, useProgram } from "@moontv/core/api/queries";
+import type { Channel, Program } from "@moontv/core/api/schemas";
+
 import { ProgramDialog } from "../components/ProgramDialog";
 
 type Props = {

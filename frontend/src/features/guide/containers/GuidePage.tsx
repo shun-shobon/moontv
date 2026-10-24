@@ -1,12 +1,11 @@
+import { useChannels, useSchedules, useStatus, usePrograms } from "@moontv/core/api/queries";
+import type { Program } from "@moontv/core/api/schemas";
+import { DAY_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
 import { useCallback, useMemo, useState } from "react";
 
-import { useChannels, useSchedules, useStatus } from "../../../shared/api/queries";
-import type { Program } from "../../../shared/api/schemas";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
-import { DAY_MS, startOfBroadcastDay } from "../../../shared/domain/time";
 import { useNow } from "../../../shared/hooks/useNow";
 import { guidePath } from "../../../shared/services/routes";
-import { usePrograms } from "../api/queries";
 import { DayTabs } from "../components/DayTabs";
 import { ProgramGrid } from "../components/ProgramGrid";
 import { guideColumns, initialScrollTop, selectableDays } from "../services/guide-layout";

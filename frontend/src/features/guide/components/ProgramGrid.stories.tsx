@@ -1,8 +1,8 @@
+import { DAY_MS } from "@moontv/core/domain/time";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
 import { CHANNELS, DAY_END, DAY_START, NOW, dayPrograms } from "../../../../.storybook/fixtures";
-import { DAY_MS } from "../../../shared/domain/time";
 import { ProgramGrid } from "./ProgramGrid";
 
 const channels = CHANNELS.filter((c) => !c.isSubchannel);

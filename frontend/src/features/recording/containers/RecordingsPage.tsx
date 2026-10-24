@@ -1,19 +1,19 @@
-import { useMemo, useState } from "react";
-
 import {
 	useChannels,
+	useDeleteRecording,
+	useRecordings,
 	useScheduleMutation,
 	useSchedules,
 	useStatus,
-} from "../../../shared/api/queries";
-import type { ScheduleState } from "../../../shared/api/schemas";
+} from "@moontv/core/api/queries";
+import type { RecordingState, ScheduleState } from "@moontv/core/api/schemas";
+import { SCHEDULE_LABELS } from "@moontv/core/domain/schedule";
+import { useMemo, useState } from "react";
+
 import { Button } from "../../../shared/components/Button";
 import { SegmentedControl } from "../../../shared/components/SegmentedControl";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
-import { SCHEDULE_LABELS } from "../../../shared/domain/schedule";
 import { recordingPath } from "../../../shared/services/routes";
-import { useDeleteRecording, useRecordings } from "../api/queries";
-import type { RecordingState } from "../api/schemas";
 import { DeleteRecordingButton } from "../components/DeleteRecordingButton";
 import type { CardStatus } from "../components/ProgramCard";
 import { ProgramCard } from "../components/ProgramCard";

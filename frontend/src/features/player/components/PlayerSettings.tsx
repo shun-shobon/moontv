@@ -1,15 +1,19 @@
+import type { Audio, AudioTrack, Codec, Quality } from "@moontv/core/api/schemas";
+import {
+	audioOptionLabel,
+	codecOptionLabel,
+	codecOptions,
+} from "@moontv/core/services/player-settings";
 import { GearIcon } from "@videojs/react/icons";
 import { usePlayer } from "@videojs/react/live-video";
 import { useEffect, useState } from "react";
 import { Button, Menu, MenuTrigger, Popover, Separator } from "react-aria-components";
 import { useUNSAFE_PortalContext } from "react-aria/PortalProvider";
 
-import type { Audio, AudioTrack, Codec, Quality } from "../../../shared/api/schemas";
 import { Sheet } from "../../../shared/components/Sheet";
 import { useMediaQuery } from "../../../shared/hooks/useMediaQuery";
 import { PHONE_MEDIA_QUERY } from "../../../shared/services/breakpoints";
 import type { Preferences } from "../media/preferences";
-import { audioOptionLabel, codecOptionLabel, codecOptions } from "../services/player-settings";
 import { OptionGroup } from "./OptionGroup";
 import { ToggleOption } from "./ToggleOption";
 

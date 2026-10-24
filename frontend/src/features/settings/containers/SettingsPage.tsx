@@ -1,13 +1,12 @@
+import { useChannels, useStatus, useTuners } from "@moontv/core/api/queries";
+import { CodecSchema } from "@moontv/core/api/schemas";
+import { resolveCodec } from "@moontv/core/services/stream-selection";
 import { useMemo } from "react";
 
-import { useChannels, useStatus } from "../../../shared/api/queries";
-import { CodecSchema } from "../../../shared/api/schemas";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
 import { usePreferences } from "../../player/containers/hooks/usePreferences";
 import { browserSupports } from "../../player/media/codec-support";
 import { DEFAULT_PREFERENCES, isDefaultPreferences } from "../../player/media/preferences";
-import { resolveCodec } from "../../player/services/stream-selection";
-import { useTuners } from "../api/queries";
 import { BrowserSupport } from "../components/BrowserSupport";
 import { PlaybackSettings } from "../components/PlaybackSettings";
 import { ServerInfo } from "../components/ServerInfo";

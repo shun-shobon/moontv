@@ -1,16 +1,15 @@
+import type { Channel, Program, ScheduleState, ProgramDetail } from "@moontv/core/api/schemas";
+import { formatMarks } from "@moontv/core/domain/program-marks";
+import { SCHEDULE_LABELS } from "@moontv/core/domain/schedule";
+import { formatDate, formatRange, isOnAir } from "@moontv/core/domain/time";
+import { reservationAction } from "@moontv/core/services/reservation";
 import { Dialog, Heading } from "react-aria-components";
 
-import type { Channel, Program, ScheduleState } from "../../../shared/api/schemas";
 import { Button } from "../../../shared/components/Button";
 import { ButtonLink } from "../../../shared/components/ButtonLink";
 import { Sheet } from "../../../shared/components/Sheet";
-import { formatMarks } from "../../../shared/domain/program-marks";
-import { SCHEDULE_LABELS } from "../../../shared/domain/schedule";
-import { formatDate, formatRange, isOnAir } from "../../../shared/domain/time";
 import { watchPath } from "../../../shared/services/routes";
-import type { ProgramDetail } from "../api/schemas";
 import { genreStyle } from "../domain/genre";
-import { reservationAction } from "../services/reservation";
 
 export type Reservation = {
 	state: ScheduleState | null;

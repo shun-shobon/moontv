@@ -1,13 +1,13 @@
+import type { Channel, Program } from "@moontv/core/api/schemas";
+import { formatDuration } from "@moontv/core/domain/duration";
+import { formatMarks } from "@moontv/core/domain/program-marks";
+import { formatDate, formatRange } from "@moontv/core/domain/time";
 import { clsx } from "clsx";
 import type { ReactElement } from "react";
 import { Link } from "react-aria-components";
 
-import type { Channel, Program } from "../../../shared/api/schemas";
 import { ChannelBadge } from "../../../shared/components/ChannelBadge";
-import { formatMarks } from "../../../shared/domain/program-marks";
-import { formatDate, formatRange } from "../../../shared/domain/time";
 import { cardClassName } from "../../../shared/services/card-style";
-import { formatDuration } from "../domain/duration";
 
 export type CardStatus = { label: string; tone: "accent" | "muted" };
 

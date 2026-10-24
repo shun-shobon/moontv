@@ -1,8 +1,7 @@
-import type { Channel } from "./schemas";
+import type { Channel } from "@moontv/core/api/schemas";
+import { logoUrl } from "@moontv/core/api/urls";
 
 const APP_ICON_URL = "/icon-512.png";
-
-export const logoUrl = (serviceId: number) => `/api/channels/${serviceId}/logo`;
 
 /** OS のメディア表示に出す画像。ロゴのないチャンネルではアプリのアイコンを使う。 */
 export const channelArtworkUrl = (channel: Channel | undefined) =>

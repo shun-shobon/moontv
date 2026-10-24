@@ -1,5 +1,6 @@
+import { formatDate } from "@moontv/core/domain/time";
+
 import { SegmentedControl } from "../../../shared/components/SegmentedControl";
-import { formatDate } from "../../../shared/domain/time";
 
 type Props = {
 	days: readonly number[];

@@ -1,0 +1,38 @@
+{
+	"name": "@moontv/core",
+	"version": "0.1.0",
+	"private": true,
+	"description": "moontv の Web と TV アプリで共有する API クライアントと規則",
+	"license": "MIT",
+	"author": "NISHIZAWA Shuntaro <me@s2n.tech>",
+	"type": "module",
+	"exports": {
+		"./*": "./src/*.ts"
+	},
+	"scripts": {
+		"format": "oxfmt",
+		"format:check": "oxfmt --check",
+		"lint": "oxlint",
+		"lint:fix": "oxlint --fix",
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit -p tsconfig.json"
+	},
+	"dependencies": {
+		"valibot": "1.5.0"
+	},
+	"devDependencies": {
+		"@shun-shobon/oxfmt-config": "7.1.0",
+		"@shun-shobon/oxlint-config": "7.1.0",
+		"@tanstack/react-query": "5.104.1",
+		"@tsconfig/strictest": "2.0.8",
+		"@types/node": "24.19.1",
+		"oxfmt": "0.72.0",
+		"oxlint": "1.87.0",
+		"oxlint-tsgolint": "7.0.2003",
+		"typescript": "7.0.2",
+		"vitest": "5.0.3"
+	},
+	"peerDependencies": {
+		"@tanstack/react-query": "5.104.1"
+	}
+}

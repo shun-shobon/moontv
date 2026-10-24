@@ -1,6 +1,5 @@
+import { startOfBroadcastDay } from "@moontv/core/domain/time";
 import * as v from "valibot";
-
-import { startOfBroadcastDay } from "../domain/time";
 
 const ServiceIdSchema = v.pipe(v.string(), v.digits(), v.transform(Number));
 

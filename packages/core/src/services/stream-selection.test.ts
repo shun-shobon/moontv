@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Codec, Status } from "../../../shared/api/schemas";
+import type { Codec, Status } from "../api/schemas";
 import { resolveCodec, resolveQuality } from "./stream-selection";
 
 describe("resolveCodec", () => {

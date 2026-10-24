@@ -1,12 +1,16 @@
+import {
+	useChannels,
+	useDeleteRecording,
+	useRecording,
+	useRecordings,
+} from "@moontv/core/api/queries";
 import { Suspense, lazy, useMemo } from "react";
 
-import { useChannels } from "../../../shared/api/queries";
 import { channelArtworkUrl } from "../../../shared/api/urls";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
 import { WatchLayout } from "../../../shared/components/WatchLayout";
 import { recordingPath } from "../../../shared/services/routes";
 import { PlayerPlaceholder } from "../../player/components/PlayerPlaceholder";
-import { useDeleteRecording, useRecording, useRecordings } from "../api/queries";
 import { DeleteRecordingButton } from "../components/DeleteRecordingButton";
 import { ProgramCard } from "../components/ProgramCard";
 import { RecordingDetail } from "../components/RecordingDetail";

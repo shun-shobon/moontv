@@ -1,9 +1,9 @@
+import type { LivePhase } from "@moontv/core/services/live-session";
 import { BufferingIndicator, Container } from "@videojs/react";
 import { SpinnerIcon } from "@videojs/react/icons";
 import { useState } from "react";
 import { UNSAFE_PortalProvider } from "react-aria/PortalProvider";
 
-import type { LivePhase } from "../services/live-session";
 import { AmbientGlow } from "./AmbientGlow";
 import { CenterPlayButton } from "./CenterPlayButton";
 import { LiveMedia } from "./LiveMedia";

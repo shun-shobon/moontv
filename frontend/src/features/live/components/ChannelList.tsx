@@ -1,7 +1,11 @@
+import type { Channel } from "@moontv/core/api/schemas";
+import {
+	channelTypes,
+	currentChannelType,
+	listedChannels,
+} from "@moontv/core/services/channel-list";
 import { useState } from "react";
 
-import type { Channel } from "../../../shared/api/schemas";
-import { channelTypes, currentChannelType, listedChannels } from "../services/channel-list";
 import { ChannelCard } from "./ChannelCard";
 import { ChannelTypeTabs } from "./ChannelTypeTabs";
 

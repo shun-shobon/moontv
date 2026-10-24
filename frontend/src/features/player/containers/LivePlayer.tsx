@@ -1,15 +1,15 @@
 import "@videojs/react/i18n/locales/ja/register";
+import type { Audio, AudioTrack, Status } from "@moontv/core/api/schemas";
+import { masterPlaylistUrl } from "@moontv/core/api/urls";
+import { resolveCodec, resolveQuality } from "@moontv/core/services/stream-selection";
 import { I18nProvider } from "@videojs/react/i18n";
 import { LiveVideoPlayer } from "@videojs/react/live-video";
 import { useState } from "react";
 
-import type { Audio, AudioTrack, Status } from "../../../shared/api/schemas";
-import { masterPlaylistUrl } from "../api/urls";
 import { LivePlayerView } from "../components/LivePlayerView";
 import { browserSupports } from "../media/codec-support";
 import type { NowPlaying } from "../media/media-session";
 import { createViewerId } from "../media/viewer-id";
-import { resolveCodec, resolveQuality } from "../services/stream-selection";
 import { useLiveSession } from "./hooks/useLiveSession";
 import { useMediaSession } from "./hooks/useMediaSession";
 import { usePreferences } from "./hooks/usePreferences";

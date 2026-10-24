@@ -65,3 +65,54 @@ export const ScheduleSchema = v.object({
 	program: ProgramSchema,
 });
 export type Schedule = v.InferOutput<typeof ScheduleSchema>;
+
+export const ProgramDetailSchema = v.object({
+	...ProgramSchema.entries,
+	extended: v.array(v.object({ key: v.string(), value: v.string() })),
+});
+export type ProgramDetail = v.InferOutput<typeof ProgramDetailSchema>;
+
+export const RecordingStateSchema = v.picklist(["recording", "converting", "ready", "failed"]);
+export type RecordingState = v.InferOutput<typeof RecordingStateSchema>;
+
+export const RecordingSchema = v.object({
+	program: ProgramSchema,
+	state: RecordingStateSchema,
+	/** 変換に失敗した理由。 */
+	error: v.nullable(v.string()),
+	durationMs: v.nullable(v.number()),
+});
+export type Recording = v.InferOutput<typeof RecordingSchema>;
+
+/** `id` は mirakc が振る利用者の ID で、チューナーの中で一意。 */
+export const TunerUserSchema = v.variant("kind", [
+	v.object({
+		id: v.string(),
+		kind: v.literal("live"),
+		serviceId: v.number(),
+		codec: CodecSchema,
+		quality: QualitySchema,
+		audio: AudioTrackSchema,
+		viewers: v.number(),
+	}),
+	/** 番組情報が手元に無ければ null。 */
+	v.object({ id: v.string(), kind: v.literal("recording"), program: v.nullable(ProgramSchema) }),
+	v.object({ id: v.string(), kind: v.literal("epg") }),
+	/** moontv 以外のクライアント。`name` は User-Agent か接続元。 */
+	v.object({ id: v.string(), kind: v.literal("other"), name: v.string() }),
+]);
+export type TunerUser = v.InferOutput<typeof TunerUserSchema>;
+
+export const TunerSchema = v.object({
+	index: v.number(),
+	name: v.string(),
+	types: v.array(v.string()),
+	users: v.array(TunerUserSchema),
+});
+export type Tuner = v.InferOutput<typeof TunerSchema>;
+
+export const LiveEndSchema = v.object({
+	/** 視聴者が止めたのではない視聴の終わり方。チューナーを別の視聴に譲ったか、録画に使われている。 */
+	reason: v.nullable(v.picklist(["evicted", "recording"])),
+});
+export type EndReason = NonNullable<v.InferOutput<typeof LiveEndSchema>["reason"]>;

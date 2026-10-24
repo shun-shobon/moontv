@@ -1,6 +1,6 @@
+import { useChannels, useStatus } from "@moontv/core/api/queries";
 import { Suspense, lazy, useEffect } from "react";
 
-import { useChannels, useStatus } from "../../../shared/api/queries";
 import { StatusMessage } from "../../../shared/components/StatusMessage";
 import { WatchLayout } from "../../../shared/components/WatchLayout";
 import { PlayerPlaceholder } from "../../player/components/PlayerPlaceholder";

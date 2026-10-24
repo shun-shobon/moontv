@@ -1,0 +1,14 @@
+{
+	"extends": ["@tsconfig/strictest/tsconfig.json"],
+	"compilerOptions": {
+		"target": "es2023",
+		"lib": ["es2023"],
+		"module": "preserve",
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"exactOptionalPropertyTypes": false,
+		"verbatimModuleSyntax": true,
+		"types": ["node"]
+	},
+	"include": ["src", "*.config.ts"]
+}

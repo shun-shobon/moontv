@@ -1,7 +1,7 @@
+import type { Channel, Program } from "@moontv/core/api/schemas";
+import { DAY_MS, HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
 import { describe, expect, it } from "vitest";
 
-import type { Channel, Program } from "../../../shared/api/schemas";
-import { DAY_MS, HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "../../../shared/domain/time";
 import {
 	guideColumns,
 	initialScrollTop,

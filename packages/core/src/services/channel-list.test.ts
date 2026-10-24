@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Channel, Program } from "../../../shared/api/schemas";
+import type { Channel, Program } from "../api/schemas";
 import { channelTypes, currentChannelType, listedChannels } from "./channel-list";
 
 describe("listedChannels", () => {
