@@ -2,11 +2,18 @@ import type { Channel } from "@moontv/core/api/schemas";
 import { channelTypeLabel } from "@moontv/core/domain/channel-type";
 import { formatMarks } from "@moontv/core/domain/program-marks";
 import { formatRange } from "@moontv/core/domain/time";
+import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors, SAFE_INSET, text } from "../../../shared/theme";
 
-export function ChannelBanner({ channel }: { channel: Channel }) {
+type Props = {
+	channel: Channel;
+	/** 番組情報の下に並べる操作。 */
+	actions?: ReactNode;
+};
+
+export function ChannelBanner({ channel, actions }: Props) {
 	const { present, following } = channel;
 	return (
 		<View style={styles.banner}>
@@ -27,6 +34,7 @@ export function ChannelBanner({ channel }: { channel: Channel }) {
 					次　{formatRange(following.startAt, following.duration)}　{following.name}
 				</Text>
 			)}
+			{actions != null && <View style={styles.actions}>{actions}</View>}
 		</View>
 	);
 }
@@ -47,4 +55,5 @@ const styles = StyleSheet.create({
 	program: { ...text.title, color: colors.fg },
 	meta: { ...text.label, color: colors.fgSecondary },
 	next: { ...text.label, color: colors.fgSubtle },
+	actions: { flexDirection: "row", gap: 12, marginTop: 12 },
 });

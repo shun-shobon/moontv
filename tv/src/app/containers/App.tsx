@@ -5,6 +5,7 @@ import { AppState, StatusBar, StyleSheet, View } from "react-native";
 
 import { WatchScreen } from "../../features/player/containers/WatchScreen";
 import { SetupScreen } from "../../features/setup/containers/SetupScreen";
+import { preferencesQuery } from "../../shared/containers/hooks/usePreferences";
 import { loadServerUrl } from "../../shared/media/server-url";
 import { colors } from "../../shared/theme";
 import type { Tab } from "../components/TabBar";
@@ -25,6 +26,8 @@ export function App() {
 	const active = useIsAppActive();
 
 	useEffect(() => {
+		// 視聴を始めてから設定が読み込まれると、画質やコーデックが変わって配信を作り直すことになる。
+		queryClient.query(preferencesQuery).catch(() => undefined);
 		void loadServerUrl().then((url) => {
 			if (url != null) {
 				setServerUrl(url);

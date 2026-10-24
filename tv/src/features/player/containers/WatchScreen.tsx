@@ -16,11 +16,11 @@ type Props = {
 export function WatchScreen({ serviceId, onChangeChannel, onExit }: Props) {
 	const status = useStatus();
 	const channels = useChannels();
-	useBackHandler(onExit);
-
 	const listed = channels.data == null ? [] : listedChannels(channels.data, serviceId);
 	const index = listed.findIndex((c) => c.id === serviceId);
 	const channel = listed[index];
+	// 再生中の戻るキーは、メニューを閉じるかを決める LivePlayer が受ける。
+	useBackHandler(status.data == null || channel == null ? onExit : null);
 
 	return (
 		<View style={styles.container}>
@@ -32,6 +32,7 @@ export function WatchScreen({ serviceId, onChangeChannel, onExit }: Props) {
 				<LivePlayer
 					channel={channel}
 					status={status.data}
+					onExit={onExit}
 					onZap={(direction) => {
 						const next = listed[(index + direction + listed.length) % listed.length];
 						if (next != null) {

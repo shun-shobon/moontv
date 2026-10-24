@@ -26,7 +26,8 @@
 		"expo-build-properties": "58.0.11",
 		"expo-crypto": "58.0.7",
 		"react": "19.3.0",
-		"react-native": "npm:react-native-tvos@0.88.0-0"
+		"react-native": "npm:react-native-tvos@0.88.0-0",
+		"valibot": "1.5.0"
 	},
 	"devDependencies": {
 		"@shun-shobon/oxfmt-config": "7.1.0",

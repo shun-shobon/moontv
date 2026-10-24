@@ -30,6 +30,7 @@ from fontTools.ttLib import TTFont
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TABLES = ROOT / "src/caption/tables/generated.rs"
 OUT = ROOT / "frontend/src/features/player/media/fonts"
+TV_OUT = ROOT / "tv/modules/player/android/src/main/assets/fonts"
 MGEN = "rounded-mgenplus-1c-regular.ttf"
 NOTO = ["NotoSansSymbols2-Regular.ttf", "NotoSansSymbols[wght].ttf"]
 SOURCES = {
@@ -324,6 +325,9 @@ def build(
     font.flavor = "woff2"
     font.save(out)
     print(f"{out.relative_to(ROOT)}: {len(codes)} 字, {out.stat().st_size} bytes")
+    # Android は WOFF2 を読めないので、TV アプリには TrueType で置く。
+    font.flavor = None
+    font.save(TV_OUT / out.with_suffix(".ttf").name)
     return codes
 
 
@@ -396,6 +400,7 @@ def main() -> None:
         return set(glyphs)
 
     OUT.mkdir(parents=True, exist_ok=True)
+    TV_OUT.mkdir(parents=True, exist_ok=True)
     drawn = build(mgen(), symbols, "moontv Caption Symbols", OUT / "caption-symbols.woff2", add_symbols)
     # 記号のフォントは書体の候補の先頭なので、そこにある字は本文のフォントに要らない。
     text = (basic | kanji | printable_ascii | drcs) - drawn
