@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { AppState, StatusBar, StyleSheet, View } from "react-native";
 
+import type { GuidePosition } from "../../features/guide/containers/GuideTab";
 import { WatchScreen } from "../../features/player/containers/WatchScreen";
 import { SetupScreen } from "../../features/setup/containers/SetupScreen";
 import { preferencesQuery } from "../../shared/containers/hooks/usePreferences";
@@ -17,12 +18,18 @@ const queryClient = new QueryClient({
 
 type Route =
 	| { name: "setup" }
-	| { name: "home"; tab: Tab; focusId: number | null }
-	| { name: "watch"; serviceId: number };
+	| { name: "home"; tab: Tab; focusId: number | null; guidePosition: GuidePosition | null }
+	// 視聴から戻ったときに、元のタブの同じ位置を開く。
+	| { name: "watch"; serviceId: number; from: Tab; guidePosition: GuidePosition | null };
 
 export function App() {
 	const [serverUrl, setServerUrlState] = useState<string | null | undefined>(undefined);
-	const [route, setRoute] = useState<Route>({ name: "home", tab: "live", focusId: null });
+	const [route, setRoute] = useState<Route>({
+		name: "home",
+		tab: "live",
+		focusId: null,
+		guidePosition: null,
+	});
 	const active = useIsAppActive();
 
 	useEffect(() => {
@@ -37,11 +44,16 @@ export function App() {
 	}, []);
 
 	const exitWatch = useCallback(() => {
-		setRoute((current) => ({
-			name: "home",
-			tab: "live",
-			focusId: current.name === "watch" ? current.serviceId : null,
-		}));
+		setRoute((current) =>
+			current.name === "watch"
+				? {
+						name: "home",
+						tab: current.from,
+						focusId: current.serviceId,
+						guidePosition: current.guidePosition,
+					}
+				: { name: "home", tab: "live", focusId: null, guidePosition: null },
+		);
 	}, []);
 
 	const content = () => {
@@ -56,7 +68,7 @@ export function App() {
 						// 別のサーバーの番組やチャンネルを混ぜない。
 						queryClient.clear();
 						setServerUrlState(url);
-						setRoute({ name: "home", tab: "live", focusId: null });
+						setRoute({ name: "home", tab: "live", focusId: null, guidePosition: null });
 					}}
 				/>
 			);
@@ -67,7 +79,7 @@ export function App() {
 				<WatchScreen
 					serviceId={route.serviceId}
 					onChangeChannel={(serviceId) => {
-						setRoute({ name: "watch", serviceId });
+						setRoute({ ...route, serviceId });
 					}}
 					onExit={exitWatch}
 				/>
@@ -78,11 +90,12 @@ export function App() {
 				serverUrl={serverUrl}
 				tab={route.tab}
 				focusId={route.focusId}
+				guidePosition={route.guidePosition}
 				onSelectTab={(tab) => {
-					setRoute({ name: "home", tab, focusId: null });
+					setRoute({ name: "home", tab, focusId: null, guidePosition: null });
 				}}
-				onWatch={(serviceId) => {
-					setRoute({ name: "watch", serviceId });
+				onWatch={(serviceId, from, guidePosition) => {
+					setRoute({ name: "watch", serviceId, from, guidePosition: guidePosition ?? null });
 				}}
 				onChangeServer={() => {
 					setRoute({ name: "setup" });
