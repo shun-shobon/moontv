@@ -5,6 +5,7 @@ import { StyleSheet, View } from "react-native";
 import type { GuidePosition } from "../../features/guide/containers/GuideTab";
 import { GuideTab } from "../../features/guide/containers/GuideTab";
 import { LiveTab } from "../../features/live/containers/LiveTab";
+import { RecordingsTab } from "../../features/recording/containers/RecordingsTab";
 import { SettingsTab } from "../../features/settings/containers/SettingsTab";
 import { requestTVFocus } from "../../shared/services/tv-focus";
 import type { Tab } from "../components/TabBar";
@@ -17,6 +18,7 @@ type Props = {
 	guidePosition: GuidePosition | null;
 	onSelectTab: (tab: Tab) => void;
 	onWatch: (serviceId: number, from: Tab, guidePosition?: GuidePosition) => void;
+	onPlayRecording: (programId: number) => void;
 	onChangeServer: () => void;
 };
 
@@ -27,6 +29,7 @@ export function HomeScreen({
 	guidePosition,
 	onSelectTab,
 	onWatch,
+	onPlayRecording,
 	onChangeServer,
 }: Props) {
 	const selectedTabRef = useRef<HostInstance>(null);
@@ -50,6 +53,20 @@ export function HomeScreen({
 						onWatch(serviceId, "guide", position);
 					}}
 					onBack={() => {
+						requestTVFocus(selectedTabRef.current);
+					}}
+				/>
+			);
+		}
+		if (tab === "recordings") {
+			return (
+				<RecordingsTab
+					focusId={focusId}
+					onPlay={onPlayRecording}
+					onWatch={(serviceId) => {
+						onWatch(serviceId, "recordings");
+					}}
+					onFocusLost={() => {
 						requestTVFocus(selectedTabRef.current);
 					}}
 				/>

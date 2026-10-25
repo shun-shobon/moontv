@@ -5,6 +5,7 @@ import { AppState, StatusBar, StyleSheet, View } from "react-native";
 
 import type { GuidePosition } from "../../features/guide/containers/GuideTab";
 import { WatchScreen } from "../../features/player/containers/WatchScreen";
+import { RecordingPlayerScreen } from "../../features/recording/containers/RecordingPlayerScreen";
 import { SetupScreen } from "../../features/setup/containers/SetupScreen";
 import { preferencesQuery } from "../../shared/containers/hooks/usePreferences";
 import { loadServerUrl } from "../../shared/media/server-url";
@@ -20,7 +21,8 @@ type Route =
 	| { name: "setup" }
 	| { name: "home"; tab: Tab; focusId: number | null; guidePosition: GuidePosition | null }
 	// 視聴から戻ったときに、元のタブの同じ位置を開く。
-	| { name: "watch"; serviceId: number; from: Tab; guidePosition: GuidePosition | null };
+	| { name: "watch"; serviceId: number; from: Tab; guidePosition: GuidePosition | null }
+	| { name: "recording"; programId: number };
 
 export function App() {
 	const [serverUrl, setServerUrlState] = useState<string | null | undefined>(undefined);
@@ -85,6 +87,22 @@ export function App() {
 				/>
 			) : null;
 		}
+		if (route.name === "recording") {
+			// バックグラウンドで音だけ流し続けないよう、再生を閉じる。
+			return active ? (
+				<RecordingPlayerScreen
+					programId={route.programId}
+					onExit={() => {
+						setRoute({
+							name: "home",
+							tab: "recordings",
+							focusId: route.programId,
+							guidePosition: null,
+						});
+					}}
+				/>
+			) : null;
+		}
 		return (
 			<HomeScreen
 				serverUrl={serverUrl}
@@ -96,6 +114,9 @@ export function App() {
 				}}
 				onWatch={(serviceId, from, guidePosition) => {
 					setRoute({ name: "watch", serviceId, from, guidePosition: guidePosition ?? null });
+				}}
+				onPlayRecording={(programId) => {
+					setRoute({ name: "recording", programId });
 				}}
 				onChangeServer={() => {
 					setRoute({ name: "setup" });

@@ -2,6 +2,7 @@ package tech.s2n.moontv.player
 
 import android.content.Context
 import android.util.Log
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
@@ -19,6 +20,15 @@ import expo.modules.kotlin.views.ExpoView
 class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
   private val onPlaybackState by EventDispatcher()
   private val onPlaybackError by EventDispatcher()
+  private val onProgress by EventDispatcher()
+
+  // 録画の再生位置の表示に使う。毎フレーム送ると JS が忙しくなるので、1 秒ごとにする。
+  private val progressRunnable = object : Runnable {
+    override fun run() {
+      emitProgress()
+      postDelayed(this, PROGRESS_INTERVAL_MS)
+    }
+  }
 
   // RN は子のネイティブビューを測り直さないため、映像の比率に合わせた配置が反映されない。
   // addView から呼ばれるので、init より前に用意する。
@@ -46,6 +56,12 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
 
       override fun onIsPlayingChanged(isPlaying: Boolean) {
         playerView.keepScreenOn = isPlaying
+        removeCallbacks(progressRunnable)
+        if (isPlaying) {
+          post(progressRunnable)
+        } else {
+          emitProgress()
+        }
       }
 
       // Media3 は emsg の ID3 を、再生位置がその時刻に達したときに渡す。
@@ -67,6 +83,12 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
   private var source: String? = null
   /** サーバーは字幕が変わらなくても毎秒送り直すので、同じ内容は解析し直さない。 */
   private var captionPayload: String? = null
+
+  var paused: Boolean
+    get() = !player.playWhenReady
+    set(value) {
+      player.playWhenReady = !value
+    }
 
   var showCaption: Boolean
     get() = captionView.showCaption
@@ -107,6 +129,26 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
     player.prepare()
   }
 
+  fun seekBy(offsetMs: Long) {
+    val duration = player.duration
+    val target = (player.currentPosition + offsetMs).coerceAtLeast(0)
+    player.seekTo(if (duration == C.TIME_UNSET) target else target.coerceAtMost(duration))
+    emitProgress()
+  }
+
+  private fun emitProgress() {
+    val duration = player.duration
+    onProgress(
+      buildMap {
+        put("positionMs", player.currentPosition)
+        // ライブなど長さの決まらないものでは送らない。
+        if (duration != C.TIME_UNSET) {
+          put("durationMs", duration)
+        }
+      },
+    )
+  }
+
   private fun showCaptionPayload(payload: String) {
     if (payload == captionPayload) {
       return
@@ -121,11 +163,13 @@ class MoontvPlayerView(context: Context, appContext: AppContext) : ExpoView(cont
   }
 
   fun release() {
+    removeCallbacks(progressRunnable)
     player.release()
   }
 
   private companion object {
     const val TAG = "MoontvPlayer"
+    const val PROGRESS_INTERVAL_MS = 1000L
   }
 
   private fun stateName(state: Int) = when (state) {
