@@ -13,6 +13,7 @@ use crate::catalog::Catalog;
 use crate::recording::Recorder;
 use crate::recording::library::{DeleteError, Library};
 use crate::transcode::manager::{AcquireError, EndReason, SessionManager};
+use crate::transcode::pipeline;
 use crate::transcode::profile::{AudioTrack, Codec, QUALITIES, Quality};
 use crate::transcode::session::{LiveKey, LiveSession, MEDIA_PLAYLIST};
 
@@ -275,12 +276,10 @@ async fn leave_live(State(state): State<AppState>, Path(path): Path<LivePath>) -
 
 async fn master_playlist(State(state): State<AppState>, Path(path): Path<LivePath>) -> ApiResult<Response> {
     let session = ready_session(&state, &path).await?;
-    let spec = session.key.quality.spec(session.key.codec);
-    let bandwidth = (spec.video_kbps * 3 / 2 + spec.audio_kbps) * 1000;
-    let body = format!(
-        "#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-INDEPENDENT-SEGMENTS\n\
-         #EXT-X-STREAM-INF:BANDWIDTH={bandwidth},RESOLUTION={}x{},CODECS=\"{},mp4a.40.2\"\n{}/{MEDIA_PLAYLIST}\n",
-        spec.width, spec.height, spec.codecs, session.id,
+    let body = pipeline::master_playlist(
+        session.key.codec,
+        session.key.quality,
+        &format!("{}/{MEDIA_PLAYLIST}", session.id),
     );
     Ok(playlist_response(body.into_bytes()))
 }

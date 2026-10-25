@@ -26,6 +26,6 @@ export const livePath = ({ serviceId, codec, quality, audio, viewerId }: LiveTar
 export const masterPlaylistUrl = (target: LiveTarget) => apiUrl(`${livePath(target)}/master.m3u8`);
 
 export const recordingPlaylistUrl = (programId: number) =>
-	apiUrl(`/api/recordings/${programId}/media/media.m3u8`);
+	apiUrl(`/api/recordings/${programId}/media/master.m3u8`);
 
 export const logoUrl = (serviceId: number) => apiUrl(`/api/channels/${serviceId}/logo`);
