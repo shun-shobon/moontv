@@ -11,7 +11,7 @@ use tokio::sync::mpsc;
 use crate::catalog::{self, ProgramDto};
 use crate::mirakc::{Program, RecordingSchedule, ScheduleState};
 use crate::transcode::encoder::EncoderSetup;
-use crate::transcode::pipeline::{self, Hls, Job, MEDIA_PLAYLIST};
+use crate::transcode::pipeline::{self, Hls, Job, MASTER_PLAYLIST, MEDIA_PLAYLIST};
 use crate::transcode::profile::{AudioTrack, Codec, Quality};
 
 const META_FILE: &str = "meta.json";
@@ -276,15 +276,22 @@ impl Library {
         let file = tokio::fs::File::open(source)
             .await
             .with_context(|| format!("failed to open {}", source.display()))?;
+        let codec = recording_codec(&self.setup);
         let job = Job {
             setup: &self.setup,
-            codec: recording_codec(&self.setup),
+            codec,
             quality: Quality::P1080,
             audio: AudioTrack::Main,
             dir: &media,
             hls: Hls::Recording,
         };
         pipeline::run(&job, read_chunks(file), std::future::pending()).await?;
+        tokio::fs::write(
+            media.join(MASTER_PLAYLIST),
+            pipeline::master_playlist(codec, job.quality, MEDIA_PLAYLIST),
+        )
+        .await
+        .context("failed to write the master playlist")?;
         let playlist = tokio::fs::read_to_string(media.join(MEDIA_PLAYLIST))
             .await
             .context("failed to read the converted playlist")?;

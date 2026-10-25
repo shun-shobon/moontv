@@ -15,6 +15,8 @@ use super::input::InputRewriter;
 use super::profile::{AudioTrack, Codec, Quality};
 
 pub const MEDIA_PLAYLIST: &str = "media.m3u8";
+/// 録画もライブと同じく master から再生させる。Media3（TV アプリ）は master に CODECS が無いと、ID3 のトラックを用意しない。
+pub const MASTER_PLAYLIST: &str = "master.m3u8";
 const STDERR_TAIL_LINES: usize = 20;
 /// 12 秒あれば一時的な回線の詰まりでも、プレイヤーが要求するセグメントが消えない。
 const LIVE_PLAYLIST_SEGMENTS: u32 = 12;
@@ -42,6 +44,17 @@ pub enum Outcome {
     /// 入力を最後まで変換し終えた。
     Finished,
     Cancelled,
+}
+
+/// 変換した 1 本のメディアプレイリストだけを並べた master プレイリスト。
+pub fn master_playlist(codec: Codec, quality: Quality, media_uri: &str) -> String {
+    let spec = quality.spec(codec);
+    let bandwidth = (spec.video_kbps * 3 / 2 + spec.audio_kbps) * 1000;
+    format!(
+        "#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-INDEPENDENT-SEGMENTS\n\
+         #EXT-X-STREAM-INF:BANDWIDTH={bandwidth},RESOLUTION={}x{},CODECS=\"{},mp4a.40.2\"\n{media_uri}\n",
+        spec.width, spec.height, spec.codecs,
+    )
 }
 
 /// 放送の TS を字幕入りの HLS に変換し、`job.dir` に書き出す。
