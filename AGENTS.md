@@ -73,5 +73,6 @@ TV アプリでも使うロジックは `packages/core` に置き、`@moontv/cor
 - TV アプリは `react-native-tvos`（React Native の TV 対応フォーク）と Expo で作り、`tv/android` は `expo prebuild` で `tv/app.json` から生成する（git 管理外）。再生は Media3 を直接使う自前のモジュールにしている。既製の再生ライブラリは字幕の ID3 PRIV の中身を JS に渡さないため。
 - TV アプリの字幕は Kotlin（`tv/modules/player` の `CaptionView`、`caption-canvas.ts` の移植）で描く。RN の Text は縁取りを描けないため。Media3 は ID3 を表示時刻に達したときに渡すので、hls.js 版のような時刻の突き合わせは要らない。描き方を変えるときは Web と TV を揃える。
 - TV アプリは armeabi-v7a だけをビルドする。手元の TV（Xiaomi・Android 14・RAM 1.8GB）が 32bit の ARM しか動かせないため。画面は 960×540dp として組む。
-- TV アプリのリモコンのキーは離したとき（`remoteKeyUp`）だけ扱う。押しっぱなしでチャンネルを次々に切り替え、配信を立ち上げ続けないようにするため。
+- react-native-tvos は Android で、キーを離したときと、長押しの間の `longDown` などだけを JS に渡す。チャンネルの切り替えは離したとき（`remoteKeyUp`）だけ扱い、押しっぱなしで配信を立ち上げ続けないようにする。番組表の移動は長押しでも進める（`remoteKeyRepeating`）。
+- Android はフォーカスのあるビューにしかキーを配らない。TV アプリの再生画面と番組表は画面全体を1つのフォーカス先にし、選んでいる番組などの位置は JS で持つ。番組表は縦横に仮想化した表をネイティブのフォーカス移動に任せると不安定なため。フォーカスを持つボタンを消すときは `requestTVFocus` で戻し先を決める。
 - 実機確認は `mirakc` に接続できる環境で行う。チューナーを占有するので、検証後はセッションを止める。
