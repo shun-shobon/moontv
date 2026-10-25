@@ -2,11 +2,12 @@ import type { Program, ScheduleState } from "@moontv/core/api/schemas";
 import { formatMarks } from "@moontv/core/domain/program-marks";
 import { SCHEDULE_SHORT_LABELS } from "@moontv/core/domain/schedule";
 import { formatTime } from "@moontv/core/domain/time";
+import { programEnd } from "@moontv/core/services/guide";
 import { clsx } from "clsx";
 import { Button } from "react-aria-components";
 
 import { genreStyle } from "../domain/genre";
-import { programBox, programEnd } from "../services/guide-layout";
+import { programBox } from "../services/guide-layout";
 
 type Props = {
 	program: Program;

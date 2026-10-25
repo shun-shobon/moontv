@@ -1,6 +1,7 @@
 import { useChannels, useSchedules, useStatus, usePrograms } from "@moontv/core/api/queries";
 import type { Program } from "@moontv/core/api/schemas";
 import { DAY_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
+import { guideColumns, selectableDays } from "@moontv/core/services/guide";
 import { useCallback, useMemo, useState } from "react";
 
 import { StatusMessage } from "../../../shared/components/StatusMessage";
@@ -8,7 +9,7 @@ import { useNow } from "../../../shared/hooks/useNow";
 import { guidePath } from "../../../shared/services/routes";
 import { DayTabs } from "../components/DayTabs";
 import { ProgramGrid } from "../components/ProgramGrid";
-import { guideColumns, initialScrollTop, selectableDays } from "../services/guide-layout";
+import { initialScrollTop } from "../services/guide-layout";
 import { ProgramDetailDialog } from "./ProgramDetailDialog";
 
 export function GuidePage({ dayStart }: { dayStart: number }) {

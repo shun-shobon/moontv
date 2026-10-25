@@ -1,30 +1,11 @@
-import type { Channel, Program } from "@moontv/core/api/schemas";
+import type { Program } from "@moontv/core/api/schemas";
 import { DAY_MS, HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
 import { describe, expect, it } from "vitest";
 
-import {
-	guideColumns,
-	initialScrollTop,
-	nowLineTop,
-	programBox,
-	programEnd,
-	resolveGuideDay,
-	selectableDays,
-	toPx,
-} from "./guide-layout";
+import { initialScrollTop, nowLineTop, programBox, resolveGuideDay, toPx } from "./guide-layout";
 
 const DAY_START = startOfBroadcastDay(Date.UTC(2026, 9, 12, 3));
 const DAY_END = DAY_START + DAY_MS;
-
-describe("selectableDays", () => {
-	it("今日から1日ずつ7日分を返す", () => {
-		const days = selectableDays(DAY_START);
-
-		expect(days).toHaveLength(7);
-		expect(days[0]).toBe(DAY_START);
-		expect(days[6]).toBe(DAY_START + 6 * DAY_MS);
-	});
-});
 
 describe("resolveGuideDay", () => {
 	it("選べる日はそのまま返す", () => {
@@ -37,24 +18,6 @@ describe("resolveGuideDay", () => {
 		["先すぎる日", DAY_START + 7 * DAY_MS],
 	])("%sは今日にする", (_, requested) => {
 		expect(resolveGuideDay(requested, DAY_START)).toBe(DAY_START);
-	});
-});
-
-describe("guideColumns", () => {
-	it("その日に番組のないサブチャンネルの列を除く", () => {
-		const main = channel({ id: 1 });
-		const activeSub = channel({ id: 2, isSubchannel: true });
-		const idleSub = channel({ id: 3, isSubchannel: true });
-
-		const columns = guideColumns([main, activeSub, idleSub], [program({ serviceId: 2 })]);
-
-		expect(columns).toEqual([main, activeSub]);
-	});
-});
-
-describe("programEnd", () => {
-	it("終了時刻が未定の番組は1時間で区切る", () => {
-		expect(programEnd(program({ startAt: 0, duration: null }))).toBe(HOUR_MS);
 	});
 });
 
@@ -131,21 +94,6 @@ describe("initialScrollTop", () => {
 		expect(initialScrollTop(DAY_START + DAY_MS, DAY_START + 2 * HOUR_MS)).toBe(0);
 	});
 });
-
-function channel(overrides: Partial<Channel>): Channel {
-	return {
-		id: 0,
-		name: "テスト",
-		channelType: "GR",
-		channel: "27",
-		remoteControlKeyId: null,
-		hasLogo: false,
-		isSubchannel: false,
-		present: null,
-		following: null,
-		...overrides,
-	};
-}
 
 function program(overrides: Partial<Program>): Program {
 	return {

@@ -1,13 +1,11 @@
-import type { Channel, Program } from "@moontv/core/api/schemas";
+import type { Program } from "@moontv/core/api/schemas";
 import { DAY_MS, HOUR_MS, MINUTE_MS, startOfBroadcastDay } from "@moontv/core/domain/time";
+import { programEnd, selectableDays } from "@moontv/core/services/guide";
 
 const PX_PER_MINUTE = 3;
 export const COLUMN_WIDTH_PX = 176;
 export const TIME_COLUMN_WIDTH_PX = 40;
-const DAYS_AHEAD = 7;
 const SCROLL_LEAD_MS = 30 * MINUTE_MS;
-/** 終了時刻が未定の番組も選べるよう、1時間分の枠を取る。 */
-const UNKNOWN_DURATION_MS = HOUR_MS;
 /** これより低い枠に説明文を入れても1行も読めない。 */
 const DESCRIPTION_MIN_HEIGHT_PX = 48;
 
@@ -19,23 +17,11 @@ export const HOUR_HEIGHT_PX = toPx(HOUR_MS);
 export const gridWidth = (columnCount: number) =>
 	TIME_COLUMN_WIDTH_PX + columnCount * COLUMN_WIDTH_PX;
 
-export const selectableDays = (today: number) =>
-	Array.from({ length: DAYS_AHEAD }, (_, i) => today + i * DAY_MS);
-
 export const resolveGuideDay = (requested: number | null, today: number) =>
 	requested != null && selectableDays(today).includes(requested) ? requested : today;
 
 export const hourMarks = (dayStart: number) =>
 	Array.from({ length: 24 }, (_, i) => dayStart + i * HOUR_MS);
-
-/** サブチャンネルは臨時編成のときしか放送しないので、その日に番組がある場合だけ列を出す。 */
-export const guideColumns = (channels: readonly Channel[], programs: readonly Program[]) => {
-	const servicesWithPrograms = new Set(programs.map((p) => p.serviceId));
-	return channels.filter((c) => !c.isSubchannel || servicesWithPrograms.has(c.id));
-};
-
-export const programEnd = (program: Program) =>
-	program.startAt + (program.duration ?? UNKNOWN_DURATION_MS);
 
 export const programBox = (program: Program, dayStart: number, dayEnd: number) => {
 	const start = Math.max(program.startAt, dayStart);

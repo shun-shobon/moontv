@@ -1,8 +1,8 @@
+import { selectableDays } from "@moontv/core/services/guide";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn } from "storybook/test";
 
 import { DAY_START } from "../../../../.storybook/fixtures";
-import { selectableDays } from "../services/guide-layout";
 import { DayTabs } from "./DayTabs";
 
 const days = selectableDays(DAY_START);
