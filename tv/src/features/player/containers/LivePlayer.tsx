@@ -11,12 +11,12 @@ import { PlayerView, supportsCodec } from "../../../../modules/player";
 import { Button } from "../../../shared/components/Button";
 import { usePreferences } from "../../../shared/containers/hooks/usePreferences";
 import { useBackHandler } from "../../../shared/hooks/useBackHandler";
+import { useTransientVisibility } from "../../../shared/hooks/useTransientVisibility";
 import { remoteKeyUp } from "../../../shared/services/remote";
 import { requestTVFocus } from "../../../shared/services/tv-focus";
 import { colors } from "../../../shared/theme";
 import { ChannelBanner } from "../components/ChannelBanner";
 import { PlayerStatus } from "../components/PlayerStatus";
-import { useTransientVisibility } from "../hooks/useTransientVisibility";
 import { createViewerId } from "../media/viewer-id";
 
 const BANNER_DURATION_MS = 5000;
